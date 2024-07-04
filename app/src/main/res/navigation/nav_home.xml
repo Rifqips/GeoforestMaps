@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_application"
+    app:startDestination="@id/dashboardFragment">
+
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="id.application.geoforestmaps.presentation.feature.dashboard.DashboardFragment"
+        android:label="fragment_dashboard"
+        tools:layout="@layout/fragment_dashboard" />
+    <fragment
+        android:id="@+id/historyFragment"
+        android:name="id.application.geoforestmaps.presentation.feature.history.HistoryFragment"
+        android:label="fragment_history"
+        tools:layout="@layout/fragment_history" />
+    <fragment
+        android:id="@+id/areaFragment"
+        android:name="id.application.geoforestmaps.presentation.feature.area.AreaFragment"
+        android:label="fragment_area"
+        tools:layout="@layout/fragment_area" />
+    <fragment
+        android:id="@+id/accountFragment"
+        android:name="id.application.geoforestmaps.presentation.feature.account.AccountFragment"
+        android:label="fragment_account"
+        tools:layout="@layout/fragment_account" />
+</navigation>
