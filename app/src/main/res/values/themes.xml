@@ -18,6 +18,19 @@
         <item name="android:windowIsTranslucent">true</item>
     </style>
 
-
+    <style name="Base.Theme.GeoforestMaps.EditText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:layout_marginTop">69dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:background">@drawable/outlined_edittext_background</item>
+        <item name="android:fontFamily">@font/poppins_medium</item>
+    </style>
+    <style name="Base.Theme.GeoforestMaps.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:backgroundTint">@color/primary_green</item>
+    </style>
     <style name="Theme.GeoforestMaps" parent="Base.Theme.GeoforestMaps" />
 </resources>

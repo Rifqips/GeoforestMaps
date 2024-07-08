@@ -50,8 +50,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, VmPreLogin>(FragmentHomeB
                         .navigate(R.id.dashboardFragment)
                     R.id.menuHistory -> containerBottomNavigation.findNavController()
                         .navigate(R.id.historyFragment)
-                    R.id.blankFragment -> containerBottomNavigation.findNavController()
-                        .navigate(R.id.blankFragment)
                     R.id.menuArea -> containerBottomNavigation.findNavController()
                         .navigate(R.id.areaFragment)
                     R.id.menuAccount -> containerBottomNavigation.findNavController()
@@ -60,7 +58,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, VmPreLogin>(FragmentHomeB
                 true
             }
         }
-        Log.e("Navigation", "$navHostFragment")
     }
 
 

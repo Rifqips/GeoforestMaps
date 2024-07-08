@@ -29,7 +29,7 @@
             android:layout_height="match_parent"
             android:layout_marginEnd="16dp"
             android:background="@android:color/transparent"
-            app:itemIconTint="@color/primary_green"
+            app:itemIconTint="@color/secondary_green"
             app:itemTextColor="@color/black"
             app:menu="@menu/menu_bottom_navigation"/>
     </com.google.android.material.bottomappbar.BottomAppBar>

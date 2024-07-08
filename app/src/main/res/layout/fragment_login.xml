@@ -35,45 +35,34 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <EditText
+            style="@style/Base.Theme.GeoforestMaps.EditText"
             android:id="@+id/et_email"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
             android:hint="Email"
             android:layout_marginHorizontal="35dp"
             android:layout_marginTop="69dp"
-            android:textSize="14sp"
-            android:background="@drawable/outlined_edittext_background"
-            android:fontFamily="@font/poppins_medium"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/iv_logo"/>
 
         <EditText
+            style="@style/Base.Theme.GeoforestMaps.EditText"
             android:id="@+id/et_password"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
             android:hint="Password"
             android:layout_marginHorizontal="35dp"
             android:layout_marginTop="44dp"
-            android:textSize="14sp"
-            android:fontFamily="@font/poppins_medium"
-            android:background="@drawable/outlined_edittext_background"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/et_email"/>
 
         <Button
+            style="@style/Base.Theme.GeoforestMaps.Button"
             android:id="@+id/btn_login"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
             android:text="Masuk"
             android:layout_marginHorizontal="35dp"
             android:layout_marginTop="44dp"
-            android:backgroundTint="@color/primary_green"
             app:layout_constraintTop_toBottomOf="@+id/et_password"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
-
 
         <TextView
             android:layout_width="wrap_content"

@@ -25,9 +25,4 @@
         android:name="id.application.geoforestmaps.presentation.feature.account.AccountFragment"
         android:label="fragment_account"
         tools:layout="@layout/fragment_account" />
-    <fragment
-        android:id="@+id/blankFragment"
-        android:name="id.application.geoforestmaps.presentation.feature.home.BlankFragment"
-        android:label="fragment_blank"
-        tools:layout="@layout/fragment_blank" />
 </navigation>
