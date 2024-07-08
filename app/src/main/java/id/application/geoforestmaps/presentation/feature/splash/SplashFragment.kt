@@ -19,7 +19,7 @@ class SplashFragment :
 
     override fun initListener() {
         lifecycleScope.launch {
-            delay(2000)
+            delay(3000)
             findNavController().navigate(R.id.action_splashFragment_to_loginFragment)
         }
     }

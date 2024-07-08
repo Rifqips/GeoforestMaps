@@ -3,15 +3,102 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".presentation.feature.login.LoginFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:id="@+id/btn_login"
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="195dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/bg_login"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:text="Login"
-        android:textSize="24sp"/>
+        android:layout_height="700dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@drawable/rounded_login">
+
+
+        <ImageView
+            android:id="@+id/iv_logo"
+            android:layout_width="81dp"
+            android:layout_height="81dp"
+            android:src="@drawable/ic_logo_egoforest"
+            android:layout_marginTop="90dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/et_email"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:hint="Email"
+            android:layout_marginHorizontal="35dp"
+            android:layout_marginTop="69dp"
+            android:textSize="14sp"
+            android:background="@drawable/outlined_edittext_background"
+            android:fontFamily="@font/poppins_medium"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/iv_logo"/>
+
+        <EditText
+            android:id="@+id/et_password"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:hint="Password"
+            android:layout_marginHorizontal="35dp"
+            android:layout_marginTop="44dp"
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins_medium"
+            android:background="@drawable/outlined_edittext_background"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/et_email"/>
+
+        <Button
+            android:id="@+id/btn_login"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Masuk"
+            android:layout_marginHorizontal="35dp"
+            android:layout_marginTop="44dp"
+            android:backgroundTint="@color/primary_green"
+            app:layout_constraintTop_toBottomOf="@+id/et_password"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            android:fontFamily="@font/poppins"
+            android:text="Dibuat oleh :"
+            android:textColor="@color/grey_text"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toTopOf="@+id/iv_perhutani"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <ImageView
+            android:id="@+id/iv_perhutani"
+            android:layout_width="39dp"
+            android:layout_height="39dp"
+            android:layout_marginBottom="50dp"
+            android:src="@drawable/ic_perhutani"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

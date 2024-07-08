@@ -1,9 +1,12 @@
 package id.application.geoforestmaps.presentation.feature.home
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.OnBackPressedCallback
 import androidx.core.app.ActivityCompat
+import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
@@ -14,6 +17,9 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentHomeBinding
+import id.application.geoforestmaps.presentation.feature.account.AccountFragment
+import id.application.geoforestmaps.presentation.feature.area.AreaFragment
+import id.application.geoforestmaps.presentation.feature.history.HistoryFragment
 import id.application.geoforestmaps.presentation.viewmodel.VmPreLogin
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -22,8 +28,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, VmPreLogin>(FragmentHomeB
     override val viewModel: VmPreLogin by viewModel()
     private lateinit var firebaseAnalytics: FirebaseAnalytics
 
-
     override fun initView() {
+        binding.bottomNavigation.background = null
         setUpFragment()
     }
 
@@ -36,28 +42,27 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, VmPreLogin>(FragmentHomeB
             childFragmentManager.findFragmentById(R.id.container_bottom_navigation) as NavHostFragment
         val navController = navHostFragment.navController
         with(binding) {
-
             val bottomNav = binding.bottomNavigation as BottomNavigationView
-
             bottomNav.setupWithNavController(navController)
             bottomNav.setOnItemSelectedListener {
                 when (it.itemId) {
                     R.id.menuDashboard -> containerBottomNavigation.findNavController()
                         .navigate(R.id.dashboardFragment)
-
                     R.id.menuHistory -> containerBottomNavigation.findNavController()
                         .navigate(R.id.historyFragment)
-
+                    R.id.blankFragment -> containerBottomNavigation.findNavController()
+                        .navigate(R.id.blankFragment)
                     R.id.menuArea -> containerBottomNavigation.findNavController()
                         .navigate(R.id.areaFragment)
-
                     R.id.menuAccount -> containerBottomNavigation.findNavController()
                         .navigate(R.id.accountFragment)
                 }
                 true
             }
         }
+        Log.e("Navigation", "$navHostFragment")
     }
+
 
     private fun onBackPressed() {
         requireActivity().onBackPressedDispatcher.addCallback(
