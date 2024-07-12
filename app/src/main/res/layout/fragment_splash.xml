@@ -19,29 +19,6 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="18dp"
-        android:fontFamily="@font/poppins"
-        android:text="Dibuat oleh :"
-        android:textColor="@color/grey_text"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/iv_logo" />
-
-
-    <ImageView
-        android:id="@+id/iv_perhutani"
-        android:layout_width="39dp"
-        android:layout_height="39dp"
-        android:layout_marginBottom="9dp"
-        android:src="@drawable/ic_perhutani"
-        app:layout_constraintBottom_toTopOf="@+id/tv_perhutani"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
         android:id="@+id/tv_perhutani"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -49,7 +26,7 @@
         android:fontFamily="@font/poppins"
         android:textAlignment="center"
         android:layout_marginBottom="44dp"
-        android:text="Kementerian Lingkungan Hidup \ndan Kehutanan"
+        android:text="v1.1.1"
         android:textColor="@color/grey_text"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"
