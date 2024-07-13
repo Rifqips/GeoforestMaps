@@ -48,7 +48,11 @@
         android:id="@+id/cameraFragment"
         android:name="id.application.geoforestmaps.presentation.feature.camera.CameraFragment"
         android:label="fragment_camera"
-        tools:layout="@layout/fragment_camera" />
+        tools:layout="@layout/fragment_camera">
+        <action
+            android:id="@+id/action_cameraFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+    </fragment>
     <fragment
         android:id="@+id/mapsFragment"
         android:name="id.application.geoforestmaps.presentation.feature.maps.MapsFragment"

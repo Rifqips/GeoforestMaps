@@ -81,11 +81,11 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, VmPreLogin>(FragmentHomeB
 
     private fun showExitConfirmationDialog() {
         AlertDialog.Builder(requireContext())
-            .setMessage("Are you sure you want to exit?")
-            .setPositiveButton("Yes") { _, _ ->
+            .setMessage("Anda Yakin Ingin Keluar Aplikasi?")
+            .setPositiveButton("Ya") { _, _ ->
                 requireActivity().finishAffinity()
             }
-            .setNegativeButton("No", null)
+            .setNegativeButton("Tidak", null)
             .show()
     }
 
