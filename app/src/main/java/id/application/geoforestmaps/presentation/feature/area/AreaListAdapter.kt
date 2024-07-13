@@ -1,11 +1,15 @@
 package id.application.geoforestmaps.presentation.feature.area
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import id.application.core.model.Dashboard
+import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.ItemBlokDataBinding
 
 class AreaListAdapter: RecyclerView.Adapter<AreaListAdapter.ViewHolder>()  {
@@ -36,6 +40,13 @@ class AreaListAdapter: RecyclerView.Adapter<AreaListAdapter.ViewHolder>()  {
             with(binding){
                 ivImage.setImageResource(data.image)
                 tvTitle.text = data.name
+                itemView.setOnClickListener {
+                    val activity = it.context as? AppCompatActivity
+                    if (activity != null) {
+                        val navController = activity.supportFragmentManager.findFragmentById(R.id.container_navigation)?.findNavController()
+                        navController?.navigate(R.id.action_homeFragment_to_mapsFragment)
+                    }
+                }
             }
         }
     }

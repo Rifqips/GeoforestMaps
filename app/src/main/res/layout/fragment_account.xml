@@ -66,6 +66,7 @@
         android:textSize="14sp"/>
     
     <Button
+        android:id="@+id/btn_logout"
         style="@style/Base.Theme.GeoforestMaps.ButtonLogout"
         android:layout_width="match_parent"
         app:layout_constraintTop_toBottomOf="@id/iv_account"
