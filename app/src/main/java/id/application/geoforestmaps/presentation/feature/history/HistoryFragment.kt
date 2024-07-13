@@ -7,30 +7,31 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import id.application.core.model.History
+import id.application.core.model.HistoryAlreadySent
+import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentHistoryBinding
+import id.application.geoforestmaps.databinding.FragmentLoginBinding
 import id.application.geoforestmaps.presentation.feature.history.HistoryData.listDataHistory
 import id.application.geoforestmaps.presentation.feature.history.HistoryData.listDataHistoryAlreadySent
+import id.application.geoforestmaps.presentation.viewmodel.VmPreLogin
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class HistoryFragment : Fragment() {
+class HistoryFragment :
+    BaseFragment<FragmentHistoryBinding, VmPreLogin>(FragmentHistoryBinding::inflate)  {
 
-    private lateinit var binding: FragmentHistoryBinding
+
     private val adapterHistory = HistoryListAdapter()
+    private val adapterHistoryAlreadySentAdapter = HistoryAlreadySentAdapter()
+    override val viewModel: VmPreLogin by viewModel()
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentHistoryBinding.inflate(inflater, container, false)
-        return binding.root
-    }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
+    override fun initView() {
         rvListHistory()
         rvListHistoryAlreadySent()
     }
+
+    override fun initListener() {}
 
     private fun rvListHistory() {
         binding.rvHistoryData.adapter = adapterHistory
@@ -39,15 +40,16 @@ class HistoryFragment : Fragment() {
     }
 
     private fun rvListHistoryAlreadySent() {
-        binding.rvHistoryAlreadySentData.adapter = adapterHistory
+        binding.rvHistoryAlreadySentData.adapter = adapterHistoryAlreadySentAdapter
         binding.rvHistoryAlreadySentData.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        adapterHistory.setData(listDataHistoryAlreadySent)
+        adapterHistoryAlreadySentAdapter.setData(listDataHistoryAlreadySent)
     }
 
 }
 
 
 object HistoryData {
+
     private var images = intArrayOf(
         R.drawable.img_red_tree,
         R.drawable.img_red_tree,
@@ -119,11 +121,11 @@ object HistoryData {
         "10 Juli 2024"
     )
 
-    val listDataHistoryAlreadySent : ArrayList<History>
+    val listDataHistoryAlreadySent : ArrayList<HistoryAlreadySent>
         get() {
-            val listHistoryAlreadySent = arrayListOf<History>()
-            for (position in titles.indices){
-                val dataHistoryAlreadySent = History()
+            val listHistoryAlreadySent = arrayListOf<HistoryAlreadySent>()
+            for (position in titles_already_sent.indices){
+                val dataHistoryAlreadySent = HistoryAlreadySent()
                 dataHistoryAlreadySent.image = images_already_sent[position]
                 dataHistoryAlreadySent.title = titles_already_sent[position]
                 dataHistoryAlreadySent.description = descriptions_already_sent[position]

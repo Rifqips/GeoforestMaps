@@ -22,18 +22,13 @@ class LoginFragment :
             val widthDp = metrics?.bounds?.width()?.div(resources.displayMetrics.density)
             if (widthDp != null) {
                 when {
-                    widthDp <= 320 -> {
-                        Log.d("DeviceType", "Small phone")
-                    }
                     widthDp <= 360 -> {
                         consBgLogin.maxHeight = (600 * resources.displayMetrics.density).toInt()
-                        Log.d("DeviceType", "Medium phone")
                     }
                     else -> {
                         val layoutParams = consBgLogin.layoutParams
                         layoutParams.height = (750 * resources.displayMetrics.density).toInt()
                         consBgLogin.layoutParams = layoutParams
-                        Log.d("DeviceType", "Large phone or tablet")
                     }
                 }
             }
