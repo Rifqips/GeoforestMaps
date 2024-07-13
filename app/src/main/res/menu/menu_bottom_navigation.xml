@@ -31,6 +31,6 @@
         android:id="@+id/menuAccount"
         android:icon="@drawable/ic_person"
         android:enabled="true"
-        android:title="Account"/>
+        android:title="Akun"/>
 
 </menu>

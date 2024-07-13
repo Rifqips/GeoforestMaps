@@ -5,9 +5,9 @@
     android:id="@+id/cv_history_data"
     android:layout_width="match_parent"
     android:layout_height="72dp"
+    android:layout_marginHorizontal="16dp"
     android:layout_marginBottom="16dp"
-    app:cardElevation="6dp"
-    app:cardMaxElevation="18dp">
+    app:cardElevation="6dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

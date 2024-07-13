@@ -4,18 +4,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
     tools:context=".presentation.feature.dashboard.DashboardFragment">
 
     <TextView
         android:id="@+id/tv_title_header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="40dp"
         android:fontFamily="@font/poppins_medium"
         android:text="Geoforest Map"
         android:textColor="@color/black"
         android:textSize="18sp"
+        android:layout_marginStart="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -27,6 +27,7 @@
         android:fontFamily="@font/poppins_medium"
         android:text="Halo, Asep Sudrajat"
         android:textColor="@color/black"
+        android:layout_marginStart="16dp"
         android:textSize="16sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_title_header" />
@@ -34,10 +35,11 @@
     <ImageView
         android:layout_width="26dp"
         android:layout_height="26dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
         android:src="@drawable/ic_logout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toBottomOf="@id/tv_title_header"
+        app:layout_constraintTop_toTopOf="@id/tv_title_header" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cv_banner"
@@ -45,7 +47,7 @@
         android:layout_height="160dp"
         android:layout_marginTop="16dp"
         app:cardElevation="6dp"
-        app:cardMaxElevation="18dp"
+        android:layout_marginHorizontal="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_title_description">
@@ -61,8 +63,9 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_dashboard_data"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginHorizontal="16dp"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
