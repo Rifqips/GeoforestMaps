@@ -75,12 +75,13 @@ class CameraFragment :
     }
 
     private fun plantsTypeSpinner() {
-        val plant_types = resources.getStringArray(R.array.plant_types)
+        val plantTypes = resources.getStringArray(R.array.plant_types)
 
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, plant_types)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val adapter = ArrayAdapter(requireContext(), R.layout.item_spinner, plantTypes)
+        adapter.setDropDownViewResource(R.layout.item_dropdown_spinner)
 
         binding.spinnerPlantTypes.adapter = adapter
+        binding.spinnerPlantTypes.dropDownVerticalOffset = 146
 
         binding.spinnerPlantTypes.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
@@ -91,7 +92,7 @@ class CameraFragment :
             ) {
                 Toast.makeText(
                     requireContext(),
-                    getString(R.string.selected_item) + " " + plant_types[position],
+                    getString(R.string.selected_item) + " " + plantTypes[position],
                     Toast.LENGTH_SHORT
                 ).show()
             }

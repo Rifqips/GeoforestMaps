@@ -31,22 +31,17 @@
             android:layout_height="wrap_content"
             android:text="Jenis Tanaman"
             android:textSize="16sp"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="8dp"
             android:textColor="@color/grey_text"
             android:fontFamily="@font/poppins"/>
 
-        <LinearLayout
+        <Spinner
+            android:id="@+id/spinner_plant_types"
             android:layout_width="match_parent"
             android:layout_height="44dp"
             android:layout_marginTop="8dp"
-            android:background="@drawable/outlined_dropdown">
-
-            <Spinner
-                android:id="@+id/spinner_plant_types"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
-
-        </LinearLayout>
+            android:popupBackground="@drawable/bg_popup_spinner"
+            android:background="@drawable/outlined_spinner"/>
 
     </LinearLayout>
 

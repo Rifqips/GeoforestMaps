@@ -9,4 +9,5 @@
     <color name="orange_text">#FF8100</color>
     <color name="bg_blue">#32AFCE</color>
     <color name="red">#FF2727</color>
+    <color name="light_grey">#E0E0E0</color>
 </resources>
