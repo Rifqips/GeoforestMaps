@@ -1,5 +1,6 @@
 package id.application.geoforestmaps.presentation.feature.dashboard
 
+import android.util.Log
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,6 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import id.application.core.model.Dashboard
+import id.application.geoforestmaps.BuildConfig
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentDashboardBinding
 import id.application.geoforestmaps.presentation.feature.dashboard.DashboardData.listDataDash
@@ -29,7 +31,6 @@ class DashboardFragment : Fragment() {
 
         rvListData()
     }
-
     private fun rvListData() {
         binding.rvDashboardData.adapter = adapterDashboard
         binding.rvDashboardData.layoutManager = GridLayoutManager(requireContext(), 2)
@@ -65,4 +66,5 @@ object DashboardData {
             }
             return listData
         }
+
 }

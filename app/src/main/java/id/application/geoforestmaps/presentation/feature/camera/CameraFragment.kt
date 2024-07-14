@@ -36,6 +36,7 @@ class CameraFragment :
     private lateinit var openGalleryLauncher: ActivityResultLauncher<Intent>
 
     override fun initView() {
+        binding.topBar.ivTitle.text = "Kamera"
         checkPermissions()
     }
 
@@ -54,7 +55,7 @@ class CameraFragment :
             ivGallery.setOnClickListener {
                 startGallery()
             }
-            ivBack.setOnClickListener {
+            topBar.ivBack.setOnClickListener {
                 findNavController().navigateUp()
             }
         }
