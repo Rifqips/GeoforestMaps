@@ -42,17 +42,15 @@ class DashboardFragment : Fragment() {
 
 object DashboardData {
     private var images = intArrayOf(
-        R.drawable.bg_login,
-        R.drawable.bg_login,
-        R.drawable.bg_login,
-        R.drawable.bg_login
+        R.drawable.ic_list_data,
+        R.drawable.ic_image,
+        R.drawable.ic_map
     )
 
     private var names = arrayOf(
-        "Data 1",
-        "Data 2",
-        "Data 3",
-        "Data 4",
+        "List Data",
+        "Image",
+        "Map"
     )
 
     val listDataDash : ArrayList<Dashboard>

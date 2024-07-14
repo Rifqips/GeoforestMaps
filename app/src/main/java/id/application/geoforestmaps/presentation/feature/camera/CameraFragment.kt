@@ -24,8 +24,15 @@ import id.application.geoforestmaps.utils.Constant.IMAGE_FORMAT
 import id.application.geoforestmaps.utils.Constant.IMAGE_PARSE
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import android.Manifest
+import android.content.ContentValues
 import android.content.pm.PackageManager
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Toast
 
 class CameraFragment :
     BaseFragment<FragmentCameraBinding, VmPreLogin>(FragmentCameraBinding::inflate) {
@@ -38,6 +45,7 @@ class CameraFragment :
     override fun initView() {
         binding.topBar.ivTitle.text = "Kamera"
         checkPermissions()
+        plantsTypeSpinner()
     }
 
     override fun initListener() {
@@ -64,6 +72,35 @@ class CameraFragment :
         } catch (e: Exception) {
             TODO("Not yet implemented")
         }
+    }
+
+    private fun plantsTypeSpinner() {
+        val plant_types = resources.getStringArray(R.array.plant_types)
+
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, plant_types)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        binding.spinnerPlantTypes.adapter = adapter
+
+        binding.spinnerPlantTypes.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>,
+                view: View,
+                position: Int,
+                id: Long
+            ) {
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.selected_item) + " " + plant_types[position],
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+                // write code to perform some action
+            }
+        }
+
     }
 
     private fun checkPermissions() {
@@ -153,10 +190,31 @@ class CameraFragment :
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val savedUri = output.savedUri ?: Uri.fromFile(photoFile)
+                    saveImageToGallery(savedUri)
                     navigateToHome(savedUri.toString())
                 }
             }
         )
+    }
+
+    private fun saveImageToGallery(savedUri: Uri) {
+        val resolver = requireContext().contentResolver
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}")
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+        }
+
+        val imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+        imageUri?.let {
+            resolver.openOutputStream(it)?.use { outputStream ->
+                val inputStream = requireContext().contentResolver.openInputStream(savedUri)
+                inputStream?.use { input ->
+                    input.copyTo(outputStream)
+                }
+            }
+        }
     }
 
     private fun navigateToHome(imageResult : String){
