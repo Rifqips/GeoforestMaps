@@ -22,10 +22,10 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/menuArea"
+        android:id="@+id/menuDatabase"
         android:icon="@drawable/ic_location"
         android:enabled="true"
-        android:title="Area"/>
+        android:title="Database"/>
 
     <item
         android:id="@+id/menuAccount"

@@ -5,15 +5,15 @@ import androidx.navigation.fragment.findNavController
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentSplashBinding
-import id.application.geoforestmaps.presentation.viewmodel.VmPreLogin
+import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SplashFragment :
-    BaseFragment<FragmentSplashBinding, VmPreLogin>(FragmentSplashBinding::inflate) {
+    BaseFragment<FragmentSplashBinding, VmApplication>(FragmentSplashBinding::inflate) {
 
-    override val viewModel: VmPreLogin by viewModel()
+    override val viewModel: VmApplication by viewModel()
 
     override fun initView() {}
 

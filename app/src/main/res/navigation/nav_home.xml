@@ -16,10 +16,10 @@
         android:label="fragment_history"
         tools:layout="@layout/fragment_history" />
     <fragment
-        android:id="@+id/areaFragment"
-        android:name="id.application.geoforestmaps.presentation.feature.area.AreaFragment"
-        android:label="fragment_area"
-        tools:layout="@layout/fragment_area" />
+        android:id="@+id/databaseFragment"
+        android:name="id.application.geoforestmaps.presentation.feature.database.DatabaseFragment"
+        android:label="fragment_database"
+        tools:layout="@layout/fragment_database" />
     <fragment
         android:id="@+id/accountFragment"
         android:name="id.application.geoforestmaps.presentation.feature.account.AccountFragment"

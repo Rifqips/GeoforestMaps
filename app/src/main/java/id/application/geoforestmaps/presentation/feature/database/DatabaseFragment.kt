@@ -1,34 +1,25 @@
-package id.application.geoforestmaps.presentation.feature.area
+package id.application.geoforestmaps.presentation.feature.database
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import id.application.core.model.Dashboard
+import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
-import id.application.geoforestmaps.databinding.FragmentAreaBinding
-import id.application.geoforestmaps.presentation.feature.area.AreaData.listDataArea
+import id.application.geoforestmaps.databinding.FragmentDatabaseBinding
+import id.application.geoforestmaps.presentation.feature.database.AreaData.listDataArea
+import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class AreaFragment : Fragment() {
+class DatabaseFragment :
+    BaseFragment<FragmentDatabaseBinding, VmApplication>(FragmentDatabaseBinding::inflate) {
 
-    private lateinit var binding: FragmentAreaBinding
-    private val adapterArea = AreaListAdapter()
+    private val adapterArea = DatabaseListAdapter()
+    override val viewModel: VmApplication by viewModel()
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentAreaBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
+    override fun initView() {
         rvListArea()
     }
+
+    override fun initListener() {}
 
     private fun rvListArea() {
         binding.rvBlokData.adapter = adapterArea

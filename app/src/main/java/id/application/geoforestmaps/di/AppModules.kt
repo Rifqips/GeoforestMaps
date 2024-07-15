@@ -13,7 +13,7 @@ import id.application.core.data.local.datastore.PreferenceDataStoreHelperImpl
 import id.application.core.data.local.datastore.appDataSource
 import id.application.core.data.network.interceptor.AuthInterceptor
 import id.application.core.utils.AssetWrapperApp
-import id.application.geoforestmaps.presentation.viewmodel.VmPreLogin
+import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.module.Module
@@ -22,7 +22,7 @@ import org.koin.dsl.module
 object AppModules {
 
     private val viewModelModule = module {
-        viewModelOf(::VmPreLogin)
+        viewModelOf(::VmApplication)
     }
 
     private val utilsModule = module {

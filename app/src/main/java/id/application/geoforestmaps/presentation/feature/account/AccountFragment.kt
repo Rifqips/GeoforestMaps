@@ -4,13 +4,13 @@ import androidx.navigation.fragment.findNavController
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentAccountBinding
-import id.application.geoforestmaps.presentation.viewmodel.VmPreLogin
+import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class AccountFragment :
-    BaseFragment<FragmentAccountBinding, VmPreLogin>(FragmentAccountBinding::inflate) {
+    BaseFragment<FragmentAccountBinding, VmApplication>(FragmentAccountBinding::inflate) {
 
-    override val viewModel: VmPreLogin by viewModel()
+    override val viewModel: VmApplication by viewModel()
 
     override fun initView() {}
 

@@ -43,6 +43,9 @@
         <action
             android:id="@+id/action_homeFragment_to_mapsFragment"
             app:destination="@id/mapsFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_databaseOptionFragment"
+            app:destination="@id/databaseOptionFragment" />
     </fragment>
     <fragment
         android:id="@+id/cameraFragment"
@@ -58,4 +61,13 @@
         android:name="id.application.geoforestmaps.presentation.feature.maps.MapsFragment"
         android:label="fragment_maps"
         tools:layout="@layout/fragment_maps" />
+    <fragment
+        android:id="@+id/databaseOptionFragment"
+        android:name="id.application.geoforestmaps.presentation.feature.databaseoption.DatabaseOptionFragment"
+        android:label="fragment_database_option"
+        tools:layout="@layout/fragment_database_option" >
+        <action
+            android:id="@+id/action_databaseOptionFragment_to_mapsFragment"
+            app:destination="@id/mapsFragment" />
+    </fragment>
 </navigation>

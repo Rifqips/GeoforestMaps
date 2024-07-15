@@ -9,10 +9,9 @@ import androidx.navigation.fragment.findNavController
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.BuildConfig
 import id.application.geoforestmaps.databinding.FragmentMapsBinding
-import id.application.geoforestmaps.presentation.viewmodel.VmPreLogin
+import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.modules.ArchiveFileFactory
 import org.osmdroid.tileprovider.modules.OfflineTileProvider
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.tileprovider.util.SimpleRegisterReceiver
@@ -21,9 +20,9 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import java.io.File
 
-class MapsFragment : BaseFragment<FragmentMapsBinding, VmPreLogin>(FragmentMapsBinding::inflate) {
+class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMapsBinding::inflate) {
 
-    override val viewModel: VmPreLogin by viewModel()
+    override val viewModel: VmApplication by viewModel()
     private val PERMISSIONS_REQUEST_CODE = 1
     private lateinit var mapView: MapView
 

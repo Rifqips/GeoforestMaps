@@ -18,7 +18,7 @@ import androidx.navigation.fragment.findNavController
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentCameraBinding
-import id.application.geoforestmaps.presentation.viewmodel.VmPreLogin
+import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant
 import id.application.geoforestmaps.utils.Constant.IMAGE_FORMAT
 import id.application.geoforestmaps.utils.Constant.IMAGE_PARSE
@@ -35,9 +35,9 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 
 class CameraFragment :
-    BaseFragment<FragmentCameraBinding, VmPreLogin>(FragmentCameraBinding::inflate) {
+    BaseFragment<FragmentCameraBinding, VmApplication>(FragmentCameraBinding::inflate) {
 
-    override val viewModel: VmPreLogin by viewModel()
+    override val viewModel: VmApplication by viewModel()
     private var imageCapture: ImageCapture? = null
     private var cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
     private lateinit var openGalleryLauncher: ActivityResultLauncher<Intent>

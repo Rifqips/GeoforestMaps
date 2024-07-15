@@ -8,35 +8,32 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import id.application.core.model.Dashboard
+import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.BuildConfig
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentDashboardBinding
 import id.application.geoforestmaps.presentation.feature.dashboard.DashboardData.listDataDash
+import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class DashboardFragment : Fragment() {
+class DashboardFragment :
+    BaseFragment<FragmentDashboardBinding, VmApplication>(FragmentDashboardBinding::inflate) {
 
-    private lateinit var binding: FragmentDashboardBinding
     private val adapterDashboard = DashboardCardListAdapter()
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentDashboardBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override val viewModel: VmApplication by viewModel()
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
+    override fun initView() {
         rvListData()
     }
+
+    override fun initListener() {}
+
     private fun rvListData() {
         binding.rvDashboardData.adapter = adapterDashboard
         binding.rvDashboardData.layoutManager = GridLayoutManager(requireContext(), 2)
         adapterDashboard.setData(listDataDash)
     }
-
 
 }
 

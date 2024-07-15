@@ -1,18 +1,17 @@
 package id.application.geoforestmaps.presentation.feature.login
 
-import android.util.Log
 import androidx.navigation.fragment.findNavController
 import androidx.window.layout.WindowMetricsCalculator
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentLoginBinding
-import id.application.geoforestmaps.presentation.viewmodel.VmPreLogin
+import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class LoginFragment :
-    BaseFragment<FragmentLoginBinding, VmPreLogin>(FragmentLoginBinding::inflate) {
+    BaseFragment<FragmentLoginBinding, VmApplication>(FragmentLoginBinding::inflate) {
 
-    override val viewModel: VmPreLogin by viewModel()
+    override val viewModel: VmApplication by viewModel()
 
     override fun initView() {
         with(binding){

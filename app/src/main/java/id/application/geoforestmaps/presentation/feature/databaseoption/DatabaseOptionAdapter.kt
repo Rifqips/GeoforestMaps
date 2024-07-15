@@ -1,6 +1,5 @@
-package id.application.geoforestmaps.presentation.feature.area
+package id.application.geoforestmaps.presentation.feature.databaseoption
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
@@ -10,9 +9,9 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import id.application.core.model.Dashboard
 import id.application.geoforestmaps.R
-import id.application.geoforestmaps.databinding.ItemBlokDataBinding
+import id.application.geoforestmaps.databinding.ItemCardDashboardDataBinding
 
-class AreaListAdapter: RecyclerView.Adapter<AreaListAdapter.ViewHolder>()  {
+class DatabaseOptionAdapter : RecyclerView.Adapter<DatabaseOptionAdapter.ViewHolder>() {
     private val dataDiffer = AsyncListDiffer(this, object : DiffUtil.ItemCallback<Dashboard>(){
         override fun areItemsTheSame(oldItem: Dashboard, newItem: Dashboard): Boolean {
             return oldItem.name == newItem.name &&
@@ -27,7 +26,7 @@ class AreaListAdapter: RecyclerView.Adapter<AreaListAdapter.ViewHolder>()  {
     })
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemBlokDataBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemCardDashboardDataBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding)
     }
 
@@ -35,20 +34,25 @@ class AreaListAdapter: RecyclerView.Adapter<AreaListAdapter.ViewHolder>()  {
         holder.bind(dataDiffer.currentList[position])
     }
 
-    class ViewHolder(private val binding: ItemBlokDataBinding): RecyclerView.ViewHolder(binding.root) {
+    class ViewHolder(private val binding: ItemCardDashboardDataBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(data : Dashboard){
             with(binding){
                 ivImage.setImageResource(data.image)
                 tvTitle.text = data.name
-                itemView.setOnClickListener {
-                    val activity = it.context as? AppCompatActivity
-                    if (activity != null) {
-                        val navController = activity.supportFragmentManager.findFragmentById(R.id.container_navigation)?.findNavController()
-                        navController?.navigate(R.id.action_homeFragment_to_mapsFragment)
+                when(position){
+                    2 -> {
+                        itemView.setOnClickListener {
+                            val activity = it.context as? AppCompatActivity
+                            if (activity != null) {
+                                val navController = activity.supportFragmentManager.findFragmentById(R.id.container_navigation)?.findNavController()
+                                navController?.navigate(R.id.action_databaseOptionFragment_to_mapsFragment)
+                            }
+                        }
                     }
                 }
             }
         }
+
     }
 
     override fun getItemCount(): Int {
@@ -59,4 +63,5 @@ class AreaListAdapter: RecyclerView.Adapter<AreaListAdapter.ViewHolder>()  {
         dataDiffer.submitList(data)
         notifyItemRangeChanged(0,data.size)
     }
+
 }

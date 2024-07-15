@@ -1,29 +1,23 @@
 package id.application.geoforestmaps.presentation.feature.history
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import id.application.core.model.History
 import id.application.core.model.HistoryAlreadySent
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentHistoryBinding
-import id.application.geoforestmaps.databinding.FragmentLoginBinding
 import id.application.geoforestmaps.presentation.feature.history.HistoryData.listDataHistory
 import id.application.geoforestmaps.presentation.feature.history.HistoryData.listDataHistoryAlreadySent
-import id.application.geoforestmaps.presentation.viewmodel.VmPreLogin
+import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class HistoryFragment :
-    BaseFragment<FragmentHistoryBinding, VmPreLogin>(FragmentHistoryBinding::inflate)  {
+    BaseFragment<FragmentHistoryBinding, VmApplication>(FragmentHistoryBinding::inflate)  {
 
 
     private val adapterHistory = HistoryListAdapter()
     private val adapterHistoryAlreadySentAdapter = HistoryAlreadySentAdapter()
-    override val viewModel: VmPreLogin by viewModel()
+    override val viewModel: VmApplication by viewModel()
 
 
     override fun initView() {
