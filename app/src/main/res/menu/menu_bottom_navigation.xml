@@ -25,12 +25,12 @@
         android:id="@+id/menuDatabase"
         android:icon="@drawable/ic_location"
         android:enabled="true"
-        android:title="Database"/>
+        android:title="@string/string_database"/>
 
     <item
         android:id="@+id/menuAccount"
         android:icon="@drawable/ic_person"
         android:enabled="true"
-        android:title="Akun"/>
+        android:title="@string/string_akun"/>
 
 </menu>

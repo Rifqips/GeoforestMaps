@@ -6,6 +6,8 @@
     <string name="ic_history">Riwayat</string>
     <string name="string_choose_a_picture">Choose a Picture</string>
     <string name="selected_item">"Jenis tanaman yang dipilih : "</string>
+    <string name="string_database">Database</string>
+    <string name="string_akun">Akun</string>
 
     <string-array name="plant_types">
         <item>Pilih</item>
