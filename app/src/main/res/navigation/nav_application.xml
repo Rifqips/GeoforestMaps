@@ -35,9 +35,6 @@
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" >
         <action
-            android:id="@+id/action_homeFragment_to_cameraFragment"
-            app:destination="@id/cameraFragment" />
-        <action
             android:id="@+id/action_homeFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
         <action
@@ -46,6 +43,9 @@
         <action
             android:id="@+id/action_homeFragment_to_databaseOptionFragment"
             app:destination="@id/databaseOptionFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_geotaggingLocationFragment"
+            app:destination="@id/geotaggingLocationFragment" />
     </fragment>
     <fragment
         android:id="@+id/cameraFragment"
@@ -69,5 +69,14 @@
         <action
             android:id="@+id/action_databaseOptionFragment_to_mapsFragment"
             app:destination="@id/mapsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/geotaggingLocationFragment"
+        android:name="id.application.geoforestmaps.presentation.feature.geotagginglocation.GeotaggingLocationFragment"
+        android:label="fragment_geotagging_location"
+        tools:layout="@layout/fragment_geotagging_location" >
+        <action
+            android:id="@+id/action_geotaggingLocationFragment_to_cameraFragment"
+            app:destination="@id/cameraFragment" />
     </fragment>
 </navigation>

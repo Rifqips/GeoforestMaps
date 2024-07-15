@@ -43,7 +43,8 @@ class CameraFragment :
     private lateinit var openGalleryLauncher: ActivityResultLauncher<Intent>
 
     override fun initView() {
-        binding.topBar.ivTitle.text = "Kamera"
+        val title = arguments?.getString("title")
+        binding.topBar.ivTitle.text = "Ambil Data $title"
         checkPermissions()
         plantsTypeSpinner()
     }

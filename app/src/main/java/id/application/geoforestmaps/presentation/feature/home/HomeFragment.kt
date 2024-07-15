@@ -29,7 +29,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, VmApplication>(FragmentHo
         onBackPressed()
         with(binding){
             fabCamera.setOnClickListener {
-                findNavController().navigate(R.id.action_homeFragment_to_cameraFragment)
+                findNavController().navigate(R.id.action_homeFragment_to_geotaggingLocationFragment)
             }
         }
 

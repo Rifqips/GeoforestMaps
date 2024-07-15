@@ -12,19 +12,19 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class DatabaseFragment :
     BaseFragment<FragmentDatabaseBinding, VmApplication>(FragmentDatabaseBinding::inflate) {
 
-    private val adapterArea = DatabaseListAdapter()
+    private val adapterDatabase = DatabaseListAdapter()
     override val viewModel: VmApplication by viewModel()
 
     override fun initView() {
-        rvListArea()
+        rvListDatabase()
     }
 
     override fun initListener() {}
 
-    private fun rvListArea() {
-        binding.rvBlokData.adapter = adapterArea
+    private fun rvListDatabase() {
+        binding.rvBlokData.adapter = adapterDatabase
         binding.rvBlokData.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        adapterArea.setData(listDataArea)
+        adapterDatabase.setData(listDataArea)
     }
 
 }
