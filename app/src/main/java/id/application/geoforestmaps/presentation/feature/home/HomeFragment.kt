@@ -9,6 +9,7 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
@@ -35,6 +36,12 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, VmPreLogin>(FragmentHomeB
 
     override fun initListener() {
         onBackPressed()
+        with(binding){
+            fabCamera.setOnClickListener {
+                findNavController().navigate(R.id.action_homeFragment_to_cameraFragment)
+            }
+        }
+
     }
 
     private fun setUpFragment() {
@@ -74,11 +81,11 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, VmPreLogin>(FragmentHomeB
 
     private fun showExitConfirmationDialog() {
         AlertDialog.Builder(requireContext())
-            .setMessage("Are you sure you want to exit?")
-            .setPositiveButton("Yes") { _, _ ->
+            .setMessage("Anda Yakin Ingin Keluar Aplikasi?")
+            .setPositiveButton("Ya") { _, _ ->
                 requireActivity().finishAffinity()
             }
-            .setNegativeButton("No", null)
+            .setNegativeButton("Tidak", null)
             .show()
     }
 
