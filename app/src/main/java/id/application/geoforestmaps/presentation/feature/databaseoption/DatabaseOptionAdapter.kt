@@ -7,7 +7,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import id.application.core.model.Dashboard
+import id.application.core.domain.model.Dashboard
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.ItemCardDashboardDataBinding
 

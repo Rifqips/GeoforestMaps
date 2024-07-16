@@ -5,9 +5,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
-import id.application.core.model.Dashboard
+import id.application.core.domain.model.Dashboard
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.BuildConfig
 import id.application.geoforestmaps.R
@@ -24,10 +26,25 @@ class DashboardFragment :
     override val viewModel: VmApplication by viewModel()
 
     override fun initView() {
+        checkLoginResult()
         rvListData()
     }
 
     override fun initListener() {}
+
+    private fun checkLoginResult() {
+        viewModel.checkLogin()
+
+        viewModel.isUserLogin.observe(viewLifecycleOwner) { isLogin ->
+            if (!isLogin) {
+                navigateToLogin()
+            }
+        }
+    }
+
+    private fun navigateToLogin() {
+        findNavController().navigate(R.id.action_homeFragment_to_loginFragment)
+    }
 
     private fun rvListData() {
         binding.rvDashboardData.adapter = adapterDashboard

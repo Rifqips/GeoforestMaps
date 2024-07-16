@@ -39,5 +39,25 @@
         <item name="android:backgroundTint">@color/red</item>
     </style>
 
+    <style name="successtoast">
+        <item name="stTextBold">true</item>
+        <item name="stColorBackground">@color/primary_green</item>
+        <item name="stTextSize">14sp</item>
+        <item name="stRadius">10dp</item>
+        <item name="stLength">LONG</item>
+        <item name="stTextColor">@color/white</item>
+        <item name="stStrokeWidth">25dp</item>
+    </style>
+
+    <style name="failedtoast">
+        <item name="stTextBold">true</item>
+        <item name="stColorBackground">@color/red</item>
+        <item name="stTextSize">14sp</item>
+        <item name="stRadius">10dp</item>
+        <item name="stLength">LONG</item>
+        <item name="stTextColor">@color/white</item>
+        <item name="stStrokeWidth">25dp</item>
+    </style>
+
     <style name="Theme.GeoforestMaps" parent="Base.Theme.GeoforestMaps" />
 </resources>

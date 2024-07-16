@@ -14,6 +14,9 @@ import id.application.core.data.local.datastore.PreferenceDataStoreHelper
 import id.application.core.data.local.datastore.PreferenceDataStoreHelperImpl
 import id.application.core.data.local.datastore.appDataSource
 import id.application.core.data.network.interceptor.AuthInterceptor
+import id.application.core.data.network.service.ApplicationService
+import id.application.core.domain.repository.ApplicationRepository
+import id.application.core.domain.repository.ApplicationRepositoryImpl
 import id.application.core.utils.AssetWrapperApp
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import org.koin.android.ext.koin.androidContext
@@ -43,17 +46,20 @@ object AppModules {
     }
 
     private val networkModule = module{
-    single { ChuckerInterceptor(androidContext()) }
-    single { AuthInterceptor(get(),get()) }
+        single { ChuckerInterceptor(androidContext()) }
+        single { AuthInterceptor(get(),get()) }
+        single { ApplicationService.invoke(get(), get()) }
     }
 
     private val dataSourceModule = module {
         single<AppPreferenceDataSource> { AppPreferenceDataSourceImpl(get()) }
-        single<ApplicationDataSource> { ApplicationDataSourceImpl() }
+        single<ApplicationDataSource> { ApplicationDataSourceImpl(get()) }
 
     }
 
     private val repositoryModule = module {
+        single<ApplicationRepository> { ApplicationRepositoryImpl(get(), get(), get())  }
+
     }
 
     private val pagingSource = module {

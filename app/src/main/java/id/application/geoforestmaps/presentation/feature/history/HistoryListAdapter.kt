@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import id.application.core.model.History
+import id.application.core.domain.model.History
 import id.application.geoforestmaps.databinding.ItemHistoryDataBinding
 
 class HistoryListAdapter : RecyclerView.Adapter<HistoryListAdapter.ViewHolder>(){

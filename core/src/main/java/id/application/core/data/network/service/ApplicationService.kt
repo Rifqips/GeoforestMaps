@@ -1,6 +1,7 @@
 package id.application.core.data.network.service
 
 import com.chuckerteam.chucker.api.ChuckerInterceptor
+import id.application.core.BuildConfig
 import id.application.core.data.network.interceptor.AuthInterceptor
 import id.application.core.data.network.model.geotags.ResponseAllGeotags
 import id.application.core.data.network.model.login.RequestLoginItem
@@ -8,6 +9,7 @@ import id.application.core.data.network.model.login.ResponseLoginItem
 import id.application.core.data.network.model.logout.ResponseLogoutItem
 import id.application.core.data.network.model.profile.ResponseProfileItem
 import okhttp3.OkHttpClient
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -22,7 +24,7 @@ interface ApplicationService {
     suspend fun userLogin(@Body userLoginRequest: RequestLoginItem): ResponseLoginItem
 
     @POST("v1/auth/logout")
-    suspend fun userLogout(): ResponseLogoutItem
+    suspend fun userLogout(): Response<ResponseLogoutItem>
 
     @GET("v1/profile")
     suspend fun userProfile(): ResponseProfileItem
@@ -52,7 +54,7 @@ interface ApplicationService {
                 .readTimeout(120, TimeUnit.SECONDS)
                 .build()
             val retrofit = Retrofit.Builder()
-                // .baseUrl(BuildConfig.BASE_URL)
+                 .baseUrl(BuildConfig.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient)
                 .build()
