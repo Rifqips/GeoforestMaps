@@ -2,13 +2,30 @@ package id.application.core.data.datasource
 
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import id.application.core.data.local.datastore.PreferenceDataStoreHelper
 
 interface AppPreferenceDataSource {
 
+    suspend fun getUserToken(): String
+    suspend fun saveUserToken(token: String)
+    suspend fun removeToken()
+
+
 }
 
-class AppPreferenceDataSourceImpl : AppPreferenceDataSource {
+class AppPreferenceDataSourceImpl(
+    private val preferenceHelper: PreferenceDataStoreHelper
+) : AppPreferenceDataSource {
+    override suspend fun getUserToken(): String {
+        return preferenceHelper.getFirstPreference(USER_TOKEN_KEY, "")
+    }
+    override suspend fun saveUserToken(token: String) {
+        return preferenceHelper.putPreference(USER_TOKEN_KEY, token)
+    }
 
+    override suspend fun removeToken() {
+        preferenceHelper.removePreference(USER_TOKEN_KEY)
+    }
 
     companion object {
         val USER_ID_KEY = stringPreferencesKey("USER_ID_KEY")

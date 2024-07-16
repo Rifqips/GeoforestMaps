@@ -6,6 +6,8 @@ import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import id.application.core.data.datasource.AppPreferenceDataSource
 import id.application.core.data.datasource.AppPreferenceDataSourceImpl
+import id.application.core.data.datasource.ApplicationDataSource
+import id.application.core.data.datasource.ApplicationDataSourceImpl
 import id.application.core.data.datasource.FirebaseDataSource
 import id.application.core.data.datasource.FirebaseDataSourceImpl
 import id.application.core.data.local.datastore.PreferenceDataStoreHelper
@@ -42,11 +44,12 @@ object AppModules {
 
     private val networkModule = module{
     single { ChuckerInterceptor(androidContext()) }
-    single { AuthInterceptor(get()) }
+    single { AuthInterceptor(get(),get()) }
     }
 
     private val dataSourceModule = module {
-        single<AppPreferenceDataSource> { AppPreferenceDataSourceImpl() }
+        single<AppPreferenceDataSource> { AppPreferenceDataSourceImpl(get()) }
+        single<ApplicationDataSource> { ApplicationDataSourceImpl() }
 
     }
 

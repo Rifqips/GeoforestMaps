@@ -2,9 +2,15 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/nav_prelogin"
+    android:id="@+id/nav_application"
     app:startDestination="@id/splashFragment">
 
+    <action
+        android:id="@+id/action_global_loginFragment"
+        app:destination="@id/loginFragment"
+        app:launchSingleTop="true"
+        app:popUpToInclusive="true"
+        app:popUpTo="@id/splashFragment" />
     <fragment
         android:id="@+id/splashFragment"
         android:name="id.application.geoforestmaps.presentation.feature.splash.SplashFragment"
