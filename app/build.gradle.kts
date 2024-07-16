@@ -87,4 +87,7 @@ dependencies {
 
     //osm
     implementation ("org.osmdroid:osmdroid-android:6.1.11")
+
+    // otp toast
+    implementation("io.github.muddz:styleabletoast:2.4.0")
 }

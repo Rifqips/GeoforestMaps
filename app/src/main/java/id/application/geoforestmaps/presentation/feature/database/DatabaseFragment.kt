@@ -1,7 +1,7 @@
 package id.application.geoforestmaps.presentation.feature.database
 
 import androidx.recyclerview.widget.LinearLayoutManager
-import id.application.core.model.Dashboard
+import id.application.core.domain.model.Dashboard
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentDatabaseBinding

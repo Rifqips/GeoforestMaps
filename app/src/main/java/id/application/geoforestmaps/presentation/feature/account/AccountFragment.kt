@@ -1,10 +1,15 @@
 package id.application.geoforestmaps.presentation.feature.account
 
+import android.app.AlertDialog
+import android.content.Intent
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import id.application.core.utils.BaseFragment
+import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentAccountBinding
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import io.github.muddz.styleabletoast.StyleableToast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class AccountFragment :
@@ -12,16 +17,58 @@ class AccountFragment :
 
     override val viewModel: VmApplication by viewModel()
 
-    override fun initView() {}
+    override fun initView() {
+        observeLogoutResult()
+    }
 
     override fun initListener() {
         with(binding){
             btnLogout.setOnClickListener {
-                activity?.supportFragmentManager?.
-                findFragmentById(R.id.container_navigation)
-                    ?.findNavController()?.navigate(R.id.action_homeFragment_to_loginFragment)
+                showExitConfirmationDialog()
             }
         }
     }
 
+    private fun showExitConfirmationDialog() {
+        AlertDialog.Builder(requireContext())
+            .setMessage("Anda Yakin Ingin Keluar Aplikasi?")
+            .setPositiveButton("Ya") { _, _ ->
+                viewModel.userLogout()
+            }
+            .setNegativeButton("Tidak", null)
+            .show()
+    }
+
+    private fun observeLogoutResult() {
+        viewModel.logoutResults.observe(viewLifecycleOwner) { result ->
+            result.proceedWhen(
+                doOnSuccess = {
+                    StyleableToast.makeText(
+                        requireContext(),
+                        getString(R.string.text_successfully_logout),
+                        R.style.successtoast
+                    ).show()
+                    performLogout()
+                },
+                doOnError = {
+                    StyleableToast.makeText(
+                        requireContext(),
+                        getString(R.string.text_failed_to_logout),
+                        R.style.failedtoast
+                    ).show()
+                }
+            )
+        }
+    }
+
+    private fun performLogout() {
+        activity?.supportFragmentManager?.
+        findFragmentById(R.id.container_navigation)
+            ?.findNavController()?.navigate(R.id.action_homeFragment_to_loginFragment,
+                null,
+                NavOptions.Builder()
+                    .setPopUpTo(R.id.homeFragment, true)
+                    .setLaunchSingleTop(true)
+                    .build())
+    }
 }

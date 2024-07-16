@@ -8,6 +8,15 @@
     <string name="selected_item">"Jenis tanaman yang dipilih : "</string>
     <string name="string_database">Database</string>
     <string name="string_akun">Akun</string>
+    <string name="text_error_email_empty">Email tidak boleh kosong</string>
+    <string name="text_error_email_invalid">Masukkan email dengan format yang valid</string>
+    <string name="text_sorry_wrong_password">Maaf, password salah</string>
+    <string name="text_password_min_8_character">Password minimal 8 karakter</string>
+    <string name="text_login_successful">Login Berhasil</string>
+    <string name="text_sorry_there_s_an_error_on_the_server">Maaf, server error</string>
+    <string name="text_no_internet_connection">Oops! Tidak ada internet</string>
+    <string name="text_successfully_logout">Logout berhasil!</string>
+    <string name="text_failed_to_logout">Logout gagal!</string>
 
     <string-array name="plant_types">
         <item>Pilih</item>

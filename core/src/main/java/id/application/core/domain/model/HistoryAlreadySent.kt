@@ -1,10 +1,11 @@
-package id.application.core.model
+package id.application.core.domain.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
+
 @Parcelize
-data class History(
+data class HistoryAlreadySent(
     var image : Int = 0,
     var title : String = "",
     var description : String = "",

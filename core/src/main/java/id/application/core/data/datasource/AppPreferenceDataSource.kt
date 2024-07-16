@@ -9,8 +9,9 @@ interface AppPreferenceDataSource {
     suspend fun getUserToken(): String
     suspend fun saveUserToken(token: String)
     suspend fun removeToken()
-
-
+    suspend fun saveUserName(name: String)
+    suspend fun saveUserEmail(email: String)
+    suspend fun deleteAllData()
 }
 
 class AppPreferenceDataSourceImpl(
@@ -27,10 +28,24 @@ class AppPreferenceDataSourceImpl(
         preferenceHelper.removePreference(USER_TOKEN_KEY)
     }
 
+    override suspend fun saveUserName(name: String) {
+        return preferenceHelper.putPreference(USER_NAME_KEY, name)
+    }
+
+    override suspend fun saveUserEmail(email: String) {
+        return preferenceHelper.putPreference(USER_EMAIL_KEY, email)
+    }
+
+    override suspend fun deleteAllData() {
+        preferenceHelper.clearAllPreference()
+    }
+
     companion object {
         val USER_ID_KEY = stringPreferencesKey("USER_ID_KEY")
         val USERNAME_KEY = stringPreferencesKey("USER_NAME_KEY")
         val USER_TOKEN_KEY = stringPreferencesKey("USER_TOKEN_KEY")
+        val USER_NAME_KEY = stringPreferencesKey("USER_NAME_KEY")
+        val USER_EMAIL_KEY = stringPreferencesKey("USER_EMAIL_KEY")
         val USER_SEARCH_KEY = stringPreferencesKey("USER_SEARCH_KEY")
         val REFRESH_TOKEN_KEY = stringPreferencesKey("REFRESH_TOKEN_KEY")
         val USER_FIREBASE_TOKEN_KEY = stringPreferencesKey("USER_FIREBASE_TOKEN_KEY")
