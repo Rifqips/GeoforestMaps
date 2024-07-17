@@ -17,6 +17,7 @@
     <string name="text_no_internet_connection">Oops! Tidak ada internet</string>
     <string name="text_successfully_logout">Logout berhasil!</string>
     <string name="text_failed_to_logout">Logout gagal!</string>
+    <string name="string_gagal_login">Gagal Login</string>
 
     <string-array name="plant_types">
         <item>Pilih</item>

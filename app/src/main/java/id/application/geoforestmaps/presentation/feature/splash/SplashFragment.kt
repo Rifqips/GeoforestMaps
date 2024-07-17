@@ -15,12 +15,23 @@ class SplashFragment :
 
     override val viewModel: VmApplication by viewModel()
 
-    override fun initView() {}
-
-    override fun initListener() {
+    override fun initView() {
         lifecycleScope.launch {
             delay(3000)
-            findNavController().navigate(R.id.action_splashFragment_to_loginFragment)
+            checkLoginResult()
+        }
+    }
+
+    override fun initListener() {}
+
+    private fun checkLoginResult() {
+        viewModel.checkLogin()
+        viewModel.isUserLogin.observe(viewLifecycleOwner) { isLogin ->
+            if (!isLogin) {
+                findNavController().navigate(R.id.action_splashFragment_to_loginFragment)
+            }else{
+                findNavController().navigate(R.id.action_splashFragment_to_homeFragment)
+            }
         }
     }
 

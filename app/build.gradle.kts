@@ -90,4 +90,7 @@ dependencies {
 
     // otp toast
     implementation("io.github.muddz:styleabletoast:2.4.0")
+
+    // coil
+    implementation("io.coil-kt:coil:2.4.0")
 }

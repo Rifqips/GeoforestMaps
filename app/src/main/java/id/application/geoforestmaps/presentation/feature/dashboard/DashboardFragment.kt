@@ -1,17 +1,11 @@
 package id.application.geoforestmaps.presentation.feature.dashboard
 
-import android.util.Log
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Toast
-import androidx.fragment.app.Fragment
+import android.annotation.SuppressLint
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import id.application.core.domain.model.Dashboard
 import id.application.core.utils.BaseFragment
-import id.application.geoforestmaps.BuildConfig
+import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentDashboardBinding
 import id.application.geoforestmaps.presentation.feature.dashboard.DashboardData.listDataDash
@@ -26,21 +20,30 @@ class DashboardFragment :
     override val viewModel: VmApplication by viewModel()
 
     override fun initView() {
-        checkLoginResult()
         rvListData()
+        observeVM()
     }
 
     override fun initListener() {}
 
-    private fun checkLoginResult() {
-        viewModel.checkLogin()
-
-        viewModel.isUserLogin.observe(viewLifecycleOwner) { isLogin ->
-            if (!isLogin) {
-                navigateToLogin()
+    @SuppressLint("SetTextI18n")
+    private fun observeVM() {
+        with(viewModel){
+            userProfile()
+            userProfileResult.observe(viewLifecycleOwner){ result ->
+                result.proceedWhen(
+                    doOnSuccess = {
+                        it.payload?.data.let {
+                            with(binding){
+                                tvTitleDescription.text = "Halo, " + it?.name
+                            }
+                        }
+                    }
+                )
             }
         }
     }
+
 
     private fun navigateToLogin() {
         findNavController().navigate(R.id.action_homeFragment_to_loginFragment)
