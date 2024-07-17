@@ -1,7 +1,6 @@
 package id.application.geoforestmaps.presentation.feature.login
 
 import android.util.Patterns
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
 import androidx.window.layout.WindowMetricsCalculator
@@ -41,7 +40,6 @@ class LoginFragment :
                 }
             }
         }
-
         observeResult()
     }
 
@@ -54,46 +52,46 @@ class LoginFragment :
     }
 
     private fun observeResult() {
-        viewModel.loginResult.observe(viewLifecycleOwner) {
-            it.proceedWhen(
-                doOnSuccess = {
-                    StyleableToast.makeText(
-                        requireContext(),
-                        getString(R.string.text_login_successful),
-                        R.style.successtoast
-                    ).show()
-                    it.payload?.let {
-                        // save user id
-                    }
-                    navigateToDashboard()
-                },
-                doOnLoading = {
-                    binding.pbLoading.isVisible = true
-                    binding.btnLogin.isVisible = false
-                },
-                doOnError = {
-                    binding.pbLoading.isVisible = false
-                    binding.btnLogin.isVisible = true
-                    binding.btnLogin.isEnabled = true
-
-                    if ((it.exception as ApiException).httpCode == 500) {
+        with(binding){
+            viewModel.loginResult.observe(viewLifecycleOwner) {
+                it.proceedWhen(
+                    doOnSuccess = {
                         StyleableToast.makeText(
                             requireContext(),
-                            getString(R.string.text_sorry_there_s_an_error_on_the_server),
-                            R.style.failedtoast
+                            getString(R.string.text_login_successful),
+                            R.style.successtoast
                         ).show()
+                        navigateToDashboard()
+                    },
+                    doOnLoading = {
+                        pbLoading.isVisible = true
+                        btnLogin.isVisible = false
+                    },
+                    doOnError = {
+                        pbLoading.isVisible = false
+                        btnLogin.isVisible = true
+                        btnLogin.isEnabled = true
 
-                    } else if (it.exception is NoInternetException) {
-                        if (!(it.exception as NoInternetException).isNetworkAvailable(requireContext())) {
+                        if ((it.exception as ApiException).httpCode == 500) {
                             StyleableToast.makeText(
                                 requireContext(),
-                                getString(R.string.text_no_internet_connection),
+                                getString(R.string.text_sorry_there_s_an_error_on_the_server),
                                 R.style.failedtoast
                             ).show()
+
+                        } else if (it.exception is NoInternetException) {
+                            if (!(it.exception as NoInternetException).isNetworkAvailable(requireContext())) {
+                                StyleableToast.makeText(
+                                    requireContext(),
+                                    getString(R.string.text_no_internet_connection),
+                                    R.style.failedtoast
+                                ).show()
+                            }
                         }
                     }
-                }
-            )
+                )
+            }
+
         }
     }
 
@@ -115,46 +113,49 @@ class LoginFragment :
     }
 
     private fun isFormValid(): Boolean {
-        val email = binding.etEmail.text.toString().trim()
-        val password = binding.etPassword.text.toString().trim()
-
-        return checkEmailValidation(email) &&
-                checkPasswordValidation(password)
+        with(binding){
+            val email = etEmail.text.toString().trim()
+            val password = etPassword.text.toString().trim()
+            return checkEmailValidation(email) &&
+                    checkPasswordValidation(password)
+        }
     }
 
     private fun checkEmailValidation(email: String): Boolean {
-        return if (email.isEmpty()) {
-            binding.tilEmail.isErrorEnabled = true
-            binding.tilEmail.error = getString(R.string.text_error_email_empty)
-            binding.etEmail.setBackgroundResource(R.drawable.bg_edit_text_error)
-            false
-        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.tilEmail.isErrorEnabled = true
-            binding.tilEmail.error = getString(R.string.text_error_email_invalid)
-            binding.etEmail.setBackgroundResource(R.drawable.bg_edit_text_error)
-            false
-        } else {
-            binding.tilEmail.isErrorEnabled = false
-            true
+        with(binding){
+            return if (email.isEmpty()) {
+                tilEmail.isErrorEnabled = true
+                tilEmail.error = getString(R.string.text_error_email_empty)
+                etEmail.setBackgroundResource(R.drawable.bg_edit_text_error)
+                false
+            } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                tilEmail.isErrorEnabled = true
+                tilEmail.error = getString(R.string.text_error_email_invalid)
+                etEmail.setBackgroundResource(R.drawable.bg_edit_text_error)
+                false
+            } else {
+                tilEmail.isErrorEnabled = false
+                true
+            }
         }
     }
 
     private fun checkPasswordValidation(password: String): Boolean {
-        return if (password.isEmpty()) {
-            binding.tilPassword.isErrorEnabled = true
-            binding.tilPassword.error = getString(R.string.text_sorry_wrong_password)
-            binding.etPassword.setBackgroundResource(R.drawable.bg_edit_text_error)
-            false
-        } else if (password.length < 8) {
-            binding.tilPassword.isErrorEnabled = true
-            binding.tilPassword.error = getString(R.string.text_password_min_8_character)
-            binding.etPassword.setBackgroundResource(R.drawable.bg_edit_text_error)
-            false
-        } else {
-            binding.tilPassword.isErrorEnabled = false
-            true
+        with(binding){
+            return if (password.isEmpty()) {
+                tilPassword.isErrorEnabled = true
+                tilPassword.error = getString(R.string.text_sorry_wrong_password)
+                etPassword.setBackgroundResource(R.drawable.bg_edit_text_error)
+                false
+            } else if (password.length < 8) {
+                tilPassword.isErrorEnabled = true
+                tilPassword.error = getString(R.string.text_password_min_8_character)
+                etPassword.setBackgroundResource(R.drawable.bg_edit_text_error)
+                false
+            } else {
+                tilPassword.isErrorEnabled = false
+                true
+            }
         }
     }
-
-
 }

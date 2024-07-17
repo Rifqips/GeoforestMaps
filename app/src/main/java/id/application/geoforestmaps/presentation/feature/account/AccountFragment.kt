@@ -1,7 +1,6 @@
 package id.application.geoforestmaps.presentation.feature.account
 
 import android.app.AlertDialog
-import android.content.Intent
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import id.application.core.utils.BaseFragment
@@ -18,7 +17,7 @@ class AccountFragment :
     override val viewModel: VmApplication by viewModel()
 
     override fun initView() {
-        observeLogoutResult()
+        observeVM()
     }
 
     override fun initListener() {
@@ -39,25 +38,40 @@ class AccountFragment :
             .show()
     }
 
-    private fun observeLogoutResult() {
-        viewModel.logoutResults.observe(viewLifecycleOwner) { result ->
-            result.proceedWhen(
-                doOnSuccess = {
-                    StyleableToast.makeText(
-                        requireContext(),
-                        getString(R.string.text_successfully_logout),
-                        R.style.successtoast
-                    ).show()
-                    performLogout()
-                },
-                doOnError = {
-                    StyleableToast.makeText(
-                        requireContext(),
-                        getString(R.string.text_failed_to_logout),
-                        R.style.failedtoast
-                    ).show()
-                }
-            )
+    private fun observeVM() {
+        with(viewModel){
+            userProfile()
+            userProfileResult.observe(viewLifecycleOwner){ result ->
+                result.proceedWhen(
+                    doOnSuccess = {
+                        it.payload?.data.let {
+                            with(binding){
+                                tvNameAccount.text = it?.name
+                                tvEmailAccount.text = it?.email
+                            }
+                        }
+                    }
+                )
+            }
+            logoutResults.observe(viewLifecycleOwner) { result ->
+                result.proceedWhen(
+                    doOnSuccess = {
+                        StyleableToast.makeText(
+                            requireContext(),
+                            getString(R.string.text_successfully_logout),
+                            R.style.successtoast
+                        ).show()
+                        performLogout()
+                    },
+                    doOnError = {
+                        StyleableToast.makeText(
+                            requireContext(),
+                            getString(R.string.text_failed_to_logout),
+                            R.style.failedtoast
+                        ).show()
+                    }
+                )
+            }
         }
     }
 

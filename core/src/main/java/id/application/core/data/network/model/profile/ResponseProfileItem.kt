@@ -1,8 +1,9 @@
 package id.application.core.data.network.model.profile
 
 
-import com.google.gson.annotations.SerializedName
 import androidx.annotation.Keep
+import com.google.gson.annotations.SerializedName
+import id.application.core.domain.model.profile.UserProfileResponse
 
 @Keep
 data class ResponseProfileItem(
@@ -23,4 +24,8 @@ data class DataProfile(
     val name: String,
     @SerializedName("updated_at")
     val updatedAt: String
+)
+
+fun ResponseProfileItem.toProfileResponse() = UserProfileResponse(
+    data = data
 )

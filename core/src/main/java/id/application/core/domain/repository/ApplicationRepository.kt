@@ -5,8 +5,10 @@ import id.application.core.data.datasource.AppPreferenceDataSource
 import id.application.core.data.datasource.ApplicationDataSource
 import id.application.core.data.network.model.login.RequestLoginItem
 import id.application.core.data.network.model.login.toLoginResponse
+import id.application.core.data.network.model.profile.toProfileResponse
 import id.application.core.domain.model.login.UserLoginRequest
 import id.application.core.domain.model.login.UserLoginResponse
+import id.application.core.domain.model.profile.UserProfileResponse
 import id.application.core.utils.AssetWrapperApp
 import id.application.core.utils.ResultWrapper
 import id.application.core.utils.proceedFlow
@@ -17,6 +19,7 @@ import kotlinx.coroutines.flow.flow
 interface  ApplicationRepository{
     suspend fun userLogin(request: UserLoginRequest): Flow<ResultWrapper<UserLoginResponse>>
     suspend fun userLogout(): Flow<ResultWrapper<Boolean>>
+    suspend fun userProfile(): Flow<ResultWrapper<UserProfileResponse>>
 }
 
 class ApplicationRepositoryImpl(
@@ -46,5 +49,13 @@ class ApplicationRepositoryImpl(
         }
     }.catch { e ->
         emit(ResultWrapper.Error(e as? Exception ?: Exception(assetWrapper.getString(R.string.text_unknown_error))))
+    }
+
+    override suspend fun userProfile(): Flow<ResultWrapper<UserProfileResponse>> {
+        return proceedFlow {
+            appDataSource.userProfile().toProfileResponse()
+        }.catch { e ->
+            emit(ResultWrapper.Error(e as? Exception ?: Exception(assetWrapper.getString(R.string.text_unknown_error))))
+        }
     }
 }
