@@ -20,7 +20,6 @@ class DashboardFragment :
     override val viewModel: VmApplication by viewModel()
 
     override fun initView() {
-        rvListData()
         observeVM()
     }
 
@@ -47,12 +46,6 @@ class DashboardFragment :
 
     private fun navigateToLogin() {
         findNavController().navigate(R.id.action_homeFragment_to_loginFragment)
-    }
-
-    private fun rvListData() {
-        binding.rvDashboardData.adapter = adapterDashboard
-        binding.rvDashboardData.layoutManager = GridLayoutManager(requireContext(), 2)
-        adapterDashboard.setData(listDataDash)
     }
 
 }

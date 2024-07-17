@@ -41,10 +41,15 @@ class CameraFragment :
     private var imageCapture: ImageCapture? = null
     private var cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
     private lateinit var openGalleryLauncher: ActivityResultLauncher<Intent>
+    private var selectedPlantType = ""
+    private var blokName = ""
 
     override fun initView() {
         val title = arguments?.getString("title")
         binding.topBar.ivTitle.text = "Ambil Data $title"
+
+        // inisialisasi blok_name
+        blokName = title.toString()
         checkPermissions()
         plantsTypeSpinner()
     }
@@ -91,6 +96,9 @@ class CameraFragment :
                 position: Int,
                 id: Long
             ) {
+                // Simpan nilai yang dipilih
+                selectedPlantType = plantTypes[position]
+
                 Toast.makeText(
                     requireContext(),
                     getString(R.string.selected_item) + " " + plantTypes[position],
@@ -165,7 +173,7 @@ class CameraFragment :
             if (result.resultCode == Activity.RESULT_OK) {
                 val selectedImg: Uri? = result.data?.data
                 selectedImg?.let {
-                    navigateToHome(it.toString())
+                    navigateToCheckData(it.toString(), selectedPlantType, blokName)
 
                 }
             }
@@ -193,7 +201,7 @@ class CameraFragment :
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val savedUri = output.savedUri ?: Uri.fromFile(photoFile)
                     saveImageToGallery(savedUri)
-                    navigateToHome(savedUri.toString())
+                    navigateToCheckData(savedUri.toString(), selectedPlantType, blokName)
                 }
             }
         )
@@ -219,10 +227,12 @@ class CameraFragment :
         }
     }
 
-    private fun navigateToHome(imageResult : String){
+    private fun navigateToCheckData(imageResult : String, selectedPlantType: String, blokName: String){
         val bun = Bundle()
+        bun.putString("BLOK_NAME", blokName)
+        bun.putString("SELECTED_PLANT_TYPE", selectedPlantType)
         bun.putString(IMAGE_PARSE, imageResult)
-        findNavController().navigate(R.id.action_cameraFragment_to_homeFragment, bun)
+        findNavController().navigate(R.id.action_cameraFragment_to_checkDataFragment, bun)
     }
 
     companion object {

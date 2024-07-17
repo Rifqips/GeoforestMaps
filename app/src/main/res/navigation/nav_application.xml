@@ -95,5 +95,12 @@
         android:id="@+id/checkDataFragment"
         android:name="id.application.geoforestmaps.presentation.feature.checkdata.CheckDataFragment"
         android:label="fragment_check_data"
-        tools:layout="@layout/fragment_check_data" />
+        tools:layout="@layout/fragment_check_data" >
+        <action
+            android:id="@+id/action_checkDataFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+        <action
+            android:id="@+id/action_checkDataFragment_to_geotaggingLocationFragment"
+            app:destination="@id/geotaggingLocationFragment" />
+    </fragment>
 </navigation>
