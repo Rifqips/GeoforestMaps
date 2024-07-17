@@ -1,5 +1,6 @@
 package id.application.geoforestmaps.presentation.feature.login
 
+import android.util.Log
 import android.util.Patterns
 import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
@@ -71,7 +72,11 @@ class LoginFragment :
                         pbLoading.isVisible = false
                         btnLogin.isVisible = true
                         btnLogin.isEnabled = true
-
+                        StyleableToast.makeText(
+                            requireContext(),
+                            getString(R.string.string_gagal_login),
+                            R.style.failedtoast
+                        ).show()
                         if ((it.exception as ApiException).httpCode == 500) {
                             StyleableToast.makeText(
                                 requireContext(),
