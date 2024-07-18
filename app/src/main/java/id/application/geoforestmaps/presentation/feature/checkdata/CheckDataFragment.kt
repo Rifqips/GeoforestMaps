@@ -35,6 +35,7 @@ class CheckDataFragment :
         binding.tvPlantTypes.text = selectedPlantType
 
         val imageResult = arguments?.getString(IMAGE_PARSE)
+
         binding.ivPlant.load(imageResult) {
             crossfade(true)
         }

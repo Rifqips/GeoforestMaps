@@ -41,9 +41,14 @@ import com.google.android.gms.location.LocationServices
 import java.io.IOException
 import java.util.Locale
 import android.graphics.*
+import android.media.ExifInterface
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import android.util.DisplayMetrics
+import androidx.camera.core.AspectRatio
+import java.io.File
+import java.io.FileOutputStream
 
 class CameraFragment :
     BaseFragment<FragmentCameraBinding, VmApplication>(FragmentCameraBinding::inflate) {
@@ -100,32 +105,35 @@ class CameraFragment :
         val adapter = ArrayAdapter(requireContext(), R.layout.item_spinner, plantTypes)
         adapter.setDropDownViewResource(R.layout.item_dropdown_spinner)
 
-        binding.spinnerPlantTypes.adapter = adapter
-        binding.spinnerPlantTypes.dropDownVerticalOffset = 146
+        with(binding){
+            spinnerPlantTypes.adapter = adapter
+            spinnerPlantTypes.dropDownVerticalOffset = 146
+            spinnerPlantTypes.onItemSelectedListener =
+                object : AdapterView.OnItemSelectedListener {
+                    override fun onItemSelected(
+                        parent: AdapterView<*>,
+                        view: View?,
+                        position: Int,
+                        id: Long
+                    ) {
+                        // Pastikan view tidak null sebelum mengaksesnya
+                        if (view != null) {
+                            // Simpan nilai yang dipilih
+                            selectedPlantType = plantTypes[position]
 
-        binding.spinnerPlantTypes.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    // Pastikan view tidak null sebelum mengaksesnya
-                    if (view != null) {
-                        // Simpan nilai yang dipilih
-                        selectedPlantType = plantTypes[position]
-
-                        Toast.makeText(
-                            requireContext(),
-                            getString(R.string.selected_item) + " " + plantTypes[position],
-                            Toast.LENGTH_SHORT
-                        ).show()
+                            Toast.makeText(
+                                requireContext(),
+                                getString(R.string.selected_item) + " " + plantTypes[position],
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
-                }
 
-                override fun onNothingSelected(parent: AdapterView<*>) {}
-            }
+                    override fun onNothingSelected(parent: AdapterView<*>) {}
+                }
+        }
+
+
 
     }
 
@@ -174,31 +182,51 @@ class CameraFragment :
         cameraProviderFuture.addListener({
             try {
                 val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-                val imageAnalysis = ImageAnalysis
-                    .Builder()
+                val rotation = binding.viewFinder.display.rotation
+
+                val metrics = DisplayMetrics().also { binding.viewFinder.display.getRealMetrics(it) }
+                val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
+
+                val imageAnalysis = ImageAnalysis.Builder()
                     .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-                    .setTargetResolution(Size(1280, 720))
+                    .setTargetAspectRatio(screenAspectRatio)
+                    .setTargetRotation(rotation)
                     .build()
+
                 val preview = Preview.Builder()
+                    .setTargetAspectRatio(screenAspectRatio)
+                    .setTargetRotation(rotation)
                     .build()
                     .also {
                         it.setSurfaceProvider(binding.viewFinder.surfaceProvider)
                     }
-                imageCapture = ImageCapture
-                    .Builder()
-                    .setTargetResolution(Size(1280, 720)).build()
+
+                imageCapture = ImageCapture.Builder()
+                    .setTargetAspectRatio(screenAspectRatio)
+                    .setTargetRotation(rotation)
+                    .build()
+
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
                     this,
                     cameraSelector,
                     preview,
-                    imageCapture, imageAnalysis
+                    imageCapture,
+                    imageAnalysis
                 )
                 Log.d("CameraFragment", "Camera started")
             } catch (e: Exception) {
                 Log.e("CameraFragment", "Error starting camera: ${e.message}", e)
             }
         }, ContextCompat.getMainExecutor(requireActivity()))
+    }
+
+    private fun aspectRatio(width: Int, height: Int): Int {
+        val previewRatio = width.coerceAtLeast(height).toDouble() / Math.min(width, height)
+        if (Math.abs(previewRatio - 4.0 / 4.0) <= Math.abs(previewRatio - 20.0 / 20.0)) {
+            return AspectRatio.RATIO_4_3
+        }
+        return AspectRatio.RATIO_16_9
     }
 
     private fun initGallery() {
@@ -233,16 +261,40 @@ class CameraFragment :
             outputOptions,
             ContextCompat.getMainExecutor(requireContext()),
             object : ImageCapture.OnImageSavedCallback {
-                override fun onError(exc: ImageCaptureException) {}
+                override fun onError(exc: ImageCaptureException) {
+                    Log.e("CameraFragment", "Photo capture failed: ${exc.message}", exc)
+                }
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val savedUri = output.savedUri ?: Uri.fromFile(photoFile)
+                    correctImageOrientation(photoFile)
                     saveImageToGallery(savedUri)
                     addLocationToImage(savedUri)
                     navigateToCheckData(savedUri.toString(), selectedPlantType, blokName)
                 }
             }
         )
+    }
+
+    private fun correctImageOrientation(photoFile: File) {
+        try {
+            val exif = ExifInterface(photoFile.absolutePath)
+            val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            val matrix = Matrix()
+
+            when (orientation) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+            }
+            val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
+            val rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            FileOutputStream(photoFile).use { out ->
+                rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+            }
+        } catch (e: IOException) {
+            Log.e("CameraFragment", "Failed to correct image orientation: ${e.message}", e)
+        }
     }
 
     private fun addLocationToImage(imageUri: Uri) {
@@ -257,13 +309,18 @@ class CameraFragment :
         }
         val newBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(newBitmap)
-        val textPaint  = TextPaint().apply {
+        val textPaint = TextPaint().apply {
             color = ContextCompat.getColor(requireContext(), R.color.white)
             textSize = 38f
             isAntiAlias = true
         }
 
-        // mendapatkan alamat
+        val backgroundPaint = Paint().apply {
+            color = ContextCompat.getColor(requireContext(), R.color.black)
+            alpha = 150 // Adjust the alpha to make the background semi-transparent
+        }
+
+        // Mendapatkan alamat
         val geocoder = Geocoder(requireContext(), Locale.getDefault())
         val addresses: List<Address>?
         var addressText = ""
@@ -283,40 +340,78 @@ class CameraFragment :
             addressText = "Gagal mendapatkan alamat"
         }
 
-        // mengukur lebar teks
+        // Mengukur lebar dan tinggi teks
         val textBounds = Rect()
         textPaint.getTextBounds(addressText, 0, addressText.length, textBounds)
         val textWidth = textBounds.width()
+        val textHeight = textBounds.height()
+
+        // Menggunakan Matrix untuk skala gambar
+        val imageView = binding.viewFinder
+        val imageViewWidth = imageView.width
+        val imageViewHeight = imageView.height
+
+        val scaleWidth = imageViewWidth.toFloat() / newBitmap.width
+        val scaleHeight = imageViewHeight.toFloat() / newBitmap.height
+
+        val matrix = Matrix()
+        matrix.postScale(scaleWidth, scaleHeight)
+
+        val scaledBitmap = Bitmap.createBitmap(newBitmap, 0, 0, newBitmap.width, newBitmap.height, matrix, true)
+        val scaledCanvas = Canvas(scaledBitmap)
 
         val xPos = 26f
-        var yPos = newBitmap.height  - textBounds.height() - 30f
+        val yPos = scaledBitmap.height - textHeight - 30f
 
-        // multiple lines
-        if (textWidth > newBitmap.width - 2 * xPos) {
+        // Multiple lines
+        if (textWidth > scaledBitmap.width - 2 * xPos) {
             val staticLayout = StaticLayout.Builder.obtain(
                 addressText,
                 0,
                 addressText.length,
                 textPaint,
-                newBitmap.width - 2 * xPos.toInt()
-            ) .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+                scaledBitmap.width - 2 * xPos.toInt()
+            ).setAlignment(Layout.Alignment.ALIGN_NORMAL)
                 .setLineSpacing(0f, 1f)
                 .setIncludePad(false)
                 .build()
 
             val staticLayoutHeight = staticLayout.height
-            val textY = newBitmap.height - staticLayoutHeight - 30f
-            canvas.translate(xPos, textY)
-            staticLayout.draw(canvas)
+            val textY = scaledBitmap.height - staticLayoutHeight - 30f
+
+            // Menggambar latar belakang hitam sebelum menggambar teks
+            scaledCanvas.drawRect(
+                xPos,
+                textY - textPaint.descent() - 8, // Adjust the padding as needed
+                xPos + staticLayout.width,
+                textY + staticLayout.height.toFloat() + 8, // Adjust the padding as needed
+                backgroundPaint
+            )
+
+            scaledCanvas.translate(xPos, textY)
+            staticLayout.draw(scaledCanvas)
         } else {
-            canvas.drawText(addressText, xPos, yPos, textPaint)
+            // Menggambar latar belakang hitam sebelum menggambar teks
+            scaledCanvas.drawRect(
+                xPos,
+                yPos - textHeight - 8, // Adjust the padding as needed
+                xPos + textWidth + 16, // Adjust the padding as needed
+                yPos + 8, // Adjust the padding as needed
+                backgroundPaint
+            )
+            scaledCanvas.drawText(addressText, xPos, yPos, textPaint)
         }
 
         resolver.openOutputStream(imageUri)?.let { outputStream ->
-            newBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
             outputStream.close()
         }
+
+        // Set the scaled bitmap to the ImageView
+
     }
+
+
 
     private fun saveImageToGallery(savedUri: Uri) {
         val resolver = requireContext().contentResolver
