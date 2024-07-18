@@ -20,7 +20,6 @@ class DashboardFragment :
     override val viewModel: VmApplication by viewModel()
 
     override fun initView() {
-        rvListData()
         observeVM()
     }
 
@@ -36,6 +35,15 @@ class DashboardFragment :
                         it.payload?.data.let {
                             with(binding){
                                 tvTitleDescription.text = "Halo, " + it?.name
+                                it?.name?.let { name ->
+                                    if (name.isNotEmpty()) {
+                                        tvUserIcon.text = name[0].toString()
+                                    } else {
+                                        tvUserIcon.text = "E"
+                                    }
+                                } ?: run {
+                                    tvUserIcon.text = "E"
+                                }
                             }
                         }
                     }
@@ -47,12 +55,6 @@ class DashboardFragment :
 
     private fun navigateToLogin() {
         findNavController().navigate(R.id.action_homeFragment_to_loginFragment)
-    }
-
-    private fun rvListData() {
-        binding.rvDashboardData.adapter = adapterDashboard
-        binding.rvDashboardData.layoutManager = GridLayoutManager(requireContext(), 2)
-        adapterDashboard.setData(listDataDash)
     }
 
 }

@@ -59,9 +59,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    //Lottie animate
-    val lottieVersion = "3.5.0"
-    implementation("com.airbnb.android:lottie:$lottieVersion")
+    implementation("com.airbnb.android:lottie:3.5.0")
     // coil
     implementation("io.coil-kt:coil:2.4.0")
 
@@ -84,6 +82,9 @@ dependencies {
     implementation ("androidx.camera:camera-camera2:1.3.1")
     implementation ("androidx.camera:camera-lifecycle:1.3.1")
     implementation ("androidx.camera:camera-view:1.3.1")
+    implementation ("com.google.android.gms:play-services-location:18.0.0")
+    implementation ("com.google.android.gms:play-services-location:18.0.0")
+
 
     //osm
     implementation ("org.osmdroid:osmdroid-android:6.1.11")
@@ -91,6 +92,6 @@ dependencies {
     // otp toast
     implementation("io.github.muddz:styleabletoast:2.4.0")
 
-    // coil
-    implementation("io.coil-kt:coil:2.4.0")
+    val lottieVersion = "3.5.0"
+    implementation("com.airbnb.android:lottie:$lottieVersion")
 }
