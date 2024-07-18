@@ -48,6 +48,15 @@ class AccountFragment :
                             with(binding){
                                 tvNameAccount.text = it?.name
                                 tvEmailAccount.text = it?.email
+                                it?.name?.let { name ->
+                                    if (name.isNotEmpty()) {
+                                        tvUserIcon.text = name[0].toString()
+                                    } else {
+                                        tvUserIcon.text = "E"
+                                    }
+                                } ?: run {
+                                    tvUserIcon.text = "E"
+                                }
                             }
                         }
                     }
