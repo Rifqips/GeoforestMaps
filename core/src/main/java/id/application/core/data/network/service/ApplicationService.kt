@@ -3,10 +3,12 @@ package id.application.core.data.network.service
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import id.application.core.BuildConfig
 import id.application.core.data.network.interceptor.AuthInterceptor
-import id.application.core.data.network.model.geotags.ResponseAllGeotags
+import id.application.core.data.network.model.blocks.ResponseAllBlocksItem
+import id.application.core.data.network.model.geotags.ResponseAllGeotagingItem
 import id.application.core.data.network.model.login.RequestLoginItem
 import id.application.core.data.network.model.login.ResponseLoginItem
 import id.application.core.data.network.model.logout.ResponseLogoutItem
+import id.application.core.data.network.model.plants.ResponseAllPlantsItem
 import id.application.core.data.network.model.profile.ResponseProfileItem
 import okhttp3.OkHttpClient
 import retrofit2.Response
@@ -30,15 +32,22 @@ interface ApplicationService {
     suspend fun userProfile(): ResponseProfileItem
 
     @GET("v1/geotags")
-    suspend fun getAllGeotags(
+    suspend fun getAllGeotaging(
         @Query("limit") limitItem:Int? = null,
         @Query("page") pageItem:Int? = null,
-    ): ResponseAllGeotags
+    ): ResponseAllGeotagingItem
 
     @GET("v1/plants")
-    suspend fun getAllplants(
+    suspend fun getAllPlants(
         @Query("limit") limitItem:Int? = null,
-    ): ResponseAllGeotags
+        @Query("page") pageItem:Int? = null,
+    ): ResponseAllPlantsItem
+
+    @GET("v1/blocks")
+    suspend fun getAllBlocks(
+        @Query("limit") limitItem:Int? = null,
+        @Query("page") pageItem:Int? = null,
+    ): ResponseAllBlocksItem
 
 
     companion object{

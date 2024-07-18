@@ -4,10 +4,10 @@ import id.application.core.R
 import id.application.core.data.datasource.AppPreferenceDataSource
 import id.application.core.data.datasource.ApplicationDataSource
 import id.application.core.data.network.model.login.RequestLoginItem
-import id.application.core.data.network.model.login.toLoginResponse
 import id.application.core.data.network.model.profile.toProfileResponse
 import id.application.core.domain.model.login.UserLoginRequest
 import id.application.core.domain.model.login.UserLoginResponse
+import id.application.core.domain.model.login.toLoginResponse
 import id.application.core.domain.model.profile.UserProfileResponse
 import id.application.core.utils.AssetWrapperApp
 import id.application.core.utils.ResultWrapper

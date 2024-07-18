@@ -33,9 +33,3 @@ data class UserLogin(
     @SerializedName("updated_at")
     val updatedAt: String
 )
-
-fun ResponseLoginItem.toLoginResponse() = UserLoginResponse(
-    accessToken = this.accessToken,
-    tokenType = this.tokenType,
-    user = this.user
-)
