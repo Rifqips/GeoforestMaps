@@ -2,13 +2,11 @@ package id.application.geoforestmaps.presentation.feature.dashboard
 
 import android.annotation.SuppressLint
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.GridLayoutManager
 import id.application.core.domain.model.Dashboard
 import id.application.core.utils.BaseFragment
 import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentDashboardBinding
-import id.application.geoforestmaps.presentation.feature.dashboard.DashboardData.listDataDash
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import org.koin.androidx.viewmodel.ext.android.viewModel
 

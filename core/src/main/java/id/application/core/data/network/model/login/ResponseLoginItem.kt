@@ -1,8 +1,7 @@
 package id.application.core.data.network.model.login
 
-import com.google.gson.annotations.SerializedName
 import androidx.annotation.Keep
-import id.application.core.domain.model.login.UserLoginResponse
+import com.google.gson.annotations.SerializedName
 
 @Keep
 data class ResponseLoginItem(
@@ -32,10 +31,4 @@ data class UserLogin(
     val name: String,
     @SerializedName("updated_at")
     val updatedAt: String
-)
-
-fun ResponseLoginItem.toLoginResponse() = UserLoginResponse(
-    accessToken = this.accessToken,
-    tokenType = this.tokenType,
-    user = this.user
 )

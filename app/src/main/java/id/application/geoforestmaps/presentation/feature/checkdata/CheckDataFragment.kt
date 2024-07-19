@@ -1,15 +1,8 @@
 package id.application.geoforestmaps.presentation.feature.checkdata
 
 import android.app.AlertDialog
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.camera.core.CameraSelector
 import androidx.navigation.fragment.findNavController
 import coil.load
 import id.application.core.utils.BaseFragment
@@ -35,6 +28,7 @@ class CheckDataFragment :
         binding.tvPlantTypes.text = selectedPlantType
 
         val imageResult = arguments?.getString(IMAGE_PARSE)
+
         binding.ivPlant.load(imageResult) {
             crossfade(true)
         }

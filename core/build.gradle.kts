@@ -64,11 +64,9 @@ dependencies {
     // chucker
     debugImplementation("com.github.chuckerteam.chucker:library:4.0.0")
     releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.0.0")
-    // form data
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
     /**
-     * For both gradle
+     * For all module
      */
     // koin
     api("io.insert-koin:koin-android:3.5.0")

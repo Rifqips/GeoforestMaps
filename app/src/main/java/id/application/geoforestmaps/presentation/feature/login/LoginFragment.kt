@@ -1,6 +1,5 @@
 package id.application.geoforestmaps.presentation.feature.login
 
-import android.util.Log
 import android.util.Patterns
 import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController

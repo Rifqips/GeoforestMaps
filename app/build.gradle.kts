@@ -92,6 +92,4 @@ dependencies {
     // otp toast
     implementation("io.github.muddz:styleabletoast:2.4.0")
 
-    val lottieVersion = "3.5.0"
-    implementation("com.airbnb.android:lottie:$lottieVersion")
 }

@@ -2,18 +2,9 @@ package id.application.geoforestmaps.presentation.feature
 
 import android.os.Bundle
 import android.view.WindowManager
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.Navigation.findNavController
-import androidx.navigation.findNavController
-import id.application.core.utils.EventBus
-import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.ActivityMainBinding
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 

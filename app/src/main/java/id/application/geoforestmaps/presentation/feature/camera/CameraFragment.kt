@@ -1,12 +1,36 @@
 package id.application.geoforestmaps.presentation.feature.camera
 
+import android.Manifest
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Matrix
+import android.graphics.Paint
+import android.graphics.Rect
+import android.location.Address
+import android.location.Geocoder
+import android.location.Location
+import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
-import android.util.Size
+import android.os.Environment
+import android.provider.MediaStore
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
+import android.util.DisplayMetrics
+import android.util.Log
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
@@ -14,36 +38,28 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.net.toFile
 import androidx.navigation.fragment.findNavController
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import id.application.core.utils.BaseFragment
+import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentCameraBinding
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant
 import id.application.geoforestmaps.utils.Constant.IMAGE_FORMAT
 import id.application.geoforestmaps.utils.Constant.IMAGE_PARSE
+import io.github.muddz.styleabletoast.StyleableToast
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import android.Manifest
-import android.content.ContentValues
-import android.content.pm.PackageManager
-import android.location.Address
-import android.location.Geocoder
-import android.os.Environment
-import android.provider.MediaStore
-import android.util.Log
-import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Toast
-import android.location.Location
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.util.Locale
-import android.graphics.*
-import android.text.Layout
-import android.text.StaticLayout
-import android.text.TextPaint
 
 class CameraFragment :
     BaseFragment<FragmentCameraBinding, VmApplication>(FragmentCameraBinding::inflate) {
@@ -56,6 +72,9 @@ class CameraFragment :
     private var currentLocation: Location? = null
     private var selectedPlantType = ""
     private var blokName = ""
+    private var plantTypes = mutableListOf<String>()
+    private var idPlant = 0
+    private var idBlock: Int? = 0
 
     override fun initView() {
         val title = arguments?.getString("title")
@@ -63,6 +82,8 @@ class CameraFragment :
 
         // inisialisasi blok_name
         blokName = title.toString()
+        idBlock = arguments?.getInt("ID_BLOCK")
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         checkPermissions()
         plantsTypeSpinner()
@@ -94,47 +115,73 @@ class CameraFragment :
         }
     }
 
+
     private fun plantsTypeSpinner() {
-        val plantTypes = resources.getStringArray(R.array.plant_types)
+        viewModel.getPlant()
+        viewModel.plantsResult.observe(viewLifecycleOwner) { result ->
+            result.proceedWhen(
+                doOnLoading = {},
+                doOnSuccess = {
+                    val data = it.payload?.data?.items
+                    data?.let { items ->
+                        plantTypes.clear()
+                        plantTypes.addAll(items.map { item -> item.name })
 
-        val adapter = ArrayAdapter(requireContext(), R.layout.item_spinner, plantTypes)
-        adapter.setDropDownViewResource(R.layout.item_dropdown_spinner)
+                        val adapter =
+                            ArrayAdapter(requireContext(), R.layout.item_spinner, plantTypes)
+                        adapter.setDropDownViewResource(R.layout.item_dropdown_spinner)
+                        with(binding) {
+                            spinnerPlantTypes.adapter = adapter
+                            spinnerPlantTypes.dropDownVerticalOffset = 146
+                            spinnerPlantTypes.onItemSelectedListener =
+                                object : AdapterView.OnItemSelectedListener {
+                                    override fun onItemSelected(
+                                        parent: AdapterView<*>,
+                                        view: View?,
+                                        position: Int,
+                                        id: Long
+                                    ) {
+                                        if (view != null) {
+                                            selectedPlantType = plantTypes[position]
 
-        binding.spinnerPlantTypes.adapter = adapter
-        binding.spinnerPlantTypes.dropDownVerticalOffset = 146
+                                            Toast.makeText(
+                                                requireContext(),
+                                                getString(R.string.selected_item) + " " + plantTypes[position],
+                                                Toast.LENGTH_SHORT
+                                            ).show()
 
-        binding.spinnerPlantTypes.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    // Pastikan view tidak null sebelum mengaksesnya
-                    if (view != null) {
-                        // Simpan nilai yang dipilih
-                        selectedPlantType = plantTypes[position]
+                                            // get id plant selected
+                                            items.forEach { item ->
+                                                if (item.name == selectedPlantType) {
+                                                    idPlant = item.id
+                                                }
+                                            }
+                                        }
+                                    }
 
-                        Toast.makeText(
-                            requireContext(),
-                            getString(R.string.selected_item) + " " + plantTypes[position],
-                            Toast.LENGTH_SHORT
-                        ).show()
+                                    override fun onNothingSelected(parent: AdapterView<*>) {}
+                                }
+                        }
                     }
                 }
-
-                override fun onNothingSelected(parent: AdapterView<*>) {}
-            }
-
+            )
+        }
     }
 
     private fun checkPermissions() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
             != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
-            requestPermissions(arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION), CAMERA_PERMISSION_CODE)
+            requestPermissions(
+                arrayOf(
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ), CAMERA_PERMISSION_CODE
+            )
         } else {
             startCamera()
             getCurrentLocation()
@@ -146,12 +193,13 @@ class CameraFragment :
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == CAMERA_PERMISSION_CODE) {
-            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED}) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 startCamera()
                 getCurrentLocation()
             } else {
                 // Permission denied
-                Toast.makeText(requireContext(), "Permissions not granted", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Permissions not granted", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
@@ -162,10 +210,12 @@ class CameraFragment :
                 .addOnSuccessListener { location: Location? ->
                     currentLocation = location
                 }.addOnFailureListener {
-                    Toast.makeText(requireContext(), "Gagal mendapatkan lokasi", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Gagal mendapatkan lokasi", Toast.LENGTH_SHORT)
+                        .show()
                 }
         } catch (e: SecurityException) {
-            Toast.makeText(requireContext(), "Izin lokasi tidak diberikan", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Izin lokasi tidak diberikan", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -174,31 +224,52 @@ class CameraFragment :
         cameraProviderFuture.addListener({
             try {
                 val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-                val imageAnalysis = ImageAnalysis
-                    .Builder()
+                val rotation = binding.viewFinder.display.rotation
+
+                val metrics =
+                    DisplayMetrics().also { binding.viewFinder.display.getRealMetrics(it) }
+                val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
+
+                val imageAnalysis = ImageAnalysis.Builder()
                     .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-                    .setTargetResolution(Size(1280, 720))
+                    .setTargetAspectRatio(screenAspectRatio)
+                    .setTargetRotation(rotation)
                     .build()
+
                 val preview = Preview.Builder()
+                    .setTargetAspectRatio(screenAspectRatio)
+                    .setTargetRotation(rotation)
                     .build()
                     .also {
                         it.setSurfaceProvider(binding.viewFinder.surfaceProvider)
                     }
-                imageCapture = ImageCapture
-                    .Builder()
-                    .setTargetResolution(Size(1280, 720)).build()
+
+                imageCapture = ImageCapture.Builder()
+                    .setTargetAspectRatio(screenAspectRatio)
+                    .setTargetRotation(rotation)
+                    .build()
+
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
                     this,
                     cameraSelector,
                     preview,
-                    imageCapture, imageAnalysis
+                    imageCapture,
+                    imageAnalysis
                 )
                 Log.d("CameraFragment", "Camera started")
             } catch (e: Exception) {
                 Log.e("CameraFragment", "Error starting camera: ${e.message}", e)
             }
         }, ContextCompat.getMainExecutor(requireActivity()))
+    }
+
+    private fun aspectRatio(width: Int, height: Int): Int {
+        val previewRatio = width.coerceAtLeast(height).toDouble() / Math.min(width, height)
+        if (Math.abs(previewRatio - 4.0 / 4.0) <= Math.abs(previewRatio - 20.0 / 20.0)) {
+            return AspectRatio.RATIO_4_3
+        }
+        return AspectRatio.RATIO_16_9
     }
 
     private fun initGallery() {
@@ -233,16 +304,44 @@ class CameraFragment :
             outputOptions,
             ContextCompat.getMainExecutor(requireContext()),
             object : ImageCapture.OnImageSavedCallback {
-                override fun onError(exc: ImageCaptureException) {}
+                override fun onError(exc: ImageCaptureException) {
+                    Log.e("CameraFragment", "Photo capture failed: ${exc.message}", exc)
+                }
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val savedUri = output.savedUri ?: Uri.fromFile(photoFile)
+                    correctImageOrientation(photoFile)
                     saveImageToGallery(savedUri)
                     addLocationToImage(savedUri)
                     navigateToCheckData(savedUri.toString(), selectedPlantType, blokName)
                 }
             }
         )
+    }
+
+    private fun correctImageOrientation(photoFile: File) {
+        try {
+            val exif = ExifInterface(photoFile.absolutePath)
+            val orientation = exif.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )
+            val matrix = Matrix()
+
+            when (orientation) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+            }
+            val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
+            val rotatedBitmap =
+                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            FileOutputStream(photoFile).use { out ->
+                rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+            }
+        } catch (e: IOException) {
+            Log.e("CameraFragment", "Failed to correct image orientation: ${e.message}", e)
+        }
     }
 
     private fun addLocationToImage(imageUri: Uri) {
@@ -257,16 +356,24 @@ class CameraFragment :
         }
         val newBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(newBitmap)
-        val textPaint  = TextPaint().apply {
+        val textPaint = TextPaint().apply {
             color = ContextCompat.getColor(requireContext(), R.color.white)
             textSize = 38f
             isAntiAlias = true
         }
 
-        // mendapatkan alamat
+        val backgroundPaint = Paint().apply {
+            color = ContextCompat.getColor(requireContext(), R.color.black)
+            alpha = 150 // Adjust the alpha to make the background semi-transparent
+        }
+
+        // Mendapatkan alamat
         val geocoder = Geocoder(requireContext(), Locale.getDefault())
         val addresses: List<Address>?
         var addressText = ""
+        var latitude = 0.0
+        var longitude = 0.0
+        var altitude = 0
 
         try {
             currentLocation?.let {
@@ -274,8 +381,12 @@ class CameraFragment :
                 addressText = if (addresses.isNullOrEmpty()) {
                     "Alamat tidak tersedia"
                 } else {
-                    addresses[0].getAddressLine(0)
+                    addresses[0].getAddressLine(0) + " | Longitude: ${it.longitude} | Latitude: ${it.latitude}"
                 }
+                // inisialisasi request data for create geotaging
+                latitude = it.latitude
+                longitude = it.longitude
+                altitude = it.altitude.toInt()
             } ?: run {
                 addressText = "Lokasi tidak tersedia"
             }
@@ -283,39 +394,95 @@ class CameraFragment :
             addressText = "Gagal mendapatkan alamat"
         }
 
-        // mengukur lebar teks
+        // Mengukur lebar dan tinggi teks
         val textBounds = Rect()
         textPaint.getTextBounds(addressText, 0, addressText.length, textBounds)
         val textWidth = textBounds.width()
+        val textHeight = textBounds.height()
+
+        // Menggunakan Matrix untuk skala gambar
+        val imageView = binding.viewFinder
+        val imageViewWidth = imageView.width
+        val imageViewHeight = imageView.height
+
+        val scaleWidth = imageViewWidth.toFloat() / newBitmap.width
+        val scaleHeight = imageViewHeight.toFloat() / newBitmap.height
+
+        val matrix = Matrix()
+        matrix.postScale(scaleWidth, scaleHeight)
+
+        val scaledBitmap =
+            Bitmap.createBitmap(newBitmap, 0, 0, newBitmap.width, newBitmap.height, matrix, true)
+        val scaledCanvas = Canvas(scaledBitmap)
 
         val xPos = 26f
-        var yPos = newBitmap.height  - textBounds.height() - 30f
+        val yPos = scaledBitmap.height - textHeight - 30f
 
-        // multiple lines
-        if (textWidth > newBitmap.width - 2 * xPos) {
+        // Multiple lines
+        if (textWidth > scaledBitmap.width - 2 * xPos) {
             val staticLayout = StaticLayout.Builder.obtain(
                 addressText,
                 0,
                 addressText.length,
                 textPaint,
-                newBitmap.width - 2 * xPos.toInt()
-            ) .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+                scaledBitmap.width - 2 * xPos.toInt()
+            ).setAlignment(Layout.Alignment.ALIGN_NORMAL)
                 .setLineSpacing(0f, 1f)
                 .setIncludePad(false)
                 .build()
 
             val staticLayoutHeight = staticLayout.height
-            val textY = newBitmap.height - staticLayoutHeight - 30f
-            canvas.translate(xPos, textY)
-            staticLayout.draw(canvas)
+            val textY = scaledBitmap.height - staticLayoutHeight - 30f
+
+            // Menggambar latar belakang hitam sebelum menggambar teks
+            scaledCanvas.drawRect(
+                xPos,
+                textY - textPaint.descent() - 8, // Adjust the padding as needed
+                xPos + staticLayout.width,
+                textY + staticLayout.height.toFloat() + 8, // Adjust the padding as needed
+                backgroundPaint
+            )
+
+            scaledCanvas.translate(xPos, textY)
+            staticLayout.draw(scaledCanvas)
         } else {
-            canvas.drawText(addressText, xPos, yPos, textPaint)
+            // Menggambar latar belakang hitam sebelum menggambar teks
+            scaledCanvas.drawRect(
+                xPos,
+                yPos - textHeight - 8, // Adjust the padding as needed
+                xPos + textWidth + 16, // Adjust the padding as needed
+                yPos + 8, // Adjust the padding as needed
+                backgroundPaint
+            )
+            scaledCanvas.drawText(addressText, xPos, yPos, textPaint)
         }
 
         resolver.openOutputStream(imageUri)?.let { outputStream ->
-            newBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
             outputStream.close()
         }
+        // Set the scaled bitmap to the ImageView
+
+        // inisialisasi image untuk request create geotaging
+        val imageFile = imageUri.toFile()
+        val imageRequestBody =
+            imageFile.asRequestBody("multipart/form-data".toMediaTypeOrNull())
+        val imageMultipart: MultipartBody.Part = MultipartBody.Part.createFormData(
+            "photo",
+            imageFile.name,
+            imageRequestBody
+        )
+
+        // create geotaging
+        viewModel.createGeotaging(
+            idPlant.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            idBlock.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            latitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            longitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            altitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            imageMultipart
+        )
+
     }
 
     private fun saveImageToGallery(savedUri: Uri) {
@@ -336,8 +503,8 @@ class CameraFragment :
 
                 }
             }
-            addLocationToImage(imageUri)
         }
+        addLocationToImage(savedUri)
     }
 
     private fun navigateToCheckData(
