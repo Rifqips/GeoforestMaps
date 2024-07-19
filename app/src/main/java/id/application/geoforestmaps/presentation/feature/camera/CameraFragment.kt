@@ -42,6 +42,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import id.application.core.utils.BaseFragment
+import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentCameraBinding
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
@@ -65,6 +66,7 @@ class CameraFragment :
     private var currentLocation: Location? = null
     private var selectedPlantType = ""
     private var blokName = ""
+    private var plantTypes = mutableListOf<String>()
 
     override fun initView() {
         val title = arguments?.getString("title")
@@ -104,49 +106,64 @@ class CameraFragment :
     }
 
     private fun plantsTypeSpinner() {
-        val plantTypes = resources.getStringArray(R.array.plant_types)
+        viewModel.getPlant()
+        viewModel.plantsResult.observe(viewLifecycleOwner) { result ->
+            result.proceedWhen(
+                doOnLoading = {},
+                doOnSuccess = {
+                    val data = it.payload?.data?.items
+                    data?.let { items ->
+                        plantTypes.clear()
+                        plantTypes.addAll(items.map { item -> item.name })
+                        val adapter =
+                            ArrayAdapter(requireContext(), R.layout.item_spinner, plantTypes)
+                        adapter.setDropDownViewResource(R.layout.item_dropdown_spinner)
+                        with(binding) {
+                            spinnerPlantTypes.adapter = adapter
+                            spinnerPlantTypes.dropDownVerticalOffset = 146
+                            spinnerPlantTypes.onItemSelectedListener =
+                                object : AdapterView.OnItemSelectedListener {
+                                    override fun onItemSelected(
+                                        parent: AdapterView<*>,
+                                        view: View?,
+                                        position: Int,
+                                        id: Long
+                                    ) {
+                                        if (view != null) {
+                                            selectedPlantType = plantTypes[position]
 
-        val adapter = ArrayAdapter(requireContext(), R.layout.item_spinner, plantTypes)
-        adapter.setDropDownViewResource(R.layout.item_dropdown_spinner)
+                                            Toast.makeText(
+                                                requireContext(),
+                                                getString(R.string.selected_item) + " " + plantTypes[position],
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
 
-        with(binding){
-            spinnerPlantTypes.adapter = adapter
-            spinnerPlantTypes.dropDownVerticalOffset = 146
-            spinnerPlantTypes.onItemSelectedListener =
-                object : AdapterView.OnItemSelectedListener {
-                    override fun onItemSelected(
-                        parent: AdapterView<*>,
-                        view: View?,
-                        position: Int,
-                        id: Long
-                    ) {
-                        // Pastikan view tidak null sebelum mengaksesnya
-                        if (view != null) {
-                            // Simpan nilai yang dipilih
-                            selectedPlantType = plantTypes[position]
-
-                            Toast.makeText(
-                                requireContext(),
-                                getString(R.string.selected_item) + " " + plantTypes[position],
-                                Toast.LENGTH_SHORT
-                            ).show()
+                                    override fun onNothingSelected(parent: AdapterView<*>) {}
+                                }
                         }
                     }
-
-                    override fun onNothingSelected(parent: AdapterView<*>) {}
                 }
+            )
         }
-
-
-
     }
+
 
     private fun checkPermissions() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
             != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
-            requestPermissions(arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION), CAMERA_PERMISSION_CODE)
+            requestPermissions(
+                arrayOf(
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ), CAMERA_PERMISSION_CODE
+            )
         } else {
             startCamera()
             getCurrentLocation()
@@ -158,12 +175,13 @@ class CameraFragment :
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == CAMERA_PERMISSION_CODE) {
-            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED}) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 startCamera()
                 getCurrentLocation()
             } else {
                 // Permission denied
-                Toast.makeText(requireContext(), "Permissions not granted", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Permissions not granted", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
@@ -174,10 +192,12 @@ class CameraFragment :
                 .addOnSuccessListener { location: Location? ->
                     currentLocation = location
                 }.addOnFailureListener {
-                    Toast.makeText(requireContext(), "Gagal mendapatkan lokasi", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Gagal mendapatkan lokasi", Toast.LENGTH_SHORT)
+                        .show()
                 }
         } catch (e: SecurityException) {
-            Toast.makeText(requireContext(), "Izin lokasi tidak diberikan", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Izin lokasi tidak diberikan", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -188,7 +208,8 @@ class CameraFragment :
                 val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
                 val rotation = binding.viewFinder.display.rotation
 
-                val metrics = DisplayMetrics().also { binding.viewFinder.display.getRealMetrics(it) }
+                val metrics =
+                    DisplayMetrics().also { binding.viewFinder.display.getRealMetrics(it) }
                 val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
 
                 val imageAnalysis = ImageAnalysis.Builder()
@@ -283,7 +304,10 @@ class CameraFragment :
     private fun correctImageOrientation(photoFile: File) {
         try {
             val exif = ExifInterface(photoFile.absolutePath)
-            val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            val orientation = exif.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )
             val matrix = Matrix()
 
             when (orientation) {
@@ -292,7 +316,8 @@ class CameraFragment :
                 ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
             }
             val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
-            val rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            val rotatedBitmap =
+                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
             FileOutputStream(photoFile).use { out ->
                 rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
             }
@@ -361,7 +386,8 @@ class CameraFragment :
         val matrix = Matrix()
         matrix.postScale(scaleWidth, scaleHeight)
 
-        val scaledBitmap = Bitmap.createBitmap(newBitmap, 0, 0, newBitmap.width, newBitmap.height, matrix, true)
+        val scaledBitmap =
+            Bitmap.createBitmap(newBitmap, 0, 0, newBitmap.width, newBitmap.height, matrix, true)
         val scaledCanvas = Canvas(scaledBitmap)
 
         val xPos = 26f
@@ -414,7 +440,6 @@ class CameraFragment :
         // Set the scaled bitmap to the ImageView
 
     }
-
 
 
     private fun saveImageToGallery(savedUri: Uri) {

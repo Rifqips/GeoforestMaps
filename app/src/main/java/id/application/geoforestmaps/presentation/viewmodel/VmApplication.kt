@@ -12,11 +12,12 @@ import androidx.paging.liveData
 import id.application.core.data.datasource.AppPreferenceDataSource
 import id.application.core.domain.model.login.UserLoginRequest
 import id.application.core.domain.model.login.UserLoginResponse
+import id.application.core.domain.model.plants.ItemAllPlantsResponse
 import id.application.core.domain.model.profile.UserProfileResponse
 import id.application.core.domain.paging.BlocksPagingSource
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.utils.ResultWrapper
-import id.application.geoforestmaps.presentation.feature.database.DatabaseAdapterItem
+import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -37,6 +38,10 @@ class VmApplication(
 
     private val _userProfileResult = MutableLiveData<ResultWrapper<UserProfileResponse>>()
     val userProfileResult: LiveData<ResultWrapper<UserProfileResponse>> = _userProfileResult
+
+
+    private val _plantsResult = MutableLiveData<ResultWrapper<ItemAllPlantsResponse>>()
+    val plantsResult: LiveData<ResultWrapper<ItemAllPlantsResponse>> = _plantsResult
 
     fun userLogin(request: UserLoginRequest) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -91,4 +96,12 @@ class VmApplication(
     val blockList = Pager(PagingConfig(pageSize = 4)) {
         BlocksPagingSource(repo)
     }.liveData.cachedIn(viewModelScope)
+
+    fun getPlant(){
+        viewModelScope.launch {
+            repo.getAllPlants().collect{
+                _plantsResult.postValue(it)
+            }
+        }
+    }
 }

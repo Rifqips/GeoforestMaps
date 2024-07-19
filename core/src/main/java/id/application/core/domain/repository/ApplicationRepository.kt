@@ -38,7 +38,7 @@ interface  ApplicationRepository{
     suspend fun getAllPlants(
         limitItem:Int? = null,
         pageItem:Int? = null,
-    ): ItemAllPlantsResponse
+    ): Flow<ResultWrapper<ItemAllPlantsResponse>>
 
     suspend fun getAllBlocks(
         limitItem:Int? = null,
@@ -92,9 +92,12 @@ class ApplicationRepositoryImpl(
     override suspend fun getAllPlants(
         limitItem: Int?,
         pageItem: Int?
-    ): ItemAllPlantsResponse {
-        return appDataSource.getAllPlants(limitItem, pageItem).toAllPlantsResponse()
-
+    ): Flow<ResultWrapper<ItemAllPlantsResponse>> {
+        return proceedFlow {
+            appDataSource.getAllPlants(limitItem, pageItem).toAllPlantsResponse()
+        }.catch { e ->
+            emit(ResultWrapper.Error(e as? Exception ?: Exception(assetWrapper.getString(R.string.text_unknown_error))))
+        }
     }
 
     override suspend fun getAllBlocks(

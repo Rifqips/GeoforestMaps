@@ -1,12 +1,15 @@
 package id.application.geoforestmaps.presentation.feature.database
 
+import android.os.Bundle
 import android.view.View
+import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
-import id.application.core.domain.model.Dashboard
+import id.application.core.domain.model.blocks.ItemAllBlocks
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentDatabaseBinding
+import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -16,7 +19,9 @@ class DatabaseFragment :
     override val viewModel: VmApplication by viewModel()
 
     private val adapterPagingDatabase: DatabaseAdapterItem by lazy {
-        DatabaseAdapterItem{}
+        DatabaseAdapterItem{
+            navigateToDatabaseOption(it)
+        }
     }
 
     override fun initView() {
@@ -55,36 +60,24 @@ class DatabaseFragment :
                     pbLoading.visibility = View.GONE
                     if (view != null){
                         rvBlokData.apply {
-                            layoutManager = LinearLayoutManager(context)
+                            layoutManager = LinearLayoutManager(context).apply {
+                                isSmoothScrollbarEnabled = true
+                            }
                             adapter = adapterPagingDatabase
+
                         }
                     }
                 }
             }
         }
     }
-}
 
-object AreaData {
-    private var images = intArrayOf(
-        R.drawable.img_location,
-        R.drawable.img_location
-    )
-
-    private var names = arrayOf(
-        "Blok A",
-        "Blok B"
-    )
-
-    val listDataArea : ArrayList<Dashboard>
-        get() {
-            val listData = arrayListOf<Dashboard>()
-            for (position in names.indices){
-                val dataDash = Dashboard()
-                dataDash.image = images[position]
-                dataDash.name = names[position]
-                listData.add(dataDash)
-            }
-            return listData
-        }
+    private fun navigateToDatabaseOption(itemAllBlocks : ItemAllBlocks){
+        val bundle = Bundle()
+        bundle.putString("title", itemAllBlocks.name)
+        val navController =
+            activity?.supportFragmentManager
+                ?.findFragmentById(R.id.container_navigation)?.findNavController()
+        navController?.navigate(R.id.action_homeFragment_to_databaseOptionFragment, bundle)
+    }
 }
