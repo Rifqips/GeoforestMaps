@@ -1,11 +1,9 @@
 package id.application.geoforestmaps.presentation.feature.databaseoption
 
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.databinding.FragmentDatabaseOptionBinding
-import id.application.geoforestmaps.presentation.feature.dashboard.DashboardCardListAdapter
 import id.application.geoforestmaps.presentation.feature.dashboard.DashboardData.listDataDash
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import org.koin.androidx.viewmodel.ext.android.viewModel

@@ -2,58 +2,51 @@ package id.application.core.domain.model.geotags
 
 
 import androidx.annotation.Keep
-import com.google.gson.annotations.SerializedName
-import id.application.core.data.network.model.blocks.AllBlocks
-import id.application.core.data.network.model.blocks.DataAllBlocks
-import id.application.core.data.network.model.blocks.ResponseAllBlocksItem
 import id.application.core.data.network.model.geotags.AllGeotaging
 import id.application.core.data.network.model.geotags.DataAllGeotaging
 import id.application.core.data.network.model.geotags.ResponseAllGeotagingItem
-import id.application.core.domain.model.blocks.ItemAllBlocks
-import id.application.core.domain.model.blocks.ItemAllBlocksResponse
-import id.application.core.domain.model.blocks.ItemDataAllBlocks
 
 @Keep
 data class ItemAllGeotagingResponse(
-    val code: Int?,
-    val `data`: ItemDataAllGeotaging?,
-    val message: String?
+    val code: Int,
+    val `data`: ItemDataAllGeotaging,
+    val message: String
 )
 
 @Keep
 data class ItemDataAllGeotaging(
-    val currentItemCount: Int?,
-    val items: List<ItemAllGeotaging?>?,
-    val itemsPerPage: Int?,
-    val pageIndex: Int?,
-    val totalPages: Int?
+    val currentItemCount: Int,
+    val items: List<ItemAllGeotaging>,
+    val itemsPerPage: Int,
+    val pageIndex: Int,
+    val totalPages: Int
 )
 
 @Keep
 data class ItemAllGeotaging(
-    val altitude: Int?,
-    val blockId: Int?,
-    val createdAt: String?,
-    val id: Int?,
-    val latitude: Double?,
-    val longitude: Double?,
-    val photo: String?,
-    val plantId: Int?,
-    val updatedAt: String?,
-    val userId: Int?
+    val altitude: Int,
+    val blockId: Int,
+    val createdAt: String,
+    val id: Int,
+    val latitude: Double,
+    val longitude: Double,
+    val photo: String,
+    val plantId: Int,
+    val updatedAt: String,
+    val userId: Int
 )
 
 
 
 fun ResponseAllGeotagingItem.toAllGeotagingResponse() = ItemAllGeotagingResponse(
     code = this.code,
-    data = this.data?.toDataAllGeotagingItem(),
+    data = this.data.toDataAllGeotagingItem(),
     message = this.message
 )
 
 fun DataAllGeotaging.toDataAllGeotagingItem() = ItemDataAllGeotaging(
     currentItemCount = this.currentItemCount,
-    items = this.items?.toAllGeotagingList(),
+    items = this.items.toAllGeotagingList(),
     itemsPerPage = this.itemsPerPage,
     pageIndex = this.pageIndex,
     totalPages = this.totalPages
@@ -72,8 +65,8 @@ fun AllGeotaging.toAllGeotaging() = ItemAllGeotaging(
     userId = this.userId
 )
 
-fun List<AllGeotaging?>?.toAllGeotagingList(): List<ItemAllGeotaging?>? {
-    return this?.map { it?.toAllGeotaging() }
+fun List<AllGeotaging>.toAllGeotagingList(): List<ItemAllGeotaging> {
+    return this.map { it.toAllGeotaging() }
 }
 
 

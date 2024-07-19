@@ -4,12 +4,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.liveData
 import id.application.core.data.datasource.AppPreferenceDataSource
 import id.application.core.domain.model.login.UserLoginRequest
 import id.application.core.domain.model.login.UserLoginResponse
 import id.application.core.domain.model.profile.UserProfileResponse
+import id.application.core.domain.paging.BlocksPagingSource
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.utils.ResultWrapper
+import id.application.geoforestmaps.presentation.feature.database.DatabaseAdapterItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -60,4 +67,28 @@ class VmApplication(
             }
         }
     }
+
+    fun loadPagingBlocks(
+        adapter: DatabaseAdapterItem,
+        brandItem: String?,
+        sortItem: String?
+    ) {
+        viewModelScope.launch {
+            val response =  repo.getAllBlocks(
+                limitItem = 10,
+                pageItem = 1
+            )
+            if (response.code == 200) {
+                val postsResponse = response.data
+                postsResponse.let {
+                    val store = it.items
+                    adapter.submitData(PagingData.from(store))
+                }
+            }
+        }
+    }
+
+    val blockList = Pager(PagingConfig(pageSize = 4)) {
+        BlocksPagingSource(repo)
+    }.liveData.cachedIn(viewModelScope)
 }
