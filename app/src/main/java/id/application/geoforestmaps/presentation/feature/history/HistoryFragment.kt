@@ -1,11 +1,17 @@
 package id.application.geoforestmaps.presentation.feature.history
 
+import android.view.View
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import id.application.core.domain.model.History
 import id.application.core.domain.model.HistoryAlreadySent
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentHistoryBinding
+import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
+import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapterItem
+import id.application.geoforestmaps.presentation.adapter.geotags.HistoryAlreadySentAdapter
+import id.application.geoforestmaps.presentation.adapter.geotags.HistoryListAdapter
 import id.application.geoforestmaps.presentation.feature.history.HistoryData.listDataHistory
 import id.application.geoforestmaps.presentation.feature.history.HistoryData.listDataHistoryAlreadySent
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
@@ -19,13 +25,61 @@ class HistoryFragment :
     private val adapterHistoryAlreadySentAdapter = HistoryAlreadySentAdapter()
     override val viewModel: VmApplication by viewModel()
 
+    private val adapterPagingGeotagging: GeotaggingAdapterItem by lazy {
+        GeotaggingAdapterItem{}
+    }
+
 
     override fun initView() {
         rvListHistory()
         rvListHistoryAlreadySent()
+
+        loadPagingGeotaging(adapter = adapterPagingGeotagging)
+        setUpPaging()
+
     }
 
     override fun initListener() {}
+
+    private fun loadPagingGeotaging(
+        adapter: GeotaggingAdapterItem,
+        brandItem: String? = null,
+        sortItem: String? = null,
+    ) {
+        viewModel.loadPagingGeotagging(
+            adapter,
+            brandItem?.lowercase(),
+            sortItem?.lowercase(),
+        )
+    }
+
+    private fun setUpPaging(){
+        if (view != null){
+            parentFragment?.viewLifecycleOwner?.let {
+                viewModel.geotaggingList.observe(it) { pagingData ->
+                    adapterPagingGeotagging.submitData(lifecycle, pagingData)
+                }
+            }
+        }
+        adapterPagingGeotagging.addLoadStateListener { loadState ->
+            with(binding){
+                if (loadState.refresh is LoadState.Loading) {
+                    pbLoading.visibility = View.VISIBLE
+                } else {
+                    pbLoading.visibility = View.GONE
+                    if (view != null){
+                        rvHistoryAlreadySentData.apply {
+                            layoutManager = LinearLayoutManager(context).apply {
+                                isSmoothScrollbarEnabled = true
+                            }
+                            adapter = adapterPagingGeotagging
+
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     private fun rvListHistory() {
         binding.rvHistoryData.adapter = adapterHistory

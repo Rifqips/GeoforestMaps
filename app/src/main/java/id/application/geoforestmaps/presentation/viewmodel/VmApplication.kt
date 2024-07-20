@@ -15,9 +15,11 @@ import id.application.core.domain.model.login.UserLoginResponse
 import id.application.core.domain.model.plants.ItemAllPlantsResponse
 import id.application.core.domain.model.profile.UserProfileResponse
 import id.application.core.domain.paging.BlocksPagingSource
+import id.application.core.domain.paging.GeotagingPagingSource
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.utils.ResultWrapper
 import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
+import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapterItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -95,6 +97,31 @@ class VmApplication(
 
     val blockList = Pager(PagingConfig(pageSize = 4)) {
         BlocksPagingSource(repo)
+    }.liveData.cachedIn(viewModelScope)
+
+
+    fun loadPagingGeotagging(
+        adapter: GeotaggingAdapterItem,
+        brandItem: String?,
+        sortItem: String?
+    ) {
+        viewModelScope.launch {
+            val response =  repo.getAllGeotaging(
+                limitItem = 10,
+                pageItem = 1
+            )
+            if (response.code == 200) {
+                val postsResponse = response.data
+                postsResponse.let {
+                    val store = it.items
+                    adapter.submitData(PagingData.from(store))
+                }
+            }
+        }
+    }
+
+    val geotaggingList = Pager(PagingConfig(pageSize = 4)) {
+        GeotagingPagingSource(repo)
     }.liveData.cachedIn(viewModelScope)
 
     fun getPlant(){
