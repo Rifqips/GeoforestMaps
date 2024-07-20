@@ -24,7 +24,7 @@ data class ItemDataAllGeotaging(
 
 @Keep
 data class ItemAllGeotaging(
-    val altitude: Int,
+    val altitude: Double,
     val blockId: Int,
     val createdAt: String,
     val id: Int,
@@ -68,6 +68,3 @@ fun AllGeotaging.toAllGeotaging() = ItemAllGeotaging(
 fun List<AllGeotaging>.toAllGeotagingList(): List<ItemAllGeotaging> {
     return this.map { it.toAllGeotaging() }
 }
-
-
-

@@ -38,6 +38,7 @@ interface  ApplicationRepository{
     suspend fun userProfile(): Flow<ResultWrapper<UserProfileResponse>>
 
     suspend fun getAllGeotaging(
+        blockId:Int? = null,
         limitItem:Int? = null,
         pageItem:Int? = null,
     ): ItemAllGeotagingResponse
@@ -100,10 +101,11 @@ class ApplicationRepositoryImpl(
     }
 
     override suspend fun getAllGeotaging(
+        blockId:Int?,
         limitItem: Int?,
         pageItem: Int?
     ): ItemAllGeotagingResponse {
-        return appDataSource.getAllGeotaging(limitItem, pageItem).toAllGeotagingResponse()
+        return appDataSource.getAllGeotaging(blockId, limitItem, pageItem).toAllGeotagingResponse()
     }
 
     override suspend fun getAllPlants(

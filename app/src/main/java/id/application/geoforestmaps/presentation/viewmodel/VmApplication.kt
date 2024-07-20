@@ -16,10 +16,13 @@ import id.application.core.domain.model.login.UserLoginResponse
 import id.application.core.domain.model.plants.ItemAllPlantsResponse
 import id.application.core.domain.model.profile.UserProfileResponse
 import id.application.core.domain.paging.BlocksPagingSource
+import id.application.core.domain.paging.GeotagingPagingSource
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.utils.ResultWrapper
 import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
+import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapterItem
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
@@ -48,6 +51,10 @@ class VmApplication(
     private val _geotagingCreateResult = MutableLiveData<ResultWrapper<List<ItemAllGeotaging>>>()
     val geotagingCreateResult: LiveData<ResultWrapper<List<ItemAllGeotaging>>>
         get() = _geotagingCreateResult
+
+    private val _isLoadingGeotaging = MutableLiveData<Boolean>()
+    val isLoadingGeotaging: LiveData<Boolean>
+        get() = _isLoadingGeotaging
 
     fun userLogin(request: UserLoginRequest) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -81,13 +88,13 @@ class VmApplication(
 
     fun loadPagingBlocks(
         adapter: DatabaseAdapterItem,
-        brandItem: String?,
-        sortItem: String?
+        limitItem: Int?  = null,
+        pageItem: Int?  = null
     ) {
         viewModelScope.launch {
             val response = repo.getAllBlocks(
-                limitItem = 10,
-                pageItem = 1
+                limitItem = limitItem,
+                pageItem = pageItem
             )
             if (response.code == 200) {
                 val postsResponse = response.data
@@ -101,6 +108,33 @@ class VmApplication(
 
     val blockList = Pager(PagingConfig(pageSize = 4)) {
         BlocksPagingSource(repo)
+    }.liveData.cachedIn(viewModelScope)
+
+
+    fun loadPagingGeotagging(
+        adapter: GeotaggingAdapterItem,
+        blockId: Int? = null,
+        limitItem: Int?  = null,
+        pageItem: Int?  = null
+    ) {
+        viewModelScope.launch {
+            val response =  repo.getAllGeotaging(
+                blockId = blockId,
+                limitItem = limitItem,
+                pageItem = pageItem
+            )
+            if (response.code == 200) {
+                val postsResponse = response.data
+                postsResponse.let {
+                    val store = it.items
+                    adapter.submitData(PagingData.from(store))
+                }
+            }
+        }
+    }
+
+    val geotaggingList = Pager(PagingConfig(pageSize = 4)) {
+        GeotagingPagingSource(repo)
     }.liveData.cachedIn(viewModelScope)
 
     fun getPlant() {
@@ -119,6 +153,7 @@ class VmApplication(
         altitude: RequestBody?,
         userImage: MultipartBody.Part?
     ) {
+        _isLoadingGeotaging.postValue(false)
         viewModelScope.launch(Dispatchers.IO) {
             repo.createGeotaging(
                 plantId,
@@ -129,6 +164,7 @@ class VmApplication(
                 userImage
             ).collect {
                 _geotagingCreateResult.postValue(it)
+                _isLoadingGeotaging.postValue(false)
             }
         }
     }

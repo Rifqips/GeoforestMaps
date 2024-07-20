@@ -45,6 +45,7 @@ interface ApplicationService {
 
     @GET("v1/geotags")
     suspend fun getAllGeotaging(
+        @Query("block") blockId:Int? = null,
         @Query("limit") limitItem:Int? = null,
         @Query("page") pageItem:Int? = null,
     ): ResponseAllGeotagingItem

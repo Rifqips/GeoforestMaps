@@ -18,6 +18,7 @@ interface ApplicationDataSource {
     suspend fun userLogout(): Response<ResponseLogoutItem>
     suspend fun userProfile(): ResponseProfileItem
     suspend fun getAllGeotaging(
+        blockId:Int? = null,
         limitItem:Int? = null,
         pageItem:Int? = null,
     ): ResponseAllGeotagingItem
@@ -55,10 +56,11 @@ class ApplicationDataSourceImpl(private val service: ApplicationService) : Appli
     }
 
     override suspend fun getAllGeotaging(
+        blockId: Int?,
         limitItem: Int?,
         pageItem: Int?
     ): ResponseAllGeotagingItem {
-        return service.getAllGeotaging(limitItem, pageItem)
+        return service.getAllGeotaging(blockId,limitItem, pageItem)
     }
 
     override suspend fun getAllPlants(limitItem: Int?, pageItem: Int?): ResponseAllPlantsItem {

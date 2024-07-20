@@ -23,7 +23,7 @@ data class DataAllGeotaging(
 
 @Keep
 data class AllGeotaging(
-    @SerializedName("altitude") val altitude: Int,
+    @SerializedName("altitude") val altitude: Double,
     @SerializedName("block_id") val blockId: Int,
     @SerializedName("created_at") val createdAt: String,
     @SerializedName("id") val id: Int,

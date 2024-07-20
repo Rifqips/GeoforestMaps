@@ -41,13 +41,9 @@ class GeotaggingLocationFragment :
 
     private fun loadPagingBlocks(
         adapter: DatabaseAdapterItem,
-        brandItem: String? = null,
-        sortItem: String? = null,
     ) {
         viewModel.loadPagingBlocks(
             adapter,
-            brandItem?.lowercase(),
-            sortItem?.lowercase(),
         )
     }
 

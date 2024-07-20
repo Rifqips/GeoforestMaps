@@ -1,4 +1,4 @@
-package id.application.geoforestmaps.presentation.feature.history
+package id.application.geoforestmaps.presentation.adapter.geotags
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

@@ -11,14 +11,15 @@
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:navGraph="@navigation/nav_home" />
+        android:layout_marginBottom="?attr/actionBarSize"
+    app:navGraph="@navigation/nav_home" />
 
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="16dp"
         android:layout_gravity="bottom"
+        android:paddingBottom="16dp"
         android:backgroundTint="@color/white"
         app:fabCradleMargin="10dp"
         app:fabCradleRoundedCornerRadius="30dp">
@@ -26,8 +27,7 @@
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_navigation"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="16dp"
+            android:layout_height="wrap_content"
             android:background="@android:color/transparent"
             app:itemIconTint="@drawable/bottom_nav_item_icon"
             app:itemTextColor="@drawable/bottom_nav_item_text"
@@ -44,6 +44,5 @@
         app:layout_anchor="@id/bottomAppBar"
         app:maxImageSize="24dp"
         tools:ignore="ContentDescription" />
-
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
