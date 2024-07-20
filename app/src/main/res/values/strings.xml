@@ -1,3 +1,29 @@
 <resources>
-    <string name="app_name">GeoforestMaps</string>
+    <string name="app_name">Egeoforest</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="string_dashboard">Dashboard</string>
+    <string name="ic_history">Riwayat</string>
+    <string name="string_choose_a_picture">Choose a Picture</string>
+    <string name="selected_item">"Jenis tanaman yang dipilih : "</string>
+    <string name="string_database">Database</string>
+    <string name="string_akun">Akun</string>
+    <string name="text_error_email_empty">Email tidak boleh kosong</string>
+    <string name="text_error_email_invalid">Masukkan email dengan format yang valid</string>
+    <string name="text_sorry_wrong_password">Maaf, password salah</string>
+    <string name="text_password_min_8_character">Password minimal 8 karakter</string>
+    <string name="text_login_successful">Login Berhasil</string>
+    <string name="text_sorry_there_s_an_error_on_the_server">Maaf, server error</string>
+    <string name="text_no_internet_connection">Oops! Tidak ada internet</string>
+    <string name="text_successfully_logout">Logout berhasil!</string>
+    <string name="text_failed_to_logout">Logout gagal!</string>
+    <string name="string_gagal_login">Gagal Login</string>
+
+    <string-array name="plant_types">
+        <item>Pilih</item>
+        <item>Sawit</item>
+        <item>Karet</item>
+        <item>Pinus</item>
+        <item>Beringin</item>
+    </string-array>
 </resources>

@@ -1,8 +1,62 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
-    <style name="Base.Theme.GeoforestMaps" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- styles.xml -->
+    <style name="Base.Theme.GeoforestMaps" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/secondary_green</item>
+        <item name="colorPrimaryVariant">@color/secondary_green</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/secondary_green</item>
+        <item name="colorSecondaryVariant">@color/secondary_green</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/primary_green</item>
+        <!-- Customize the color of the system bars (status bar, navigation bar) -->
+        <item name="android:windowLightStatusBar">true</item> <!-- Ensures status bar icons are visible on light background -->
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
+
+    <style name="Base.Theme.GeoforestMaps.EditText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:layout_marginTop">69dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:background">@drawable/outlined_edittext_background</item>
+        <item name="android:fontFamily">@font/poppins_medium</item>
+    </style>
+    <style name="Base.Theme.GeoforestMaps.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:backgroundTint">@color/primary_green</item>
+    </style>
+
+    <style name="Base.Theme.GeoforestMaps.ButtonLogout">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:backgroundTint">@color/red</item>
+    </style>
+
+    <style name="successtoast">
+        <item name="stTextBold">true</item>
+        <item name="stColorBackground">@color/primary_green</item>
+        <item name="stTextSize">14sp</item>
+        <item name="stRadius">10dp</item>
+        <item name="stLength">LONG</item>
+        <item name="stTextColor">@color/white</item>
+        <item name="stStrokeWidth">25dp</item>
+    </style>
+
+    <style name="failedtoast">
+        <item name="stTextBold">true</item>
+        <item name="stColorBackground">@color/red</item>
+        <item name="stTextSize">14sp</item>
+        <item name="stRadius">10dp</item>
+        <item name="stLength">LONG</item>
+        <item name="stTextColor">@color/white</item>
+        <item name="stStrokeWidth">25dp</item>
     </style>
 
     <style name="Theme.GeoforestMaps" parent="Base.Theme.GeoforestMaps" />

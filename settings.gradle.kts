@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "GeoforestMaps"
 include(":app")
- 
+include(":core")

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menuDashboard"
+        android:icon="@drawable/ic_home"
+        android:enabled="true"
+        android:title="@string/string_dashboard"
+        />
+
+    <item
+        android:id="@+id/menuHistory"
+        android:icon="@drawable/ic_history"
+        android:enabled="true"
+        android:title="@string/ic_history"/>
+
+    <item
+        android:id="@+id/blankFragment"
+        android:enabled="true"
+        android:title="Blank"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menuDatabase"
+        android:icon="@drawable/ic_location"
+        android:enabled="true"
+        android:title="@string/string_database"/>
+
+    <item
+        android:id="@+id/menuAccount"
+        android:icon="@drawable/ic_person"
+        android:enabled="true"
+        android:title="@string/string_akun"/>
+
+</menu>

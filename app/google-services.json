@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "204276980618",
+    "project_id": "geoforest-maps",
+    "storage_bucket": "geoforest-maps.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:204276980618:android:0c259e898b198049950673",
+        "android_client_info": {
+          "package_name": "id.application.geoforestmaps"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlHC0eeO13KXd5qD8J4p2mHfGKMZet2is"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
