@@ -2,15 +2,18 @@ package id.application.geoforestmaps.presentation.feature.camera
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Rect
+import android.graphics.drawable.ColorDrawable
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -28,6 +31,7 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.AspectRatio
@@ -39,12 +43,15 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.net.toFile
+import androidx.core.view.isGone
 import androidx.navigation.fragment.findNavController
+import coil.load
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import id.application.core.utils.BaseFragment
 import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
+import id.application.geoforestmaps.databinding.DialogConfirmSaveDataBinding
 import id.application.geoforestmaps.databinding.FragmentCameraBinding
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant
@@ -75,8 +82,14 @@ class CameraFragment :
     private var plantTypes = mutableListOf<String>()
     private var idPlant = 0
     private var idBlock: Int? = 0
+    private var addressText = ""
+    private var latitude = 0.0
+    private var longitude = 0.0
+    private var altitude = 0
+    private var savedUri: Uri = Uri.EMPTY
 
     override fun initView() {
+        onBackPressed()
         val title = arguments?.getString("title")
         binding.topBar.ivTitle.text = "Ambil Data $title"
 
@@ -86,7 +99,7 @@ class CameraFragment :
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         checkPermissions()
-        plantsTypeSpinner()
+        initViewModel()
     }
 
     override fun initListener() {
@@ -115,18 +128,36 @@ class CameraFragment :
         }
     }
 
+    private fun loadingState(state : Boolean){
+        with(binding){
+            when(state){
+                true -> {
+                    binding.pbLoadingCamera.isGone = false
+                    binding.llPlantsType.isGone = true
+                    binding.containerBottom.isGone = true
+                }
+                false -> {
+                    binding.pbLoadingCamera.isGone = true
+                    binding.llPlantsType.isGone = false
+                    binding.containerBottom.isGone = false
+                }
+            }
+        }
+    }
 
-    private fun plantsTypeSpinner() {
+    private fun initViewModel() {
         viewModel.getPlant()
         viewModel.plantsResult.observe(viewLifecycleOwner) { result ->
             result.proceedWhen(
-                doOnLoading = {},
+                doOnLoading = {
+                    loadingState(true)
+                },
                 doOnSuccess = {
+                    loadingState(false)
                     val data = it.payload?.data?.items
                     data?.let { items ->
                         plantTypes.clear()
                         plantTypes.addAll(items.map { item -> item.name })
-
                         val adapter =
                             ArrayAdapter(requireContext(), R.layout.item_spinner, plantTypes)
                         adapter.setDropDownViewResource(R.layout.item_dropdown_spinner)
@@ -163,6 +194,22 @@ class CameraFragment :
                                 }
                         }
                     }
+                }
+            )
+        }
+        viewModel.geotagingCreateResult.observe(viewLifecycleOwner){ result ->
+            result.proceedWhen(
+                doOnLoading = {
+                    binding.layoutCheckData.pbLoading.isGone = false
+                },
+                doOnSuccess = {
+                    showDialogConfirmSaveData()
+                    binding.layoutCheckData.pbLoading.isGone = true
+                    Toast.makeText(context, "Sukses Membuat Geotaging", Toast.LENGTH_SHORT).show()
+                },
+                doOnError = {
+                    binding.layoutCheckData.pbLoading.isGone = true
+                    Toast.makeText(context, "Gagal Membuat Geotaging", Toast.LENGTH_SHORT).show()
                 }
             )
         }
@@ -279,8 +326,7 @@ class CameraFragment :
             if (result.resultCode == Activity.RESULT_OK) {
                 val selectedImg: Uri? = result.data?.data
                 selectedImg?.let {
-                    navigateToCheckData(it.toString(), selectedPlantType, blokName)
-
+                    layoutCheckDataItem(it.toString(), latitude, longitude, altitude)
                 }
             }
         }
@@ -309,11 +355,10 @@ class CameraFragment :
                 }
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val savedUri = output.savedUri ?: Uri.fromFile(photoFile)
+                    savedUri = output.savedUri ?: Uri.fromFile(photoFile)
                     correctImageOrientation(photoFile)
                     saveImageToGallery(savedUri)
                     addLocationToImage(savedUri)
-                    navigateToCheckData(savedUri.toString(), selectedPlantType, blokName)
                 }
             }
         )
@@ -370,10 +415,6 @@ class CameraFragment :
         // Mendapatkan alamat
         val geocoder = Geocoder(requireContext(), Locale.getDefault())
         val addresses: List<Address>?
-        var addressText = ""
-        var latitude = 0.0
-        var longitude = 0.0
-        var altitude = 0
 
         try {
             currentLocation?.let {
@@ -387,6 +428,8 @@ class CameraFragment :
                 latitude = it.latitude
                 longitude = it.longitude
                 altitude = it.altitude.toInt()
+                layoutCheckDataItem(savedUri.toString(),latitude, longitude, altitude)
+
             } ?: run {
                 addressText = "Lokasi tidak tersedia"
             }
@@ -461,27 +504,6 @@ class CameraFragment :
             scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
             outputStream.close()
         }
-        // Set the scaled bitmap to the ImageView
-
-        // inisialisasi image untuk request create geotaging
-        val imageFile = imageUri.toFile()
-        val imageRequestBody =
-            imageFile.asRequestBody("multipart/form-data".toMediaTypeOrNull())
-        val imageMultipart: MultipartBody.Part = MultipartBody.Part.createFormData(
-            "photo",
-            imageFile.name,
-            imageRequestBody
-        )
-
-        // create geotaging
-        viewModel.createGeotaging(
-            idPlant.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-            idBlock.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-            latitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-            longitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-            altitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-            imageMultipart
-        )
 
     }
 
@@ -507,18 +529,115 @@ class CameraFragment :
         addLocationToImage(savedUri)
     }
 
-    private fun navigateToCheckData(
-        imageResult: String,
-        selectedPlantType: String,
-        blokName: String
-    ) {
-        val bun = Bundle()
-        bun.putString("BLOK_NAME", blokName)
-        bun.putString("SELECTED_PLANT_TYPE", selectedPlantType)
-        bun.putString(IMAGE_PARSE, imageResult)
-        findNavController().navigate(R.id.action_cameraFragment_to_checkDataFragment, bun)
+    private fun stateLayout(stateLayout:Boolean){
+        val layoutCheck = binding.layoutCheckData.root
+        val topBarCheck = binding.topBar.root
+        with(binding){
+            when(stateLayout){
+                true -> {
+                    layoutCheck.isGone = false
+                    topBarCheck.isGone = true
+                    llPlantsType.isGone = true
+                    viewFinder.isGone = true
+                    containerBottom.isGone = true
+                }
+                false ->{
+                    layoutCheck.isGone = true
+                    topBarCheck.isGone = false
+                    llPlantsType.isGone = false
+                    viewFinder.isGone = false
+                    containerBottom.isGone = false
+                }
+            }
+        }
     }
 
+    private fun layoutCheckDataItem(
+        imageResult: String,
+        latitude : Double,
+        longitude : Double,
+        altitude : Int
+    ) {
+        stateLayout(true)
+        with(binding) {
+            llPlantsType.isGone = true
+            viewFinder.isGone = true
+            containerBottom.isGone = true
+
+            layoutCheckData.topBar.ivTitle.text = "Check Data "+blokName
+            layoutCheckData.tvPlantTypes.text = selectedPlantType
+            layoutCheckData.ivPlant.load(imageResult) {
+                crossfade(true)
+            }
+            layoutCheckData.btnSaveData.setOnClickListener {
+                val  imageFile = savedUri.toFile()
+                val imageRequestBody =
+                    imageFile.asRequestBody("multipart/form-data".toMediaTypeOrNull())
+                val imageMultipart: MultipartBody.Part = MultipartBody.Part.createFormData(
+                    "photo",
+                    imageFile.name,
+                    imageRequestBody
+                )
+                Log.d("check-body-geotaging", "$idPlant")
+                Log.d("check-body-geotaging", "$idBlock")
+                Log.d("check-body-geotaging", "$latitude")
+                Log.d("check-body-geotaging", "$longitude")
+                Log.d("check-body-geotaging", "$altitude")
+                Log.d("check-body-geotaging", "$imageMultipart")
+//                viewModel.createGeotaging(
+//                    idPlant.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+//                    idBlock.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+//                    latitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+//                    longitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+//                    altitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+//                    imageMultipart
+//                )
+            }
+            layoutCheckData.topBar.ivBack.setOnClickListener {
+                stateLayout(false)
+
+            }
+        }
+    }
+
+
+
+    private fun showDialogConfirmSaveData() {
+        val binding: DialogConfirmSaveDataBinding =
+            DialogConfirmSaveDataBinding.inflate(layoutInflater)
+        val dialog = AlertDialog.Builder(requireContext(), 0).create()
+
+        dialog.apply {
+            setView(binding.root)
+            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        }.show()
+
+        binding.btnFinish.setOnClickListener {
+            navigateToHome()
+            dialog.dismiss()
+
+        }
+
+        binding.tvTakePictureAgain.setOnClickListener {
+            findNavController().navigateUp()
+            dialog.dismiss()
+        }
+    }
+
+    private fun navigateToHome() {
+        findNavController().navigate(R.id.action_cameraFragment_to_homeFragment)
+    }
+
+    private fun onBackPressed() {
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    findNavController().navigateUp()
+                }
+            }
+        )
+    }
     companion object {
         private const val CAMERA_PERMISSION_CODE = 1001
     }
