@@ -41,13 +41,9 @@ class GeotaggingLocationFragment :
 
     private fun loadPagingBlocks(
         adapter: DatabaseAdapterItem,
-        brandItem: String? = null,
-        sortItem: String? = null,
     ) {
         viewModel.loadPagingBlocks(
             adapter,
-            brandItem?.lowercase(),
-            sortItem?.lowercase(),
         )
     }
 
@@ -81,6 +77,7 @@ class GeotaggingLocationFragment :
     private fun navigateToCamera(itemAllBlocks : ItemAllBlocks){
         val bundle = Bundle()
         bundle.putString("title", itemAllBlocks.name)
+        bundle.putInt("ID_BLOCK", itemAllBlocks.id)
         val navController =
             activity?.supportFragmentManager
                 ?.findFragmentById(R.id.container_navigation)?.findNavController()

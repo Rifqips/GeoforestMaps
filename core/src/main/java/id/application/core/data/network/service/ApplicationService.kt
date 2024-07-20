@@ -45,6 +45,7 @@ interface ApplicationService {
 
     @GET("v1/geotags")
     suspend fun getAllGeotaging(
+        @Query("block") blockId:Int? = null,
         @Query("limit") limitItem:Int? = null,
         @Query("page") pageItem:Int? = null,
     ): ResponseAllGeotagingItem
@@ -59,7 +60,7 @@ interface ApplicationService {
     suspend fun deleteGeotaging(@Path("id") id: String? = null) : ResponseAllBlocksItem
 
     @Multipart
-    @POST("/v1/geotags")
+    @POST("v1/geotags")
     suspend fun createGeotaging(
         @Part("plant_id") plantId: RequestBody?,
         @Part("block_id") blockId: RequestBody?,
@@ -67,7 +68,7 @@ interface ApplicationService {
         @Part("longitude") longitude: RequestBody?,
         @Part("altitude") altitude: RequestBody?,
         @Part userImage: MultipartBody.Part?
-    ): ResponseAllBlocksItem
+    ): ResponseAllGeotagingItem
 
     @GET("v1/plants")
     suspend fun getAllPlants(

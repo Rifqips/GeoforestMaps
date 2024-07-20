@@ -38,6 +38,7 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.net.toFile
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -49,6 +50,11 @@ import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant
 import id.application.geoforestmaps.utils.Constant.IMAGE_FORMAT
 import id.application.geoforestmaps.utils.Constant.IMAGE_PARSE
+import io.github.muddz.styleabletoast.StyleableToast
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.io.FileOutputStream
@@ -67,6 +73,8 @@ class CameraFragment :
     private var selectedPlantType = ""
     private var blokName = ""
     private var plantTypes = mutableListOf<String>()
+    private var idPlant = 0
+    private var idBlock: Int? = 0
 
     override fun initView() {
         val title = arguments?.getString("title")
@@ -74,6 +82,8 @@ class CameraFragment :
 
         // inisialisasi blok_name
         blokName = title.toString()
+        idBlock = arguments?.getInt("ID_BLOCK")
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         checkPermissions()
         plantsTypeSpinner()
@@ -105,6 +115,7 @@ class CameraFragment :
         }
     }
 
+
     private fun plantsTypeSpinner() {
         viewModel.getPlant()
         viewModel.plantsResult.observe(viewLifecycleOwner) { result ->
@@ -115,6 +126,7 @@ class CameraFragment :
                     data?.let { items ->
                         plantTypes.clear()
                         plantTypes.addAll(items.map { item -> item.name })
+
                         val adapter =
                             ArrayAdapter(requireContext(), R.layout.item_spinner, plantTypes)
                         adapter.setDropDownViewResource(R.layout.item_dropdown_spinner)
@@ -137,6 +149,13 @@ class CameraFragment :
                                                 getString(R.string.selected_item) + " " + plantTypes[position],
                                                 Toast.LENGTH_SHORT
                                             ).show()
+
+                                            // get id plant selected
+                                            items.forEach { item ->
+                                                if (item.name == selectedPlantType) {
+                                                    idPlant = item.id
+                                                }
+                                            }
                                         }
                                     }
 
@@ -148,7 +167,6 @@ class CameraFragment :
             )
         }
     }
-
 
     private fun checkPermissions() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
@@ -353,6 +371,9 @@ class CameraFragment :
         val geocoder = Geocoder(requireContext(), Locale.getDefault())
         val addresses: List<Address>?
         var addressText = ""
+        var latitude = 0.0
+        var longitude = 0.0
+        var altitude = 0
 
         try {
             currentLocation?.let {
@@ -360,8 +381,12 @@ class CameraFragment :
                 addressText = if (addresses.isNullOrEmpty()) {
                     "Alamat tidak tersedia"
                 } else {
-                    addresses[0].getAddressLine(0)
+                    addresses[0].getAddressLine(0) + " | Longitude: ${it.longitude} | Latitude: ${it.latitude}"
                 }
+                // inisialisasi request data for create geotaging
+                latitude = it.latitude
+                longitude = it.longitude
+                altitude = it.altitude.toInt()
             } ?: run {
                 addressText = "Lokasi tidak tersedia"
             }
@@ -436,11 +461,29 @@ class CameraFragment :
             scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
             outputStream.close()
         }
-
         // Set the scaled bitmap to the ImageView
 
-    }
+        // inisialisasi image untuk request create geotaging
+        val imageFile = imageUri.toFile()
+        val imageRequestBody =
+            imageFile.asRequestBody("multipart/form-data".toMediaTypeOrNull())
+        val imageMultipart: MultipartBody.Part = MultipartBody.Part.createFormData(
+            "photo",
+            imageFile.name,
+            imageRequestBody
+        )
 
+        // create geotaging
+        viewModel.createGeotaging(
+            idPlant.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            idBlock.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            latitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            longitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            altitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            imageMultipart
+        )
+
+    }
 
     private fun saveImageToGallery(savedUri: Uri) {
         val resolver = requireContext().contentResolver
@@ -460,8 +503,8 @@ class CameraFragment :
 
                 }
             }
-            addLocationToImage(imageUri)
         }
+        addLocationToImage(savedUri)
     }
 
     private fun navigateToCheckData(

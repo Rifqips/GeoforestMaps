@@ -1,6 +1,7 @@
 package id.application.geoforestmaps.presentation.adapter.geotags
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
@@ -11,6 +12,11 @@ import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.ItemBlokDataBinding
 import id.application.geoforestmaps.databinding.ItemHistoryDataBinding
+import id.application.geoforestmaps.utils.Constant.formatDate
+import id.application.geoforestmaps.utils.Constant.formatTime
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 class GeotaggingAdapterItem(
     private val onClickLister : (ItemAllGeotaging) -> Unit
@@ -51,14 +57,20 @@ class GeotaggingAdapterItem(
     inner class LinearViewHolder(
         private val binding: ItemHistoryDataBinding
     ) : RecyclerView.ViewHolder(binding.root) {
-        @SuppressLint("SetTextI18n")
+        @SuppressLint("SetTextI18n", "NewApi")
         fun bindLinear(item: ItemAllGeotaging) {
             with(binding) {
                 ivItemHistory.load(item.photo)
-                tvTitleItemHistory.text = item.blockId.toString()
+                Log.d("created-at", "${item.blockId} : ${item.latitude} ${item.longitude}" )
+                val dateString = "2024-07-19T17:19:57.000000Z"
+                val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+                val dateTime = ZonedDateTime.parse(dateString, formatter)
+                val formattedDate = dateTime.formatDate()
+                val formattedTime = dateTime.formatTime()
+                tvTitleItemHistory.text = item.plantId.toString()
                 tvDescItemHistory.text = item.blockId.toString()
-                tvTimeItemHistory.text = item.blockId.toString()
-                tvDateItemHistory.text = item.blockId.toString()
+                tvTimeItemHistory.text = formattedTime.toString()
+                tvDateItemHistory.text = formattedDate.toString()
             }
             binding.root.setOnClickListener {
                 onClickLister(item)

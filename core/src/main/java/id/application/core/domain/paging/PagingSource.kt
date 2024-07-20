@@ -22,6 +22,7 @@ class GeotagingPagingSource(
         try {
             val currentPage = params.key ?: 1
             val response = repository.getAllGeotaging(
+                blockId = null,
                 limitItem = params.loadSize,
                 pageItem = currentPage
             )

@@ -10,6 +10,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.liveData
 import id.application.core.data.datasource.AppPreferenceDataSource
+import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.core.domain.model.login.UserLoginRequest
 import id.application.core.domain.model.login.UserLoginResponse
 import id.application.core.domain.model.plants.ItemAllPlantsResponse
@@ -23,9 +24,11 @@ import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 
 class VmApplication(
-    private val repo : ApplicationRepository,
+    private val repo: ApplicationRepository,
     private val appPreferenceDataSource: AppPreferenceDataSource
 ) : ViewModel() {
 
@@ -41,9 +44,12 @@ class VmApplication(
     private val _userProfileResult = MutableLiveData<ResultWrapper<UserProfileResponse>>()
     val userProfileResult: LiveData<ResultWrapper<UserProfileResponse>> = _userProfileResult
 
-
     private val _plantsResult = MutableLiveData<ResultWrapper<ItemAllPlantsResponse>>()
     val plantsResult: LiveData<ResultWrapper<ItemAllPlantsResponse>> = _plantsResult
+
+    private val _geotagingCreateResult = MutableLiveData<ResultWrapper<List<ItemAllGeotaging>>>()
+    val geotagingCreateResult: LiveData<ResultWrapper<List<ItemAllGeotaging>>>
+        get() = _geotagingCreateResult
 
     fun userLogin(request: UserLoginRequest) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -67,9 +73,9 @@ class VmApplication(
         }
     }
 
-    fun userProfile(){
+    fun userProfile() {
         viewModelScope.launch(Dispatchers.IO) {
-            repo.userProfile().collect{
+            repo.userProfile().collect {
                 _userProfileResult.postValue(it)
             }
         }
@@ -77,13 +83,13 @@ class VmApplication(
 
     fun loadPagingBlocks(
         adapter: DatabaseAdapterItem,
-        brandItem: String?,
-        sortItem: String?
+        limitItem: Int?  = null,
+        pageItem: Int?  = null
     ) {
         viewModelScope.launch {
-            val response =  repo.getAllBlocks(
-                limitItem = 10,
-                pageItem = 1
+            val response = repo.getAllBlocks(
+                limitItem = limitItem,
+                pageItem = pageItem
             )
             if (response.code == 200) {
                 val postsResponse = response.data
@@ -102,13 +108,15 @@ class VmApplication(
 
     fun loadPagingGeotagging(
         adapter: GeotaggingAdapterItem,
-        brandItem: String?,
-        sortItem: String?
+        blockId: Int? = null,
+        limitItem: Int?  = null,
+        pageItem: Int?  = null
     ) {
         viewModelScope.launch {
             val response =  repo.getAllGeotaging(
-                limitItem = 10,
-                pageItem = 1
+                blockId = blockId,
+                limitItem = limitItem,
+                pageItem = pageItem
             )
             if (response.code == 200) {
                 val postsResponse = response.data
@@ -124,11 +132,34 @@ class VmApplication(
         GeotagingPagingSource(repo)
     }.liveData.cachedIn(viewModelScope)
 
-    fun getPlant(){
+    fun getPlant() {
         viewModelScope.launch {
-            repo.getAllPlants().collect{
+            repo.getAllPlants().collect {
                 _plantsResult.postValue(it)
             }
         }
     }
+
+    fun createGeotaging(
+        plantId: RequestBody?,
+        blockId: RequestBody?,
+        latitude: RequestBody?,
+        longitude: RequestBody?,
+        altitude: RequestBody?,
+        userImage: MultipartBody.Part?
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.createGeotaging(
+                plantId,
+                blockId,
+                latitude,
+                longitude,
+                altitude,
+                userImage
+            ).collect {
+                _geotagingCreateResult.postValue(it)
+            }
+        }
+    }
+
 }

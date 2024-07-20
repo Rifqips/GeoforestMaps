@@ -1,5 +1,6 @@
 package id.application.geoforestmaps.presentation.feature.history
 
+import android.util.Log
 import android.view.View
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,20 +21,15 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class HistoryFragment :
     BaseFragment<FragmentHistoryBinding, VmApplication>(FragmentHistoryBinding::inflate)  {
 
-
     private val adapterHistory = HistoryListAdapter()
-    private val adapterHistoryAlreadySentAdapter = HistoryAlreadySentAdapter()
     override val viewModel: VmApplication by viewModel()
 
     private val adapterPagingGeotagging: GeotaggingAdapterItem by lazy {
         GeotaggingAdapterItem{}
     }
 
-
     override fun initView() {
         rvListHistory()
-        rvListHistoryAlreadySent()
-
         loadPagingGeotaging(adapter = adapterPagingGeotagging)
         setUpPaging()
 
@@ -43,13 +39,9 @@ class HistoryFragment :
 
     private fun loadPagingGeotaging(
         adapter: GeotaggingAdapterItem,
-        brandItem: String? = null,
-        sortItem: String? = null,
     ) {
         viewModel.loadPagingGeotagging(
             adapter,
-            brandItem?.lowercase(),
-            sortItem?.lowercase(),
         )
     }
 
@@ -87,11 +79,6 @@ class HistoryFragment :
         adapterHistory.setData(listDataHistory)
     }
 
-    private fun rvListHistoryAlreadySent() {
-        binding.rvHistoryAlreadySentData.adapter = adapterHistoryAlreadySentAdapter
-        binding.rvHistoryAlreadySentData.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        adapterHistoryAlreadySentAdapter.setData(listDataHistoryAlreadySent)
-    }
 
 }
 
