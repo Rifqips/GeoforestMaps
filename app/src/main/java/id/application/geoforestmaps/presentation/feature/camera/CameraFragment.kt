@@ -128,14 +128,15 @@ class CameraFragment :
         }
     }
 
-    private fun loadingState(state : Boolean){
-        with(binding){
-            when(state){
+    private fun loadingState(state: Boolean) {
+        with(binding) {
+            when (state) {
                 true -> {
                     binding.pbLoadingCamera.isGone = false
                     binding.llPlantsType.isGone = true
                     binding.containerBottom.isGone = true
                 }
+
                 false -> {
                     binding.pbLoadingCamera.isGone = true
                     binding.llPlantsType.isGone = false
@@ -212,6 +213,13 @@ class CameraFragment :
                     Toast.makeText(context, "Gagal Membuat Geotaging", Toast.LENGTH_SHORT).show()
                 }
             )
+        }
+
+        // test buat response setelah berhasil create geotaging
+        viewModel.isLoadingGeotaging.observe(viewLifecycleOwner) {
+            showDialogConfirmSaveData()
+            binding.layoutCheckData.pbLoading.isGone = true
+            Toast.makeText(context, "Sukses Membuat Geotaging", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -319,19 +327,6 @@ class CameraFragment :
         return AspectRatio.RATIO_16_9
     }
 
-    private fun initGallery() {
-        openGalleryLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val selectedImg: Uri? = result.data?.data
-                selectedImg?.let {
-                    layoutCheckDataItem(it.toString(), latitude, longitude, altitude)
-                }
-            }
-        }
-    }
-
     private fun startGallery() {
         val intent = Intent()
         intent.action = Intent.ACTION_GET_CONTENT
@@ -340,6 +335,134 @@ class CameraFragment :
             Intent.createChooser(intent, resources.getString(R.string.string_choose_a_picture))
         openGalleryLauncher.launch(chooser)
     }
+
+    private fun initGallery() {
+        openGalleryLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val selectedImg: Uri? = result.data?.data
+                selectedImg?.let {
+                    // add location to image and intent result to checkdata layout
+                    addLocationToImageFromGallery(it)
+                }
+            }
+        }
+    }
+
+    private fun addLocationToImageFromGallery(imageUri: Uri) {
+        val resolver = requireContext().contentResolver
+        val inputStream = resolver.openInputStream(imageUri)
+        val bitmap = BitmapFactory.decodeStream(inputStream)
+        inputStream?.close()
+
+        if (bitmap == null) {
+            Toast.makeText(requireContext(), "Gagal memuat gambar", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val newBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
+        val canvas = Canvas(newBitmap)
+        val textPaint = TextPaint().apply {
+            color = ContextCompat.getColor(requireContext(), R.color.white)
+            textSize = 38f
+            isAntiAlias = true
+        }
+
+        val backgroundPaint = Paint().apply {
+            color = ContextCompat.getColor(requireContext(), R.color.black)
+            alpha = 150
+        }
+
+        val geocoder = Geocoder(requireContext(), Locale.getDefault())
+        val addresses: List<Address>?
+
+        try {
+            currentLocation?.let {
+                addresses = geocoder.getFromLocation(it.latitude, it.longitude, 1)
+                addressText = if (addresses.isNullOrEmpty()) {
+                    "Alamat tidak tersedia"
+                } else {
+                    addresses[0].getAddressLine(0) + " | Longitude: ${it.longitude} | Latitude: ${it.latitude}"
+                }
+                latitude = it.latitude
+                longitude = it.longitude
+                altitude = it.altitude.toInt()
+            } ?: run {
+                addressText = "Lokasi tidak tersedia"
+            }
+        } catch (e: IOException) {
+            addressText = "Gagal mendapatkan alamat"
+        }
+
+        val textBounds = Rect()
+        textPaint.getTextBounds(addressText, 0, addressText.length, textBounds)
+        val textWidth = textBounds.width()
+        val textHeight = textBounds.height()
+
+        val imageView = binding.viewFinder
+        val imageViewWidth = imageView.width
+        val imageViewHeight = imageView.height
+
+        val scaleWidth = imageViewWidth.toFloat() / newBitmap.width
+        val scaleHeight = imageViewHeight.toFloat() / newBitmap.height
+
+        val matrix = Matrix()
+        matrix.postScale(scaleWidth, scaleHeight)
+
+        val scaledBitmap =
+            Bitmap.createBitmap(newBitmap, 0, 0, newBitmap.width, newBitmap.height, matrix, true)
+        val scaledCanvas = Canvas(scaledBitmap)
+
+        val xPos = 26f
+        val yPos = scaledBitmap.height - textHeight - 30f
+
+        if (textWidth > scaledBitmap.width - 2 * xPos) {
+            val staticLayout = StaticLayout.Builder.obtain(
+                addressText,
+                0,
+                addressText.length,
+                textPaint,
+                scaledBitmap.width - 2 * xPos.toInt()
+            ).setAlignment(Layout.Alignment.ALIGN_NORMAL)
+                .setLineSpacing(0f, 1f)
+                .setIncludePad(false)
+                .build()
+
+            val staticLayoutHeight = staticLayout.height
+            val textY = scaledBitmap.height - staticLayoutHeight - 30f
+
+            scaledCanvas.drawRect(
+                xPos,
+                textY - textPaint.descent() - 8,
+                xPos + staticLayout.width,
+                textY + staticLayout.height.toFloat() + 8,
+                backgroundPaint
+            )
+
+            scaledCanvas.translate(xPos, textY)
+            staticLayout.draw(scaledCanvas)
+        } else {
+            scaledCanvas.drawRect(
+                xPos,
+                yPos - textHeight - 8,
+                xPos + textWidth + 16,
+                yPos + 8,
+                backgroundPaint
+            )
+            scaledCanvas.drawText(addressText, xPos, yPos, textPaint)
+        }
+
+        // Save the new bitmap to a file
+        val newFile = File(requireContext().cacheDir, "temp_image.jpg")
+        val outputStream = FileOutputStream(newFile)
+        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+        outputStream.close()
+
+        // Menggunakan file baru dengan lokasi tambahan
+        layoutCheckDataItem(Uri.fromFile(newFile), latitude, longitude, altitude)
+    }
+
 
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
@@ -358,7 +481,7 @@ class CameraFragment :
                     savedUri = output.savedUri ?: Uri.fromFile(photoFile)
                     correctImageOrientation(photoFile)
                     saveImageToGallery(savedUri)
-                    addLocationToImage(savedUri)
+                    addLocationToImageFromCamera(savedUri)
                 }
             }
         )
@@ -389,7 +512,7 @@ class CameraFragment :
         }
     }
 
-    private fun addLocationToImage(imageUri: Uri) {
+    private fun addLocationToImageFromCamera(imageUri: Uri) {
         val resolver = requireContext().contentResolver
         val inputStream = resolver.openInputStream(imageUri)
         val bitmap = BitmapFactory.decodeStream(inputStream)
@@ -428,7 +551,7 @@ class CameraFragment :
                 latitude = it.latitude
                 longitude = it.longitude
                 altitude = it.altitude.toInt()
-                layoutCheckDataItem(savedUri.toString(),latitude, longitude, altitude)
+                layoutCheckDataItem(savedUri, latitude, longitude, altitude)
 
             } ?: run {
                 addressText = "Lokasi tidak tersedia"
@@ -525,15 +648,15 @@ class CameraFragment :
 
                 }
             }
+            addLocationToImageFromCamera(imageUri)
         }
-        addLocationToImage(savedUri)
     }
 
-    private fun stateLayout(stateLayout:Boolean){
+    private fun stateLayout(stateLayout: Boolean) {
         val layoutCheck = binding.layoutCheckData.root
         val topBarCheck = binding.topBar.root
-        with(binding){
-            when(stateLayout){
+        with(binding) {
+            when (stateLayout) {
                 true -> {
                     layoutCheck.isGone = false
                     topBarCheck.isGone = true
@@ -541,7 +664,8 @@ class CameraFragment :
                     viewFinder.isGone = true
                     containerBottom.isGone = true
                 }
-                false ->{
+
+                false -> {
                     layoutCheck.isGone = true
                     topBarCheck.isGone = false
                     llPlantsType.isGone = false
@@ -553,10 +677,10 @@ class CameraFragment :
     }
 
     private fun layoutCheckDataItem(
-        imageResult: String,
-        latitude : Double,
-        longitude : Double,
-        altitude : Int
+        imageResult: Uri,
+        latitude: Double,
+        longitude: Double,
+        altitude: Int
     ) {
         stateLayout(true)
         with(binding) {
@@ -564,34 +688,51 @@ class CameraFragment :
             viewFinder.isGone = true
             containerBottom.isGone = true
 
-            layoutCheckData.topBar.ivTitle.text = "Check Data "+blokName
+            layoutCheckData.topBar.ivTitle.text = "Check Data " + blokName
+            layoutCheckData.tvBlok.text = blokName
             layoutCheckData.tvPlantTypes.text = selectedPlantType
             layoutCheckData.ivPlant.load(imageResult) {
                 crossfade(true)
             }
             layoutCheckData.btnSaveData.setOnClickListener {
-                val  imageFile = savedUri.toFile()
-                val imageRequestBody =
-                    imageFile.asRequestBody("multipart/form-data".toMediaTypeOrNull())
-                val imageMultipart: MultipartBody.Part = MultipartBody.Part.createFormData(
-                    "photo",
-                    imageFile.name,
-                    imageRequestBody
-                )
-                Log.d("check-body-geotaging", "$idPlant")
-                Log.d("check-body-geotaging", "$idBlock")
-                Log.d("check-body-geotaging", "$latitude")
-                Log.d("check-body-geotaging", "$longitude")
-                Log.d("check-body-geotaging", "$altitude")
-                Log.d("check-body-geotaging", "$imageMultipart")
-//                viewModel.createGeotaging(
-//                    idPlant.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-//                    idBlock.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-//                    latitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-//                    longitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-//                    altitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-//                    imageMultipart
-//                )
+                val imageFile = when (imageResult.scheme) {
+                    "file" -> File(imageResult.path!!)
+                    "content" -> {
+                        // Handle content URI case
+                        val inputStream = requireContext().contentResolver.openInputStream(imageResult)
+                        val tempFile = File(requireContext().cacheDir, "temp_image.jpg")
+                        val outputStream = FileOutputStream(tempFile)
+                        inputStream?.copyTo(outputStream)
+                        inputStream?.close()
+                        outputStream.close()
+                        tempFile
+                    }
+                    else -> null
+                }
+                if (imageFile != null) {
+                    val imageRequestBody = imageFile.asRequestBody("multipart/form-data".toMediaTypeOrNull())
+                    val imageMultipart: MultipartBody.Part = MultipartBody.Part.createFormData(
+                        "photo",
+                        imageFile.name,
+                        imageRequestBody
+                    )
+                    Log.d("check-body-geotaging", "$idPlant")
+                    Log.d("check-body-geotaging", "$idBlock")
+                    Log.d("check-body-geotaging", "$latitude")
+                    Log.d("check-body-geotaging", "$longitude")
+                    Log.d("check-body-geotaging", "$altitude")
+                    Log.d("check-body-geotaging", "$imageMultipart")
+                    viewModel.createGeotaging(
+                        idPlant.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                        idBlock.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                        latitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                        longitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                        altitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                        imageMultipart
+                    )
+                } else {
+                    Toast.makeText(requireContext(), "File tidak dapat diakses", Toast.LENGTH_SHORT).show()
+                }
             }
             layoutCheckData.topBar.ivBack.setOnClickListener {
                 stateLayout(false)
@@ -599,8 +740,6 @@ class CameraFragment :
             }
         }
     }
-
-
 
     private fun showDialogConfirmSaveData() {
         val binding: DialogConfirmSaveDataBinding =
@@ -615,7 +754,6 @@ class CameraFragment :
         binding.btnFinish.setOnClickListener {
             navigateToHome()
             dialog.dismiss()
-
         }
 
         binding.tvTakePictureAgain.setOnClickListener {
@@ -638,6 +776,7 @@ class CameraFragment :
             }
         )
     }
+
     companion object {
         private const val CAMERA_PERMISSION_CODE = 1001
     }
