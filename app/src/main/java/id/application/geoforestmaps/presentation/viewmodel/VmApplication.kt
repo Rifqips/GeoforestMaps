@@ -22,6 +22,7 @@ import id.application.core.utils.ResultWrapper
 import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
 import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapterItem
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
@@ -50,6 +51,10 @@ class VmApplication(
     private val _geotagingCreateResult = MutableLiveData<ResultWrapper<List<ItemAllGeotaging>>>()
     val geotagingCreateResult: LiveData<ResultWrapper<List<ItemAllGeotaging>>>
         get() = _geotagingCreateResult
+
+    private val _isLoadingGeotaging = MutableLiveData<Boolean>()
+    val isLoadingGeotaging: LiveData<Boolean>
+        get() = _isLoadingGeotaging
 
     fun userLogin(request: UserLoginRequest) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -148,6 +153,7 @@ class VmApplication(
         altitude: RequestBody?,
         userImage: MultipartBody.Part?
     ) {
+        _isLoadingGeotaging.postValue(false)
         viewModelScope.launch(Dispatchers.IO) {
             repo.createGeotaging(
                 plantId,
@@ -158,6 +164,7 @@ class VmApplication(
                 userImage
             ).collect {
                 _geotagingCreateResult.postValue(it)
+                _isLoadingGeotaging.postValue(false)
             }
         }
     }
