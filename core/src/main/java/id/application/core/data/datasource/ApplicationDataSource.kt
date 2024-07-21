@@ -10,7 +10,10 @@ import id.application.core.data.network.model.profile.ResponseProfileItem
 import id.application.core.data.network.service.ApplicationService
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Response
+import java.io.File
+import java.io.IOException
 
 interface ApplicationDataSource {
     suspend fun userLogin(userLoginRequest: RequestLoginItem): ResponseLoginItem
@@ -39,6 +42,9 @@ interface ApplicationDataSource {
         altitude: RequestBody?,
         userImage: MultipartBody.Part?
     ) : ResponseAllGeotagingItem
+
+    suspend fun exportFile(type: String, blockId: Int?): Response<ResponseBody>
+
 
 }
 
@@ -81,5 +87,10 @@ class ApplicationDataSourceImpl(private val service: ApplicationService) : Appli
     ): ResponseAllGeotagingItem {
         return service.createGeotaging( plantId, blockId, latitude, longitude, altitude, userImage)
     }
+
+    override suspend fun exportFile(type: String, blockId: Int?): Response<ResponseBody> {
+        return service.eksports(type, blockId)
+    }
+
 
 }

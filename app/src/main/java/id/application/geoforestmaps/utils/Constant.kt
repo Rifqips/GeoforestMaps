@@ -5,14 +5,25 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import id.application.geoforestmaps.R
-import java.io.File
-import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
+import android.content.ContentResolver
+import android.content.ContentValues
+import android.content.Context
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import androidx.annotation.RequiresApi
+import okhttp3.ResponseBody
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.IOException
 
 object Constant {
     val IMAGE_FORMAT = "image/*"
@@ -53,17 +64,4 @@ object Constant {
         return this.toLocalTime().format(timeFormatter)
     }
 
-    fun Double.toDMS(): String {
-        val degrees = this.toInt()
-        val minutes = ((abs(this) - abs(degrees)) * 60).toInt()
-        val seconds = ((abs(this) - abs(degrees)) * 60 - minutes) * 60
-
-        return String.format("%d°%02d'%06.3f\"", degrees, minutes, seconds)
-    }
-
-    fun Pair<Double, Double>.toDMS(): Pair<String, String> {
-        val latDMS = this.first.toDMS()
-        val lonDMS = this.second.toDMS()
-        return Pair(latDMS, lonDMS)
-    }
 }

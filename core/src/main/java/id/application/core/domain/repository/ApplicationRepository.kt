@@ -28,6 +28,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
+import retrofit2.Response
+import java.io.File
 
 interface  ApplicationRepository{
 
@@ -61,6 +64,10 @@ interface  ApplicationRepository{
         altitude: RequestBody?,
         userImage: MultipartBody.Part?
     ):Flow<ResultWrapper<List<ItemAllGeotaging>>>
+
+    suspend fun exportFile(type: String, blockId: Int?): Response<ResponseBody>
+
+
 
 }
 
@@ -157,5 +164,10 @@ class ApplicationRepositoryImpl(
             delay(3000)
         }
     }
+
+    override suspend fun exportFile(type: String, blockId: Int?):  Response<ResponseBody> {
+        return appDataSource.exportFile(type, blockId)
+    }
+
 
 }

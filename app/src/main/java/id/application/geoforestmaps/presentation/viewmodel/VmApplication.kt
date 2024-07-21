@@ -1,8 +1,13 @@
 package id.application.geoforestmaps.presentation.viewmodel
 
+import android.content.Context
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -10,6 +15,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.liveData
 import id.application.core.data.datasource.AppPreferenceDataSource
+import id.application.core.data.network.service.ApplicationService
 import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.core.domain.model.login.UserLoginRequest
 import id.application.core.domain.model.login.UserLoginResponse
@@ -26,6 +32,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
+import java.io.File
+import java.io.IOException
 
 class VmApplication(
     private val repo: ApplicationRepository,
@@ -54,6 +63,11 @@ class VmApplication(
     private val _isLoadingGeotaging = MutableLiveData<Boolean>()
     val isLoadingGeotaging: LiveData<Boolean>
         get() = _isLoadingGeotaging
+
+
+    private val _exportResult = MutableLiveData<Boolean>()
+    val exportResult: LiveData<Boolean> get() = _exportResult
+
 
     fun userLogin(request: UserLoginRequest) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -152,7 +166,7 @@ class VmApplication(
         altitude: RequestBody?,
         userImage: MultipartBody.Part?
     ) {
-        _isLoadingGeotaging.postValue(false)
+        _isLoadingGeotaging.postValue(true)
         viewModelScope.launch(Dispatchers.IO) {
             repo.createGeotaging(
                 plantId,
@@ -168,4 +182,40 @@ class VmApplication(
         }
     }
 
+    fun exportFile(type: String, blockId: Int?, file: File) {
+        viewModelScope.launch {
+            _exportResult.postValue(true)
+            try {
+                val response = repo.exportFile(type, blockId)
+                if (response.isSuccessful) {
+                    // Save the response body to the file
+                    response.body()?.let { responseBody ->
+                        saveResponseToFile(responseBody, file)
+                        Log.d("File-Path", responseBody.toString())
+                        _exportResult.postValue(false)
+                    } ?: run {
+                        _exportResult.postValue(false)
+                    }
+                } else {
+                    _exportResult.postValue(false)
+
+                }
+            } catch (e: Exception) {
+                _exportResult.postValue(false)
+            }
+        }
+    }
+
+
+    private fun saveResponseToFile(responseBody: ResponseBody, file: File) {
+        try {
+            file.outputStream().use { outputStream ->
+                responseBody.byteStream().use { inputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
 }

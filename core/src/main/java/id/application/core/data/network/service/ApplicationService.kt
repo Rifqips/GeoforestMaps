@@ -14,6 +14,7 @@ import id.application.core.data.network.model.profile.ResponseProfileItem
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -103,6 +104,12 @@ interface ApplicationService {
 
     @POST("v1/blocks")
     suspend fun createBlock(@Body createBlock: RequestCreateBlock): ResponseAllBlocksItem
+
+    @GET("v1/exports")
+    suspend fun eksports(
+        @Query("type") type:String? = null,
+        @Query("block_id") blockId:Int? = null,
+        ): Response<ResponseBody>
 
 
     companion object{

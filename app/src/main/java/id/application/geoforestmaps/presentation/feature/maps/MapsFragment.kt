@@ -3,13 +3,20 @@ package id.application.geoforestmaps.presentation.feature.maps
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.isGone
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
+import coil.load
 import id.application.core.utils.BaseFragment
+import id.application.core.utils.ResultWrapper
+import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentMapsBinding
 import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapterItem
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
@@ -31,6 +38,8 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
             addMarkersToMap(it.latitude, it.longitude)
         }
     }
+    var block: String? = ""
+
 
     private val PERMISSIONS_REQUEST_CODE = 1
     private lateinit var mapView: MapView
@@ -40,6 +49,8 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         // Inisialisasi MapView
         mapView = binding.map
         binding.topbar.ivTitle.text = "Map"
+        binding.topbar.ivDownlaod.load(R.drawable.ic_download)
+        block= arguments?.getString("blockId")
 
         // Cek izin
         checkPermissions()
@@ -70,14 +81,16 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         binding.topbar.ivBack.setOnClickListener {
             findNavController().navigateUp()
         }
+        binding.topbar.ivDownlaod.setOnClickListener {
+            exportFile()
+        }
     }
 
     private fun loadPagingGeotagingAdapter(adapter: GeotaggingAdapterItem) {
-        val block: String? = arguments?.getString("blockId")
         if (block != null) {
             viewModel.loadPagingGeotagging(
                 adapter,
-                block.toInt(),
+                block?.toInt(),
             )
         }
     }
@@ -170,6 +183,27 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         mapView.onDetach() // Membersihkan sumber daya MapView
     }
 
+    private fun exportFile() {
+        val file = File(requireContext().filesDir, "exported_file.xlsx")
+        Log.d("file-excel", file.toString())
+        viewModel.exportFile("list", block?.toInt(), file)
+        viewModel.exportResult.observe(viewLifecycleOwner, Observer { result ->
+            when (result) {
+               true -> {
+                    // Show loading state, e.g., a progress bar
+                   binding.pbLoading.isGone = false
+                   Toast.makeText(context, "Berhasil download excel", Toast.LENGTH_SHORT).show()
+                    Log.d("ExampleFragment", "Loading")
+                }
+                else -> {
+                    // Handle success or error
+                    binding.pbLoading.isGone = true
+                    Toast.makeText(context, "Berhasil download excel", Toast.LENGTH_SHORT).show()
+
+                }
+            }
+        })
+    }
 }
 
 
