@@ -3,24 +3,17 @@ package id.application.geoforestmaps.presentation.feature.maps
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.util.Log
 import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
-import androidx.paging.map
 import androidx.recyclerview.widget.LinearLayoutManager
 import id.application.core.utils.BaseFragment
-import id.application.geoforestmaps.BuildConfig
 import id.application.geoforestmaps.databinding.FragmentMapsBinding
-import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
 import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapterItem
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
-import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.modules.OfflineTileProvider
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.tileprovider.util.SimpleRegisterReceiver
@@ -28,7 +21,6 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import java.io.File
-
 
 class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMapsBinding::inflate) {
 
@@ -45,22 +37,31 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
 
     @SuppressLint("SetTextI18n")
     override fun initView() {
+        // Inisialisasi MapView
         mapView = binding.map
+        binding.topbar.ivTitle.text = "Map"
+
+        // Cek izin
         checkPermissions()
+
+        // Setup tile provider offline (jika ada)
         val offlineTileProvider = setupOfflineTileProvider()
         if (offlineTileProvider != null) {
             mapView.setTileProvider(offlineTileProvider)
         }
+
+        // Konfigurasi MapView
         mapView.setTileSource(TileSourceFactory.MAPNIK)
         mapView.setBuiltInZoomControls(true)
         mapView.setMultiTouchControls(true)
 
-        val startPoint = GeoPoint(-6.9175, 107.6191) // Eiffel Tower, Paris
+        // Set titik awal peta
+        val startPoint = GeoPoint(-6.9175, 107.6191) // Contoh: Koordinat Bandung
         val mapController = mapView.controller
         mapController.setZoom(15.0)
         mapController.setCenter(startPoint)
 
-        // Load data after mapView is set up
+        // Load data dan setup adapter
         loadPagingGeotagingAdapter(adapterPagingGeotagging)
         setUpPaging()
     }
@@ -72,10 +73,13 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     }
 
     private fun loadPagingGeotagingAdapter(adapter: GeotaggingAdapterItem) {
-        viewModel.loadPagingGeotagging(
-            adapter,
-            62,
-        )
+        val block: String? = arguments?.getString("blockId")
+        if (block != null) {
+            viewModel.loadPagingGeotagging(
+                adapter,
+                block.toInt(),
+            )
+        }
     }
 
     private fun setUpPaging() {
@@ -97,7 +101,6 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
                                     isSmoothScrollbarEnabled = true
                                 }
                                 adapter = adapterPagingGeotagging
-
                             }
                         }
                     }
@@ -154,11 +157,19 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     override fun onResume() {
         super.onResume()
         mapView.onResume()
+
     }
 
     override fun onPause() {
         super.onPause()
         mapView.onPause()
     }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        mapView.onDetach() // Membersihkan sumber daya MapView
+    }
+
 }
+
 

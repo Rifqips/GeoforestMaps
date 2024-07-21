@@ -19,7 +19,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:paddingBottom="16dp"
         android:backgroundTint="@color/white"
         app:fabCradleMargin="10dp"
         app:fabCradleRoundedCornerRadius="30dp">

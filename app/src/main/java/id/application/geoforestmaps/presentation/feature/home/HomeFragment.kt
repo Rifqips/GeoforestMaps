@@ -12,6 +12,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentHomeBinding
+import id.application.geoforestmaps.presentation.feature.MainActivity
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -82,10 +83,16 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, VmApplication>(FragmentHo
 
     override fun onResume() {
         super.onResume()
+        (activity as? MainActivity)?.setLayoutLimits(false)
         firebaseAnalytics = FirebaseAnalytics.getInstance(requireContext())
         firebaseAnalytics.logEvent(
             "home_page",
             Bundle().apply { putString("screenName", "HomePage") })
+    }
+
+    override fun onPause() {
+        super.onPause()
+        (activity as? MainActivity)?.setLayoutLimits(true)
     }
 
 

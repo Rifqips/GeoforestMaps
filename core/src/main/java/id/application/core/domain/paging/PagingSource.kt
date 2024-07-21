@@ -4,7 +4,6 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import id.application.core.domain.model.blocks.ItemAllBlocks
 import id.application.core.domain.model.geotags.ItemAllGeotaging
-import id.application.core.domain.model.plants.ItemAllPlants
 import id.application.core.domain.repository.ApplicationRepository
 
 class GeotagingPagingSource(

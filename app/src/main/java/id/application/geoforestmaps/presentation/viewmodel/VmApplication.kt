@@ -22,7 +22,6 @@ import id.application.core.utils.ResultWrapper
 import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
 import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapterItem
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody

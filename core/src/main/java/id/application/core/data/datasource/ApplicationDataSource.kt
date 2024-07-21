@@ -11,12 +11,12 @@ import id.application.core.data.network.service.ApplicationService
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
-import retrofit2.http.Part
 
 interface ApplicationDataSource {
     suspend fun userLogin(userLoginRequest: RequestLoginItem): ResponseLoginItem
     suspend fun userLogout(): Response<ResponseLogoutItem>
     suspend fun userProfile(): ResponseProfileItem
+
     suspend fun getAllGeotaging(
         blockId:Int? = null,
         limitItem:Int? = null,
@@ -60,7 +60,7 @@ class ApplicationDataSourceImpl(private val service: ApplicationService) : Appli
         limitItem: Int?,
         pageItem: Int?
     ): ResponseAllGeotagingItem {
-        return service.getAllGeotaging(blockId,limitItem, pageItem)
+        return service.getAllGeotaging("created_at:desc",blockId,limitItem, pageItem)
     }
 
     override suspend fun getAllPlants(limitItem: Int?, pageItem: Int?): ResponseAllPlantsItem {

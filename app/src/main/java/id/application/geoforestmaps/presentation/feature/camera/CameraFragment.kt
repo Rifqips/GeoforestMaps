@@ -19,7 +19,6 @@ import android.location.Geocoder
 import android.location.Location
 import android.media.ExifInterface
 import android.net.Uri
-import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.text.Layout
@@ -42,7 +41,6 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
-import androidx.core.net.toFile
 import androidx.core.view.isGone
 import androidx.navigation.fragment.findNavController
 import coil.load
@@ -56,8 +54,6 @@ import id.application.geoforestmaps.databinding.FragmentCameraBinding
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant
 import id.application.geoforestmaps.utils.Constant.IMAGE_FORMAT
-import id.application.geoforestmaps.utils.Constant.IMAGE_PARSE
-import io.github.muddz.styleabletoast.StyleableToast
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody

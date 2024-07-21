@@ -71,6 +71,7 @@ class DatabaseFragment :
     private fun navigateToDatabaseOption(itemAllBlocks : ItemAllBlocks){
         val bundle = Bundle()
         bundle.putString("title", itemAllBlocks.name)
+        bundle.putString("blockId", itemAllBlocks.id.toString())
         val navController =
             activity?.supportFragmentManager
                 ?.findFragmentById(R.id.container_navigation)?.findNavController()

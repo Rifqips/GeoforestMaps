@@ -1,6 +1,5 @@
 package id.application.geoforestmaps.presentation.feature.history
 
-import android.util.Log
 import android.view.View
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -9,12 +8,9 @@ import id.application.core.domain.model.HistoryAlreadySent
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentHistoryBinding
-import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
 import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapterItem
-import id.application.geoforestmaps.presentation.adapter.geotags.HistoryAlreadySentAdapter
 import id.application.geoforestmaps.presentation.adapter.geotags.HistoryListAdapter
 import id.application.geoforestmaps.presentation.feature.history.HistoryData.listDataHistory
-import id.application.geoforestmaps.presentation.feature.history.HistoryData.listDataHistoryAlreadySent
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
