@@ -3,11 +3,11 @@ package id.application.geoforestmaps.presentation.feature.databaseoption
 import android.os.Bundle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import id.application.core.domain.model.Dashboard
+import id.application.core.domain.model.DatabaseOption
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentDatabaseOptionBinding
-import id.application.geoforestmaps.presentation.feature.dashboard.DashboardData.listDataDash
+import id.application.geoforestmaps.presentation.feature.databaseoption.DatabaseOptionData.listDataDatabaseOption
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -44,12 +44,47 @@ class DatabaseOptionFragment :
     private fun rvListData() {
         binding.rvDatabaseOption.adapter = adapter
         binding.rvDatabaseOption.layoutManager = LinearLayoutManager(requireContext())
-        adapter.setData(listDataDash)
+        adapter.setData(listDataDatabaseOption)
     }
 
-    private fun navigateToDatabaseOption(dashboard : Dashboard){
+    private fun navigateToDatabaseOption(databaseOption : DatabaseOption){
         val bundle = Bundle()
         bundle.putString("blockId", blockId)
         findNavController().navigate(R.id.action_databaseOptionFragment_to_mapsFragment, bundle)
     }
+}
+
+object DatabaseOptionData {
+    private var images = intArrayOf(
+        R.drawable.bg_list_geotag,
+        R.drawable.bg_image_geotag,
+        R.drawable.bg_map_geotag
+    )
+
+    private var overlays = intArrayOf(
+        R.drawable.bg_gradient_list_geotag,
+        R.drawable.bg_gradient_image_geotag,
+        R.drawable.bg_gradient_map_geotag
+    )
+
+    private var names = arrayOf(
+        "List Geotag",
+        "Image Geotag",
+        "Map Geotag"
+    )
+
+    val listDataDatabaseOption : ArrayList<DatabaseOption>
+        get() {
+            val listDataDatabaseOpt = arrayListOf<DatabaseOption>()
+            for (position in names.indices){
+                val dataDbOpt = DatabaseOption()
+                dataDbOpt.image = images[position]
+                dataDbOpt.overlay = overlays[position]
+                dataDbOpt.name = names[position]
+
+                listDataDatabaseOpt.add(dataDbOpt)
+            }
+            return listDataDatabaseOpt
+        }
+
 }

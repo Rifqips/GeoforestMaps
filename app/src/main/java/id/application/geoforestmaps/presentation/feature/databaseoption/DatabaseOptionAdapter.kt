@@ -5,20 +5,20 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import id.application.core.domain.model.Dashboard
+import id.application.core.domain.model.DatabaseOption
 import id.application.geoforestmaps.databinding.ItemCardDashboardDataBinding
 
 class DatabaseOptionAdapter(
-    private val onClickListener: (Dashboard) -> Unit
+    private val onClickListener: (DatabaseOption) -> Unit
 ) : RecyclerView.Adapter<DatabaseOptionAdapter.ViewHolder>() {
 
-    private val dataDiffer = AsyncListDiffer(this, object : DiffUtil.ItemCallback<Dashboard>(){
-        override fun areItemsTheSame(oldItem: Dashboard, newItem: Dashboard): Boolean {
+    private val dataDiffer = AsyncListDiffer(this, object : DiffUtil.ItemCallback<DatabaseOption>(){
+        override fun areItemsTheSame(oldItem: DatabaseOption, newItem: DatabaseOption): Boolean {
             return oldItem.name == newItem.name &&
                     oldItem.image == newItem.image
         }
 
-        override fun areContentsTheSame(oldItem: Dashboard, newItem: Dashboard): Boolean {
+        override fun areContentsTheSame(oldItem: DatabaseOption, newItem: DatabaseOption): Boolean {
             return oldItem.hashCode() == newItem.hashCode()
         }
     })
@@ -36,15 +36,16 @@ class DatabaseOptionAdapter(
         return dataDiffer.currentList.size
     }
 
-    fun setData(data: List<Dashboard>) {
+    fun setData(data: List<DatabaseOption>) {
         dataDiffer.submitList(data)
         notifyItemRangeChanged(0, data.size)
     }
 
     inner class ViewHolder(private val binding: ItemCardDashboardDataBinding): RecyclerView.ViewHolder(binding.root) {
-        fun bind(data: Dashboard, position: Int) {
+        fun bind(data: DatabaseOption, position: Int) {
             with(binding) {
                 ivImage.setImageResource(data.image)
+                viewOverlay.setBackgroundResource(data.overlay)
                 tvTitle.text = data.name
                 itemView.setOnClickListener {
                     if (position == 2) {
