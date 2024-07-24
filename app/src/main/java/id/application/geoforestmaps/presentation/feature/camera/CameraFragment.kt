@@ -26,6 +26,7 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.util.DisplayMetrics
 import android.util.Log
+import android.util.Size
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -54,6 +55,7 @@ import id.application.geoforestmaps.databinding.FragmentCameraBinding
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant
 import id.application.geoforestmaps.utils.Constant.IMAGE_FORMAT
+import io.github.muddz.styleabletoast.StyleableToast
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -131,12 +133,14 @@ class CameraFragment :
                     binding.pbLoadingCamera.isGone = false
                     binding.llPlantsType.isGone = true
                     binding.containerBottom.isGone = true
+
                 }
 
                 false -> {
                     binding.pbLoadingCamera.isGone = true
                     binding.llPlantsType.isGone = false
                     binding.containerBottom.isGone = false
+
                 }
             }
         }
@@ -197,25 +201,17 @@ class CameraFragment :
         viewModel.geotagingCreateResult.observe(viewLifecycleOwner){ result ->
             result.proceedWhen(
                 doOnLoading = {
-                    binding.layoutCheckData.pbLoading.isGone = false
+                    binding.pbLoadingCamera.isGone = false
                 },
                 doOnSuccess = {
-                    showDialogConfirmSaveData()
-                    binding.layoutCheckData.pbLoading.isGone = true
-                    Toast.makeText(context, "Sukses Membuat Geotaging", Toast.LENGTH_SHORT).show()
+                    binding.pbLoadingCamera.isGone = true
+                    StyleableToast.makeText(
+                        requireContext(),
+                        getString(R.string.sukses_membuat_geotaging),
+                        R.style.successtoast
+                    ).show()
                 },
-                doOnError = {
-                    binding.layoutCheckData.pbLoading.isGone = true
-                    Toast.makeText(context, "Gagal Membuat Geotaging", Toast.LENGTH_SHORT).show()
-                }
             )
-        }
-
-        // test buat response setelah berhasil create geotaging
-        viewModel.isLoadingGeotaging.observe(viewLifecycleOwner) {
-            showDialogConfirmSaveData()
-            binding.layoutCheckData.pbLoading.isGone = true
-            Toast.makeText(context, "Sukses Membuat Geotaging", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -277,18 +273,18 @@ class CameraFragment :
                 val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
                 val rotation = binding.viewFinder.display.rotation
 
-                val metrics =
-                    DisplayMetrics().also { binding.viewFinder.display.getRealMetrics(it) }
+                val metrics = DisplayMetrics().also { binding.viewFinder.display.getRealMetrics(it) }
                 val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
+                val targetResolution = Size(1080, 1080) // Resolusi persegi yang diinginkan
 
                 val imageAnalysis = ImageAnalysis.Builder()
                     .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-                    .setTargetAspectRatio(screenAspectRatio)
+                    .setTargetResolution(targetResolution)
                     .setTargetRotation(rotation)
                     .build()
 
                 val preview = Preview.Builder()
-                    .setTargetAspectRatio(screenAspectRatio)
+                    .setTargetResolution(targetResolution)
                     .setTargetRotation(rotation)
                     .build()
                     .also {
@@ -296,7 +292,7 @@ class CameraFragment :
                     }
 
                 imageCapture = ImageCapture.Builder()
-                    .setTargetAspectRatio(screenAspectRatio)
+                    .setTargetResolution(targetResolution)
                     .setTargetRotation(rotation)
                     .build()
 
@@ -315,12 +311,9 @@ class CameraFragment :
         }, ContextCompat.getMainExecutor(requireActivity()))
     }
 
+
     private fun aspectRatio(width: Int, height: Int): Int {
-        val previewRatio = width.coerceAtLeast(height).toDouble() / Math.min(width, height)
-        if (Math.abs(previewRatio - 4.0 / 4.0) <= Math.abs(previewRatio - 20.0 / 20.0)) {
-            return AspectRatio.RATIO_4_3
-        }
-        return AspectRatio.RATIO_16_9
+        return AspectRatio.RATIO_4_3 // Default ke rasio 4:3
     }
 
     private fun startGallery() {
@@ -519,7 +512,6 @@ class CameraFragment :
             return
         }
         val newBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-        val canvas = Canvas(newBitmap)
         val textPaint = TextPaint().apply {
             color = ContextCompat.getColor(requireContext(), R.color.white)
             textSize = 38f
@@ -657,7 +649,6 @@ class CameraFragment :
                     layoutCheck.isGone = false
                     topBarCheck.isGone = true
                     llPlantsType.isGone = true
-                    viewFinder.isGone = true
                     containerBottom.isGone = true
                 }
 
@@ -666,7 +657,6 @@ class CameraFragment :
                     topBarCheck.isGone = false
                     llPlantsType.isGone = false
                     viewFinder.isGone = false
-                    containerBottom.isGone = false
                 }
             }
         }
@@ -712,12 +702,6 @@ class CameraFragment :
                         imageFile.name,
                         imageRequestBody
                     )
-                    Log.d("check-body-geotaging", "$idPlant")
-                    Log.d("check-body-geotaging", "$idBlock")
-                    Log.d("check-body-geotaging", "$latitude")
-                    Log.d("check-body-geotaging", "$longitude")
-                    Log.d("check-body-geotaging", "$altitude")
-                    Log.d("check-body-geotaging", "$imageMultipart")
                     viewModel.createGeotaging(
                         idPlant.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
                         idBlock.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
@@ -729,6 +713,7 @@ class CameraFragment :
                 } else {
                     Toast.makeText(requireContext(), "File tidak dapat diakses", Toast.LENGTH_SHORT).show()
                 }
+                showDialogConfirmSaveData()
             }
             layoutCheckData.topBar.ivBack.setOnClickListener {
                 stateLayout(false)

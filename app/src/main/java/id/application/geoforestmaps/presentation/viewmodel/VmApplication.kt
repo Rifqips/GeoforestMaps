@@ -57,16 +57,10 @@ class VmApplication(
     val plantsResult: LiveData<ResultWrapper<ItemAllPlantsResponse>> = _plantsResult
 
     private val _geotagingCreateResult = MutableLiveData<ResultWrapper<List<ItemAllGeotaging>>>()
-    val geotagingCreateResult: LiveData<ResultWrapper<List<ItemAllGeotaging>>>
-        get() = _geotagingCreateResult
-
-    private val _isLoadingGeotaging = MutableLiveData<Boolean>()
-    val isLoadingGeotaging: LiveData<Boolean>
-        get() = _isLoadingGeotaging
-
+    val geotagingCreateResult: LiveData<ResultWrapper<List<ItemAllGeotaging>>> = _geotagingCreateResult
 
     private val _exportResult = MutableLiveData<Boolean>()
-    val exportResult: LiveData<Boolean> get() = _exportResult
+    val exportResult: LiveData<Boolean> = _exportResult
 
 
     fun userLogin(request: UserLoginRequest) {
@@ -166,7 +160,6 @@ class VmApplication(
         altitude: RequestBody?,
         userImage: MultipartBody.Part?
     ) {
-        _isLoadingGeotaging.postValue(true)
         viewModelScope.launch(Dispatchers.IO) {
             repo.createGeotaging(
                 plantId,
@@ -177,7 +170,6 @@ class VmApplication(
                 userImage
             ).collect {
                 _geotagingCreateResult.postValue(it)
-                _isLoadingGeotaging.postValue(false)
             }
         }
     }
