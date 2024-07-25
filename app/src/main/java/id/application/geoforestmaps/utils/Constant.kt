@@ -2,39 +2,32 @@ package id.application.geoforestmaps.utils
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import id.application.geoforestmaps.R
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
-import kotlin.math.abs
-import android.content.ContentResolver
-import android.content.ContentValues
-import android.content.Context
-import android.net.Uri
-import android.os.Build
-import android.os.Environment
-import android.provider.MediaStore
-import androidx.annotation.RequiresApi
-import okhttp3.ResponseBody
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.IOException
 
 object Constant {
     val IMAGE_FORMAT = "image/*"
     val IMAGE_PARSE = "image_parse"
 
     fun createFile(application: Application): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val timeStamp: String =
+            SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val mediaDir = application.externalMediaDirs.firstOrNull()?.let {
             File(it, application.resources.getString(R.string.app_name)).apply { mkdirs() }
         }
-        val outputDirectory = if (mediaDir != null && mediaDir.exists()) mediaDir else application.filesDir
+        val outputDirectory =
+            if (mediaDir != null && mediaDir.exists()) mediaDir else application.filesDir
         val imageFile = File(outputDirectory, "$timeStamp.jpg")
         compressAndSaveImage(imageFile)
 
@@ -62,6 +55,18 @@ object Constant {
     fun ZonedDateTime.formatTime(): String {
         val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a")
         return this.toLocalTime().format(timeFormatter)
+    }
+
+    fun isNetworkAvailable(context: Context): Boolean {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkCapabilities =
+            connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        return networkCapabilities != null
+                && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                || networkCapabilities.hasTransport(
+            NetworkCapabilities.TRANSPORT_CELLULAR
+        ))
     }
 
 }

@@ -2,6 +2,7 @@ package id.application.geoforestmaps.presentation.feature.database
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.view.isGone
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -11,6 +12,8 @@ import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentDatabaseBinding
 import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
+import io.github.muddz.styleabletoast.StyleableToast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class DatabaseFragment :
@@ -25,8 +28,19 @@ class DatabaseFragment :
     }
 
     override fun initView() {
-        loadPagingBlocks(adapter = adapterPagingDatabase)
-        setUpPaging()
+        if (isNetworkAvailable(requireContext())) {
+            loadPagingBlocks(adapter = adapterPagingDatabase)
+            setUpPaging()
+            binding.layoutNoSignal.root.isGone = true
+        } else {
+            binding.layoutNoSignal.root.isGone = false
+            binding.pbLoading.isGone = true
+            StyleableToast.makeText(
+                requireContext(),
+                getString(R.string.text_no_internet_connection),
+                R.style.failedtoast
+            ).show()
+        }
 
     }
 

@@ -13,8 +13,6 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class DashboardFragment :
     BaseFragment<FragmentDashboardBinding, VmApplication>(FragmentDashboardBinding::inflate) {
 
-    private val adapterDashboard = DashboardCardListAdapter()
-
     override val viewModel: VmApplication by viewModel()
 
     override fun initView() {

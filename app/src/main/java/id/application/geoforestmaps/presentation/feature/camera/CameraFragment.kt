@@ -737,7 +737,7 @@ class CameraFragment :
             dialog.dismiss()
         }
 
-        binding.tvTakePictureAgain.setOnClickListener {
+        binding.btnTakePictureAgain.setOnClickListener {
             findNavController().navigateUp()
             dialog.dismiss()
         }

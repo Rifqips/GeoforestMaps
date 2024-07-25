@@ -1,6 +1,7 @@
 package id.application.geoforestmaps.presentation.feature.history
 
 import android.view.View
+import androidx.core.view.isGone
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import id.application.core.domain.model.History
@@ -9,9 +10,11 @@ import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentHistoryBinding
 import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapterItem
-import id.application.geoforestmaps.presentation.adapter.geotags.HistoryListAdapter
+import id.application.geoforestmaps.presentation.adapter.history.HistoryListAdapter
 import id.application.geoforestmaps.presentation.feature.history.HistoryData.listDataHistory
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
+import io.github.muddz.styleabletoast.StyleableToast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class HistoryFragment :
@@ -26,8 +29,19 @@ class HistoryFragment :
 
     override fun initView() {
         rvListHistory()
-        loadPagingGeotaging(adapter = adapterPagingGeotagging)
-        setUpPaging()
+        if (isNetworkAvailable(requireContext())) {
+            loadPagingGeotaging(adapter = adapterPagingGeotagging)
+            setUpPaging()
+            binding.layoutNoSignal.root.isGone = true
+        } else {
+            binding.layoutNoSignal.root.isGone = false
+            binding.pbLoading.isGone = true
+            StyleableToast.makeText(
+                requireContext(),
+                getString(R.string.text_no_internet_connection),
+                R.style.failedtoast
+            ).show()
+        }
 
     }
 

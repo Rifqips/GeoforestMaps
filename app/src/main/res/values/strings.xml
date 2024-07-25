@@ -14,7 +14,7 @@
     <string name="text_password_min_8_character">Password minimal 8 karakter</string>
     <string name="text_login_successful">Login Berhasil</string>
     <string name="text_sorry_there_s_an_error_on_the_server">Maaf, server error</string>
-    <string name="text_no_internet_connection">Oops! Tidak ada internet</string>
+    <string name="text_no_internet_connection">Maaf! Tidak ada internet</string>
     <string name="text_successfully_logout">Logout berhasil!</string>
     <string name="text_failed_to_logout">Logout gagal!</string>
     <string name="string_gagal_login">Gagal Login</string>
