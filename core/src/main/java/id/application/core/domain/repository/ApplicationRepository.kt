@@ -65,7 +65,7 @@ interface  ApplicationRepository{
         userImage: MultipartBody.Part?
     ):Flow<ResultWrapper<List<ItemAllGeotaging>>>
 
-    suspend fun exportFile(type: String, blockId: Int?): Response<ResponseBody>
+    suspend fun exportFile(type: String?, blockId: Int?): Response<ResponseBody>
 
 
 
@@ -165,7 +165,7 @@ class ApplicationRepositoryImpl(
         }
     }
 
-    override suspend fun exportFile(type: String, blockId: Int?):  Response<ResponseBody> {
+    override suspend fun exportFile(type: String?, blockId: Int?):  Response<ResponseBody> {
         return appDataSource.exportFile(type, blockId)
     }
 

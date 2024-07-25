@@ -2,6 +2,7 @@ package id.application.geoforestmaps.presentation.viewmodel
 
 import android.content.Context
 import android.os.Build
+import android.os.Environment
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
@@ -34,7 +35,9 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
 
 class VmApplication(
     private val repo: ApplicationRepository,
@@ -59,8 +62,8 @@ class VmApplication(
     private val _geotagingCreateResult = MutableLiveData<ResultWrapper<List<ItemAllGeotaging>>>()
     val geotagingCreateResult: LiveData<ResultWrapper<List<ItemAllGeotaging>>> = _geotagingCreateResult
 
-    private val _exportResult = MutableLiveData<Boolean>()
-    val exportResult: LiveData<Boolean> = _exportResult
+    val downloadProgress = MutableLiveData<Int>()
+    val downloadedFile = MutableLiveData<File>()
 
 
     fun userLogin(request: UserLoginRequest) {
@@ -174,40 +177,48 @@ class VmApplication(
         }
     }
 
-    fun exportFile(type: String, blockId: Int?, file: File) {
+    fun eksports(type: String?, blockId: Int?, context: Context) {
         viewModelScope.launch {
-            _exportResult.postValue(true)
             try {
                 val response = repo.exportFile(type, blockId)
                 if (response.isSuccessful) {
-                    // Save the response body to the file
-                    response.body()?.let { responseBody ->
-                        saveResponseToFile(responseBody, file)
-                        Log.d("File-Path", responseBody.toString())
-                        _exportResult.postValue(false)
-                    } ?: run {
-                        _exportResult.postValue(false)
+                    response.body()?.byteStream()?.let { inputStream ->
+                        val file = saveFileToDownloads(context, response.body()!!, "downloaded_file.xls")
+                        downloadedFile.postValue(file)
                     }
                 } else {
-                    _exportResult.postValue(false)
-
+                    // Handle error
                 }
             } catch (e: Exception) {
-                _exportResult.postValue(false)
+                // Handle exception
+                Log.e("YourViewModel", "Exception: $e")
             }
         }
     }
 
+    private fun saveFileToDownloads(context: Context, responseBody: ResponseBody, fileName: String): File {
+        val downloadsDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val file = File(downloadsDirectory, fileName)
 
-    private fun saveResponseToFile(responseBody: ResponseBody, file: File) {
-        try {
-            file.outputStream().use { outputStream ->
-                responseBody.byteStream().use { inputStream ->
-                    inputStream.copyTo(outputStream)
-                }
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
+        val inputStream: InputStream = responseBody.byteStream()
+        val outputStream = FileOutputStream(file)
+
+        val buffer = ByteArray(4096)
+        var byteCount: Int
+        var totalBytesRead = 0
+        val contentLength = responseBody.contentLength()
+
+        while (inputStream.read(buffer).also { byteCount = it } != -1) {
+            outputStream.write(buffer, 0, byteCount)
+            totalBytesRead += byteCount
+            val progress = (totalBytesRead.toDouble() / contentLength.toDouble() * 100).toInt()
+            downloadProgress.postValue(progress)
         }
+
+        outputStream.flush()
+        outputStream.close()
+        inputStream.close()
+
+        return file
     }
 }

@@ -7,9 +7,13 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Environment
 import id.application.geoforestmaps.R
+import okhttp3.ResponseBody
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -18,7 +22,6 @@ import java.util.Locale
 
 object Constant {
     val IMAGE_FORMAT = "image/*"
-    val IMAGE_PARSE = "image_parse"
 
     fun createFile(application: Application): File {
         val timeStamp: String =
@@ -68,5 +71,7 @@ object Constant {
             NetworkCapabilities.TRANSPORT_CELLULAR
         ))
     }
+
+
 
 }

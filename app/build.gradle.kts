@@ -79,7 +79,7 @@ dependencies {
     debugImplementation("com.github.chuckerteam.chucker:library:4.0.0")
     releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.0.0")
 
-    debugImplementation ("com.squareup.leakcanary:leakcanary-android:2.12")
+    // debugImplementation ("com.squareup.leakcanary:leakcanary-android:2.12")
 
     // camera X
     implementation ("androidx.camera:camera-camera2:1.3.1")

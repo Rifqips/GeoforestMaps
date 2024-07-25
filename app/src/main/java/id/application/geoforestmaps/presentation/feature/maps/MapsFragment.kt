@@ -2,12 +2,15 @@ package id.application.geoforestmaps.presentation.feature.maps
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.isGone
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
@@ -83,6 +86,8 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         }
         binding.topbar.ivDownlaod.setOnClickListener {
             exportFile()
+            Log.d("check-vm", "block : $block")
+            viewModel.eksports(type = "list", blockId = block?.toInt(), requireContext())
         }
     }
 
@@ -183,26 +188,48 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         mapView.onDetach() // Membersihkan sumber daya MapView
     }
 
+    @SuppressLint("SetTextI18n")
     private fun exportFile() {
-        val file = File(requireContext().filesDir, "exported_file.xlsx")
-        Log.d("file-excel", file.toString())
-        viewModel.exportFile("list", block?.toInt(), file)
-        viewModel.exportResult.observe(viewLifecycleOwner, Observer { result ->
-            when (result) {
-               true -> {
-                    // Show loading state, e.g., a progress bar
-                   binding.pbLoading.isGone = false
-                   Toast.makeText(context, "Berhasil download excel", Toast.LENGTH_SHORT).show()
-                    Log.d("ExampleFragment", "Loading")
-                }
-                else -> {
-                    // Handle success or error
-                    binding.pbLoading.isGone = true
-                    Toast.makeText(context, "Berhasil download excel", Toast.LENGTH_SHORT).show()
+        viewModel.downloadProgress.observe(viewLifecycleOwner, Observer { progress ->
+            binding.progressBar.progress = progress
+            binding.progressText.text = "$progress%"
+        })
 
+        viewModel.downloadedFile.observe(viewLifecycleOwner, Observer { file ->
+            if (file.exists()) {
+                try {
+                    // Buka file dari direktori unduhan
+                    openFile(file)
+                } catch (e: Exception) {
+                    Log.d("check-vm", "Exception: $e")
+                    Toast.makeText(requireContext(), "Error opening file: ${e.message}", Toast.LENGTH_LONG).show()
                 }
+            } else {
+                Toast.makeText(requireContext(), "File tidak ada", Toast.LENGTH_SHORT).show()
             }
         })
+    }
+
+    fun openFile(file: File) {
+        if (file.exists()) {
+            val intent = Intent(Intent.ACTION_VIEW)
+            val uri: Uri = FileProvider.getUriForFile(requireContext(), "com.example.fileprovider", file)
+            Log.d("check-vm", "URI: $uri")
+            intent.setDataAndType(uri, "application/vnd.ms-excel")
+            intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+
+            if (intent.resolveActivity(requireContext().packageManager) != null) {
+                try {
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Toast.makeText(requireContext(), "Error opening file: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            } else {
+                Toast.makeText(requireContext(), "No application found to open the file", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            Toast.makeText(requireContext(), "File does not exist", Toast.LENGTH_SHORT).show()
+        }
     }
 }
 
