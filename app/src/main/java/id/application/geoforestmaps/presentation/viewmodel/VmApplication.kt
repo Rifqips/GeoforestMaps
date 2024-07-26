@@ -184,19 +184,26 @@ class VmApplication(
 
     fun eksports(type: String?, blockId: Int?, fileName: String, context: Context) {
         viewModelScope.launch {
+            _downloadStatus.value = "Downloading..."
             try {
-                _downloadStatus.value = "Downloading..."
                 val response = repo.exportFile(type, blockId)
                 if (response.isSuccessful) {
                     response.body()?.let { responseBody ->
-                        val filePath = File(context.getExternalFilesDir(null), fileName).absolutePath
-                        val extractDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath
+                        Log.d("test-response", "response body $responseBody")
+
+                        val downloadDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                        if (downloadDir?.exists() != true) {
+                            downloadDir?.mkdirs()
+                        }
+                        val filePath = File(downloadDir, fileName).absolutePath
+                        val extractDir = downloadDir?.absolutePath
 
                         withContext(Dispatchers.IO) {
                             saveFile(responseBody, filePath)
-                            unzip(filePath, extractDir ?: "")
+                            if (extractDir != null) {
+                                unzip(filePath, extractDir)
+                            }
                         }
-
                         _downloadStatus.value = "File downloaded and extracted successfully!"
                     } ?: run {
                         _downloadStatus.value = "Error: Response body is null"
@@ -204,11 +211,14 @@ class VmApplication(
                 } else {
                     _downloadStatus.value = "Error: ${response.code()}"
                 }
+            } catch (e: IOException) {
+                _downloadStatus.value = "I/O Error: ${e.message}"
             } catch (e: Exception) {
-                _downloadStatus.value = "Error: ${e.message}"
+                _downloadStatus.value = "Unexpected Error: ${e.message}"
             }
         }
     }
+
 
     private fun saveFile(responseBody: ResponseBody, filePath: String) {
         File(filePath).outputStream().use { outputStream ->

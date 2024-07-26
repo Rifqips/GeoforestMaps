@@ -96,8 +96,13 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
             binding.progressText.text = status
             Log.d("test-response", status)
         })
-        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "file.zip")
-        viewModel.eksports(type = "list", blockId = block?.toInt(), file.toString(),requireContext())
+        // Membuat path file dengan benar
+        val downloadDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+        if (downloadDir?.exists() != true) {
+            downloadDir?.mkdirs()
+        }
+        val file = File(downloadDir, "file.zip")
+        viewModel.eksports(type = "list", blockId = block?.toInt(), file.name, requireContext())
     }
 
     private fun loadPagingGeotagingAdapter(adapter: GeotaggingAdapterItem) {
@@ -197,7 +202,18 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         mapView.onDetach() // Membersihkan sumber daya MapView
     }
 
-
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_WRITE_STORAGE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                exportFile()
+            } else {
+            }
+        }
+    }
+    companion object{
+        private val REQUEST_WRITE_STORAGE = 112
+    }
 
 }
 
