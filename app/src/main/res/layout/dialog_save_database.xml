@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="20dp"
+    android:orientation="vertical"
+    app:cardCornerRadius="24dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp"
+        >
+
+        <TextView
+            android:id="@+id/dialog_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="Download File!"
+            android:textColor="@color/black"
+            android:textSize="22sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+        <ProgressBar
+            android:id="@+id/pBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/dialog_title" />
+
+        <ImageView
+            android:id="@+id/iv_success"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/ic_success"
+            android:visibility="gone"
+            android:layout_marginBottom="20dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/dialog_title" />
+
+
+        <TextView
+            android:id="@+id/tv_sucese"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/poppins"
+            android:text="Selesai"
+            android:visibility="gone"
+            android:textColor="@color/bg_blue"
+            android:textSize="22sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/iv_success"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

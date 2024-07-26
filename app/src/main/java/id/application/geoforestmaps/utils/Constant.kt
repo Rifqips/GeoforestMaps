@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Environment
+import android.util.Log
 import id.application.geoforestmaps.R
 import okhttp3.ResponseBody
 import java.io.File
@@ -71,5 +72,25 @@ object Constant {
             NetworkCapabilities.TRANSPORT_CELLULAR
         ))
     }
+
+
+    fun saveFile(responseBody: ResponseBody, filePath: String) {
+        val file = File(filePath)
+        if (file.exists()) {
+            file.delete() // Menghapus file yang sudah ada
+        }
+        file.outputStream().use { outputStream ->
+            responseBody.byteStream().copyTo(outputStream)
+        }
+        Log.d("test-response", "File saved at: $filePath")
+    }
+
+    fun generateUniqueFileName(fileName: String): String {
+        val timestamp = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
+        val extension = fileName.substringAfterLast(".", "")
+        val baseName = fileName.substringBeforeLast(".")
+        return "${baseName}_$timestamp.$extension"
+    }
+
 
 }

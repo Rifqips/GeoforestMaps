@@ -171,21 +171,4 @@ class ApplicationRepositoryImpl(
         return appDataSource.exportFile(type, blockId)
     }
 
-    suspend fun downloadAndSaveFile(type: String?, blockId: Int?, filePath: String, extractDir: String) {
-        val response = exportFile(type, blockId)
-
-        if (response.isSuccessful) {
-            response.body()?.let { responseBody ->
-                saveFile(responseBody, filePath)
-                unzip(filePath, extractDir)
-                println("File downloaded and extracted successfully!")
-            } ?: run {
-                println("Error: Response body is null")
-            }
-        } else {
-            println("Error: ${response.code()}")
-        }
-    }
-
-
 }

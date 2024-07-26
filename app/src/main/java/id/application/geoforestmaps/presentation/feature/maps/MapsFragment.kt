@@ -2,8 +2,11 @@ package id.application.geoforestmaps.presentation.feature.maps
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Environment
 import android.util.Log
@@ -21,6 +24,7 @@ import coil.load
 import id.application.core.utils.BaseFragment
 import id.application.core.utils.ResultWrapper
 import id.application.geoforestmaps.R
+import id.application.geoforestmaps.databinding.DialogSaveDatabaseBinding
 import id.application.geoforestmaps.databinding.FragmentMapsBinding
 import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapterItem
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
@@ -32,8 +36,12 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMapsBinding::inflate) {
+class MapsFragment :
+    BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMapsBinding::inflate) {
 
     override val viewModel: VmApplication by viewModel()
 
@@ -45,20 +53,17 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     var block: String? = ""
     var blockName: String? = ""
 
-
     private val PERMISSIONS_REQUEST_CODE = 1
     private lateinit var mapView: MapView
+    private var activeDialog: AlertDialog? = null
 
     @SuppressLint("SetTextI18n")
     override fun initView() {
-        // Inisialisasi MapView
         mapView = binding.map
         binding.topbar.ivTitle.text = "Map"
         binding.topbar.ivDownlaod.load(R.drawable.ic_download)
         block = arguments?.getString("blockId")
         blockName = arguments?.getString("blockName")
-
-        // Cek izin
         checkPermissions()
 
         // Setup tile provider offline (jika ada)
@@ -73,7 +78,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         mapView.setMultiTouchControls(true)
 
         // Set titik awal peta
-        val startPoint = GeoPoint(-6.9175, 107.6191) // Contoh: Koordinat Bandung
+        val startPoint = GeoPoint(-6.9175, 107.6191)
         val mapController = mapView.controller
         mapController.setZoom(15.0)
         mapController.setCenter(startPoint)
@@ -84,23 +89,87 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     }
 
     override fun initListener() {
-        binding.topbar.ivBack.setOnClickListener {
-            findNavController().navigateUp()
+        with(binding) {
+            topbar.ivBack.setOnClickListener {
+                findNavController().navigateUp()
+            }
+            topbar.ivDownlaod.setOnClickListener {
+                exportFile()
+            }
         }
-        binding.topbar.ivDownlaod.setOnClickListener {
-            exportFile()
+
+
+    }
+
+    private fun exportFile() {
+        viewModel.downloadStatus.observe(viewLifecycleOwner, Observer { status ->
+            when (status) {
+                "Mendownload File..." -> {
+                    showDialogConfirmSaveData(true, status)
+                }
+
+                "Download berhasil!" -> {
+                    showDialogConfirmSaveData(false, status)
+                }
+
+                "Download gagal!" -> {
+                    showDialogConfirmSaveData(false, status)
+                }
+            }
+        })
+        val downloadDir =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        if (!downloadDir.exists()) {
+            downloadDir.mkdirs()
+        }
+        val fileName = generateFileName("geotaging-$blockName", ".xlsx")
+        val file = File(downloadDir, fileName)
+        viewModel.eksports(type = "list", blockId = block?.toInt(), file.name, requireContext())
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun showDialogConfirmSaveData(state: Boolean, text: String) {
+        activeDialog?.let { dialog ->
+            if (dialog.isShowing) {
+                dialog.dismiss()
+            }
+        }
+        val binding: DialogSaveDatabaseBinding = DialogSaveDatabaseBinding.inflate(layoutInflater)
+        val dialog = AlertDialog.Builder(requireContext(), 0).create()
+        dialog.apply {
+            setView(binding.root)
+            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setCanceledOnTouchOutside(false)
+        }.show()
+        activeDialog = dialog
+        binding.dialogTitle.text = text
+        with(binding) {
+            when (state) {
+                true -> {
+                    pBar.visibility = View.VISIBLE
+                    ivSuccess.visibility = View.GONE
+                    tvSucese.visibility = View.GONE
+                }
+
+                false -> {
+                    pBar.visibility = View.GONE
+                    ivSuccess.visibility = View.VISIBLE
+                    tvSucese.visibility = View.VISIBLE
+                }
+            }
+            tvSucese.setOnClickListener {
+                dialog.dismiss()
+                activeDialog = null
+            }
+        }
+        binding.root.setOnTouchListener { _, _ ->
+            true
         }
     }
 
-
-    @SuppressLint("SetTextI18n")
-    private fun exportFile() {
-        viewModel.downloadStatus.observe(this, Observer { status ->
-            binding.progressText.text = status
-            Log.d("test-response", status)
-        })
-
-        viewModel.eksports(type = "list", blockId = block?.toInt(), "geotaggings-${blockName}.xlsx" ,requireContext())
+    private fun generateFileName(baseName: String, extension: String): String {
+        val timestamp = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
+        return "$baseName$timestamp$extension"
     }
 
     private fun loadPagingGeotagingAdapter(adapter: GeotaggingAdapterItem) {
@@ -113,21 +182,27 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     }
 
     private fun setUpPaging() {
-        if (view != null){
+        if (view != null) {
             parentFragment?.viewLifecycleOwner?.let {
                 viewModel.geotaggingList.observe(it) { pagingData ->
                     adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
             }
             adapterPagingGeotagging.addLoadStateListener { loadState ->
-                with(binding){
+                with(binding) {
                     if (loadState.refresh is LoadState.Loading) {
                         pbLoading.visibility = View.VISIBLE
+                        binding.topbar.ivDownlaod.visibility = View.GONE
                     } else {
                         pbLoading.visibility = View.GONE
-                        if (view != null){
+                        binding.topbar.ivDownlaod.visibility = View.VISIBLE
+                        if (view != null) {
                             rvGeotaging.apply {
-                                layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL,false).apply {
+                                layoutManager = LinearLayoutManager(
+                                    context,
+                                    LinearLayoutManager.HORIZONTAL,
+                                    false
+                                ).apply {
                                     isSmoothScrollbarEnabled = true
                                 }
                                 adapter = adapterPagingGeotagging
@@ -179,8 +254,10 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         }
 
         if (permissionsToRequest.isNotEmpty()) {
-            ActivityCompat.requestPermissions(requireActivity(), permissionsToRequest.toTypedArray(),
-                PERMISSIONS_REQUEST_CODE)
+            ActivityCompat.requestPermissions(
+                requireActivity(), permissionsToRequest.toTypedArray(),
+                PERMISSIONS_REQUEST_CODE
+            )
         }
     }
 
@@ -200,7 +277,23 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         mapView.onDetach() // Membersihkan sumber daya MapView
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_WRITE_STORAGE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                exportFile()
+            } else {
+            }
+        }
+    }
 
+    companion object {
+        private val REQUEST_WRITE_STORAGE = 112
+    }
 
 }
 

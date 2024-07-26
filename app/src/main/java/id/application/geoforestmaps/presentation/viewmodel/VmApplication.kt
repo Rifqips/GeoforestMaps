@@ -30,6 +30,7 @@ import id.application.core.utils.Utils.saveFile
 import id.application.core.utils.Utils.unzip
 import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
 import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapterItem
+import id.application.geoforestmaps.utils.Constant.generateUniqueFileName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -41,6 +42,9 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
@@ -69,6 +73,7 @@ class VmApplication(
 
     private val _downloadStatus = MutableLiveData<String>()
     val downloadStatus: LiveData<String> get() = _downloadStatus
+
 
     fun userLogin(request: UserLoginRequest) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -183,31 +188,34 @@ class VmApplication(
 
     fun eksports(type: String?, blockId: Int?, fileName: String, context: Context) {
         viewModelScope.launch {
+            _downloadStatus.value = "Mendownload File..."
             try {
-                _downloadStatus.value = "Downloading..."
                 val response = repo.exportFile(type, blockId)
                 if (response.isSuccessful) {
                     response.body()?.let { responseBody ->
-                        val filePath = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName).absolutePath
+                        val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                        if (!downloadDir.exists()) {
+                            downloadDir.mkdirs()
+                        }
+                        val uniqueFileName = generateUniqueFileName(fileName)
+                        val filePath = File(downloadDir, uniqueFileName).absolutePath
+
                         withContext(Dispatchers.IO) {
                             saveFile(responseBody, filePath)
                         }
-                        _downloadStatus.value = "File downloaded successfully!"
+                        Log.d("test-response", "File saved at: $filePath")
+                        _downloadStatus.value = "Download berhasil!"
                     } ?: run {
-                        _downloadStatus.value = "Error: Response body is null"
+                        _downloadStatus.value = "Download gagal!"
                     }
                 } else {
-                    _downloadStatus.value = "Error: ${response.code()}"
+                    _downloadStatus.value = "Download gagal!"
                 }
+            } catch (e: IOException) {
+                _downloadStatus.value = "Download gagal!"
             } catch (e: Exception) {
-                _downloadStatus.value = "Error: ${e.message}"
+                _downloadStatus.value = "Download gagal!"
             }
-        }
-    }
-
-    private fun saveFile(responseBody: ResponseBody, filePath: String) {
-        File(filePath).outputStream().use { outputStream ->
-            responseBody.byteStream().copyTo(outputStream)
         }
     }
 
