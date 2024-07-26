@@ -1,6 +1,7 @@
 package id.application.geoforestmaps.presentation.feature.camera
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.ContentValues
@@ -722,6 +723,7 @@ class CameraFragment :
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun showDialogConfirmSaveData() {
         val binding: DialogConfirmSaveDataBinding =
             DialogConfirmSaveDataBinding.inflate(layoutInflater)
@@ -730,6 +732,7 @@ class CameraFragment :
         dialog.apply {
             setView(binding.root)
             window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setCanceledOnTouchOutside(false)
         }.show()
 
         binding.btnFinish.setOnClickListener {
@@ -740,6 +743,9 @@ class CameraFragment :
         binding.btnTakePictureAgain.setOnClickListener {
             findNavController().navigateUp()
             dialog.dismiss()
+        }
+        binding.root.setOnTouchListener { _, _ ->
+            true
         }
     }
 
