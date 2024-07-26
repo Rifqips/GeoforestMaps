@@ -70,7 +70,6 @@ class VmApplication(
     private val _downloadStatus = MutableLiveData<String>()
     val downloadStatus: LiveData<String> get() = _downloadStatus
 
-
     fun userLogin(request: UserLoginRequest) {
         viewModelScope.launch(Dispatchers.IO) {
             repo.userLogin(request).collect {
@@ -189,15 +188,11 @@ class VmApplication(
                 val response = repo.exportFile(type, blockId)
                 if (response.isSuccessful) {
                     response.body()?.let { responseBody ->
-                        val filePath = File(context.getExternalFilesDir(null), fileName).absolutePath
-                        val extractDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath
-
+                        val filePath = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName).absolutePath
                         withContext(Dispatchers.IO) {
                             saveFile(responseBody, filePath)
-                            unzip(filePath, extractDir ?: "")
                         }
-
-                        _downloadStatus.value = "File downloaded and extracted successfully!"
+                        _downloadStatus.value = "File downloaded successfully!"
                     } ?: run {
                         _downloadStatus.value = "Error: Response body is null"
                     }
@@ -216,22 +211,5 @@ class VmApplication(
         }
     }
 
-    private fun unzip(filePath: String, extractDir: String) {
-        val zipFile = File(filePath)
-        ZipInputStream(zipFile.inputStream()).use { zipInputStream ->
-            var zipEntry: ZipEntry? = zipInputStream.nextEntry
 
-            while (zipEntry != null) {
-                val fileName = zipEntry.name
-                if (zipEntry.isDirectory) {
-                    File(extractDir, fileName).mkdirs()
-                } else {
-                    File(extractDir, fileName).outputStream().use { outputStream ->
-                        zipInputStream.copyTo(outputStream)
-                    }
-                }
-                zipEntry = zipInputStream.nextEntry
-            }
-        }
-    }
 }

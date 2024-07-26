@@ -43,6 +43,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         }
     }
     var block: String? = ""
+    var blockName: String? = ""
 
 
     private val PERMISSIONS_REQUEST_CODE = 1
@@ -55,6 +56,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         binding.topbar.ivTitle.text = "Map"
         binding.topbar.ivDownlaod.load(R.drawable.ic_download)
         block = arguments?.getString("blockId")
+        blockName = arguments?.getString("blockName")
 
         // Cek izin
         checkPermissions()
@@ -90,14 +92,15 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         }
     }
 
+
     @SuppressLint("SetTextI18n")
     private fun exportFile() {
         viewModel.downloadStatus.observe(this, Observer { status ->
             binding.progressText.text = status
             Log.d("test-response", status)
         })
-        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "file.zip")
-        viewModel.eksports(type = "list", blockId = block?.toInt(), file.toString(),requireContext())
+
+        viewModel.eksports(type = "list", blockId = block?.toInt(), "geotaggings-${blockName}.xlsx" ,requireContext())
     }
 
     private fun loadPagingGeotagingAdapter(adapter: GeotaggingAdapterItem) {
