@@ -189,22 +189,20 @@ class VmApplication(
                 val response = repo.exportFile(type, blockId)
                 if (response.isSuccessful) {
                     response.body()?.let { responseBody ->
-                        Log.d("test-response", "response body $responseBody")
+                        Log.d("test-response", "response body ${responseBody.byteStream()}")
 
-                        val downloadDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                        if (downloadDir?.exists() != true) {
-                            downloadDir?.mkdirs()
+                        // Menggunakan direktori unduhan publik
+                        val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                        if (!downloadDir.exists()) {
+                            downloadDir.mkdirs()
                         }
                         val filePath = File(downloadDir, fileName).absolutePath
-                        val extractDir = downloadDir?.absolutePath
 
                         withContext(Dispatchers.IO) {
                             saveFile(responseBody, filePath)
-                            if (extractDir != null) {
-                                unzip(filePath, extractDir)
-                            }
                         }
-                        _downloadStatus.value = "File downloaded and extracted successfully!"
+                        Log.d("test-response", "File saved at: $filePath")
+                        _downloadStatus.value = "File downloaded successfully!"
                     } ?: run {
                         _downloadStatus.value = "Error: Response body is null"
                     }
@@ -224,24 +222,7 @@ class VmApplication(
         File(filePath).outputStream().use { outputStream ->
             responseBody.byteStream().copyTo(outputStream)
         }
-    }
-
-    private fun unzip(filePath: String, extractDir: String) {
-        val zipFile = File(filePath)
-        ZipInputStream(zipFile.inputStream()).use { zipInputStream ->
-            var zipEntry: ZipEntry? = zipInputStream.nextEntry
-
-            while (zipEntry != null) {
-                val fileName = zipEntry.name
-                if (zipEntry.isDirectory) {
-                    File(extractDir, fileName).mkdirs()
-                } else {
-                    File(extractDir, fileName).outputStream().use { outputStream ->
-                        zipInputStream.copyTo(outputStream)
-                    }
-                }
-                zipEntry = zipInputStream.nextEntry
-            }
-        }
+        Log.d("test-response", "File saved at: $filePath")
+        Log.d("test-response", "File saved at: ${responseBody.byteStream()}")
     }
 }

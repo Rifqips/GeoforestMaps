@@ -94,14 +94,10 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     private fun exportFile() {
         viewModel.downloadStatus.observe(this, Observer { status ->
             binding.progressText.text = status
-            Log.d("test-response", status)
         })
-        // Membuat path file dengan benar
+        // Menggunakan path file dengan benar
         val downloadDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-        if (downloadDir?.exists() != true) {
-            downloadDir?.mkdirs()
-        }
-        val file = File(downloadDir, "file.zip")
+        val file = File(downloadDir, "geotaging.zip")
         viewModel.eksports(type = "list", blockId = block?.toInt(), file.name, requireContext())
     }
 
