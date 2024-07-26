@@ -26,11 +26,14 @@ import id.application.core.domain.paging.BlocksPagingSource
 import id.application.core.domain.paging.GeotagingPagingSource
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.utils.ResultWrapper
+import id.application.core.utils.Utils.saveFile
+import id.application.core.utils.Utils.unzip
 import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
 import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapterItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -38,6 +41,8 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 
 class VmApplication(
     private val repo: ApplicationRepository,
@@ -62,8 +67,8 @@ class VmApplication(
     private val _geotagingCreateResult = MutableLiveData<ResultWrapper<List<ItemAllGeotaging>>>()
     val geotagingCreateResult: LiveData<ResultWrapper<List<ItemAllGeotaging>>> = _geotagingCreateResult
 
-    val downloadProgress = MutableLiveData<Int>()
-    val downloadedFile = MutableLiveData<File>()
+    private val _downloadStatus = MutableLiveData<String>()
+    val downloadStatus: LiveData<String> get() = _downloadStatus
 
 
     fun userLogin(request: UserLoginRequest) {
@@ -177,48 +182,56 @@ class VmApplication(
         }
     }
 
-    fun eksports(type: String?, blockId: Int?, context: Context) {
+    fun eksports(type: String?, blockId: Int?, fileName: String, context: Context) {
         viewModelScope.launch {
             try {
+                _downloadStatus.value = "Downloading..."
                 val response = repo.exportFile(type, blockId)
                 if (response.isSuccessful) {
-                    response.body()?.byteStream()?.let { inputStream ->
-                        val file = saveFileToDownloads(context, response.body()!!, "downloaded_file.xls")
-                        downloadedFile.postValue(file)
+                    response.body()?.let { responseBody ->
+                        val filePath = File(context.getExternalFilesDir(null), fileName).absolutePath
+                        val extractDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath
+
+                        withContext(Dispatchers.IO) {
+                            saveFile(responseBody, filePath)
+                            unzip(filePath, extractDir ?: "")
+                        }
+
+                        _downloadStatus.value = "File downloaded and extracted successfully!"
+                    } ?: run {
+                        _downloadStatus.value = "Error: Response body is null"
                     }
                 } else {
-                    // Handle error
+                    _downloadStatus.value = "Error: ${response.code()}"
                 }
             } catch (e: Exception) {
-                // Handle exception
-                Log.e("YourViewModel", "Exception: $e")
+                _downloadStatus.value = "Error: ${e.message}"
             }
         }
     }
 
-    private fun saveFileToDownloads(context: Context, responseBody: ResponseBody, fileName: String): File {
-        val downloadsDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val file = File(downloadsDirectory, fileName)
-
-        val inputStream: InputStream = responseBody.byteStream()
-        val outputStream = FileOutputStream(file)
-
-        val buffer = ByteArray(4096)
-        var byteCount: Int
-        var totalBytesRead = 0
-        val contentLength = responseBody.contentLength()
-
-        while (inputStream.read(buffer).also { byteCount = it } != -1) {
-            outputStream.write(buffer, 0, byteCount)
-            totalBytesRead += byteCount
-            val progress = (totalBytesRead.toDouble() / contentLength.toDouble() * 100).toInt()
-            downloadProgress.postValue(progress)
+    private fun saveFile(responseBody: ResponseBody, filePath: String) {
+        File(filePath).outputStream().use { outputStream ->
+            responseBody.byteStream().copyTo(outputStream)
         }
+    }
 
-        outputStream.flush()
-        outputStream.close()
-        inputStream.close()
+    private fun unzip(filePath: String, extractDir: String) {
+        val zipFile = File(filePath)
+        ZipInputStream(zipFile.inputStream()).use { zipInputStream ->
+            var zipEntry: ZipEntry? = zipInputStream.nextEntry
 
-        return file
+            while (zipEntry != null) {
+                val fileName = zipEntry.name
+                if (zipEntry.isDirectory) {
+                    File(extractDir, fileName).mkdirs()
+                } else {
+                    File(extractDir, fileName).outputStream().use { outputStream ->
+                        zipInputStream.copyTo(outputStream)
+                    }
+                }
+                zipEntry = zipInputStream.nextEntry
+            }
+        }
     }
 }

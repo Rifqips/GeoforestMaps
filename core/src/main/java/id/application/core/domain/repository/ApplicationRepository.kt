@@ -19,6 +19,8 @@ import id.application.core.domain.model.plants.toAllPlantsResponse
 import id.application.core.domain.model.profile.UserProfileResponse
 import id.application.core.utils.AssetWrapperApp
 import id.application.core.utils.ResultWrapper
+import id.application.core.utils.Utils.saveFile
+import id.application.core.utils.Utils.unzip
 import id.application.core.utils.proceedFlow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -167,6 +169,22 @@ class ApplicationRepositoryImpl(
 
     override suspend fun exportFile(type: String?, blockId: Int?):  Response<ResponseBody> {
         return appDataSource.exportFile(type, blockId)
+    }
+
+    suspend fun downloadAndSaveFile(type: String?, blockId: Int?, filePath: String, extractDir: String) {
+        val response = exportFile(type, blockId)
+
+        if (response.isSuccessful) {
+            response.body()?.let { responseBody ->
+                saveFile(responseBody, filePath)
+                unzip(filePath, extractDir)
+                println("File downloaded and extracted successfully!")
+            } ?: run {
+                println("Error: Response body is null")
+            }
+        } else {
+            println("Error: ${response.code()}")
+        }
     }
 
 

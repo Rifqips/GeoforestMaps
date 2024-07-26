@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Environment
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -53,7 +54,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         mapView = binding.map
         binding.topbar.ivTitle.text = "Map"
         binding.topbar.ivDownlaod.load(R.drawable.ic_download)
-        block= arguments?.getString("blockId")
+        block = arguments?.getString("blockId")
 
         // Cek izin
         checkPermissions()
@@ -86,9 +87,17 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         }
         binding.topbar.ivDownlaod.setOnClickListener {
             exportFile()
-            Log.d("check-vm", "block : $block")
-            viewModel.eksports(type = "list", blockId = block?.toInt(), requireContext())
         }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun exportFile() {
+        viewModel.downloadStatus.observe(this, Observer { status ->
+            binding.progressText.text = status
+            Log.d("test-response", status)
+        })
+        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "file.zip")
+        viewModel.eksports(type = "list", blockId = block?.toInt(), file.toString(),requireContext())
     }
 
     private fun loadPagingGeotagingAdapter(adapter: GeotaggingAdapterItem) {
@@ -188,49 +197,8 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         mapView.onDetach() // Membersihkan sumber daya MapView
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun exportFile() {
-        viewModel.downloadProgress.observe(viewLifecycleOwner, Observer { progress ->
-            binding.progressBar.progress = progress
-            binding.progressText.text = "$progress%"
-        })
 
-        viewModel.downloadedFile.observe(viewLifecycleOwner, Observer { file ->
-            if (file.exists()) {
-                try {
-                    // Buka file dari direktori unduhan
-                    openFile(file)
-                } catch (e: Exception) {
-                    Log.d("check-vm", "Exception: $e")
-                    Toast.makeText(requireContext(), "Error opening file: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-            } else {
-                Toast.makeText(requireContext(), "File tidak ada", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
 
-    fun openFile(file: File) {
-        if (file.exists()) {
-            val intent = Intent(Intent.ACTION_VIEW)
-            val uri: Uri = FileProvider.getUriForFile(requireContext(), "com.example.fileprovider", file)
-            Log.d("check-vm", "URI: $uri")
-            intent.setDataAndType(uri, "application/vnd.ms-excel")
-            intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-
-            if (intent.resolveActivity(requireContext().packageManager) != null) {
-                try {
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    Toast.makeText(requireContext(), "Error opening file: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-            } else {
-                Toast.makeText(requireContext(), "No application found to open the file", Toast.LENGTH_LONG).show()
-            }
-        } else {
-            Toast.makeText(requireContext(), "File does not exist", Toast.LENGTH_SHORT).show()
-        }
-    }
 }
 
 
