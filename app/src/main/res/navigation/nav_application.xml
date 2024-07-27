@@ -70,7 +70,7 @@
     </fragment>
     <fragment
         android:id="@+id/mapsFragment"
-        android:name="id.application.geoforestmaps.presentation.feature.maps.MapsFragment"
+        android:name="id.application.geoforestmaps.presentation.feature.databasemaps.MapsFragment"
         android:label="fragment_maps"
         tools:layout="@layout/fragment_maps" />
     <fragment
@@ -81,6 +81,12 @@
         <action
             android:id="@+id/action_databaseOptionFragment_to_mapsFragment"
             app:destination="@id/mapsFragment" />
+        <action
+            android:id="@+id/action_databaseOptionFragment_to_databaseGalleryFragment"
+            app:destination="@id/databaseGalleryFragment" />
+        <action
+            android:id="@+id/action_databaseOptionFragment_to_databaseListFragment"
+            app:destination="@id/databaseListFragment" />
     </fragment>
     <fragment
         android:id="@+id/geotaggingLocationFragment"
@@ -91,4 +97,14 @@
             android:id="@+id/action_geotaggingLocationFragment_to_cameraFragment"
             app:destination="@id/cameraFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/databaseGalleryFragment"
+        android:name="id.application.geoforestmaps.presentation.feature.databasegallery.DatabaseGalleryFragment"
+        android:label="fragment_database_gallery"
+        tools:layout="@layout/fragment_database_gallery" />
+    <fragment
+        android:id="@+id/databaseListFragment"
+        android:name="id.application.geoforestmaps.presentation.feature.databaselist.DatabaseListFragment"
+        android:label="fragment_database_list"
+        tools:layout="@layout/fragment_database_list" />
 </navigation>
