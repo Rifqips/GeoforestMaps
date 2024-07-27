@@ -1,4 +1,4 @@
-package id.application.geoforestmaps.presentation.adapter.geotags
+package id.application.geoforestmaps.presentation.adapter.databaselist
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
@@ -14,7 +14,7 @@ import id.application.geoforestmaps.utils.Constant.formatTime
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-class GeotaggingAdapterItem(
+class DatabaseListAdapterItem(
     private val onClickLister : (ItemAllGeotaging) -> Unit
 ) : PagingDataAdapter<ItemAllGeotaging, RecyclerView.ViewHolder>(DIFF_CALLBACK) {
 

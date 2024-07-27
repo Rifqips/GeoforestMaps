@@ -1,14 +1,11 @@
 package id.application.geoforestmaps.presentation.viewmodel
 
 import android.content.Context
-import android.os.Build
 import android.os.Environment
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -16,7 +13,6 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.liveData
 import id.application.core.data.datasource.AppPreferenceDataSource
-import id.application.core.data.network.service.ApplicationService
 import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.core.domain.model.login.UserLoginRequest
 import id.application.core.domain.model.login.UserLoginResponse
@@ -27,9 +23,8 @@ import id.application.core.domain.paging.GeotagingPagingSource
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.utils.ResultWrapper
 import id.application.core.utils.Utils.saveFile
-import id.application.core.utils.Utils.unzip
 import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
-import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapterItem
+import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
 import id.application.geoforestmaps.utils.Constant.generateUniqueFileName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -37,16 +32,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import okhttp3.ResponseBody
 import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
-import java.io.InputStream
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
 
 class VmApplication(
     private val repo: ApplicationRepository,
@@ -131,7 +118,7 @@ class VmApplication(
 
 
     fun loadPagingGeotagging(
-        adapter: GeotaggingAdapterItem,
+        adapter: DatabaseListAdapterItem,
         blockId: Int? = null,
         limitItem: Int?  = null,
         pageItem: Int?  = null

@@ -1,6 +1,9 @@
 package id.application.geoforestmaps.presentation.feature.home
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.navigation.findNavController
@@ -11,6 +14,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.analytics.FirebaseAnalytics
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
+import id.application.geoforestmaps.databinding.DialogConfirmCustomBinding
 import id.application.geoforestmaps.databinding.FragmentHomeBinding
 import id.application.geoforestmaps.presentation.feature.MainActivity
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
@@ -65,20 +69,36 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, VmApplication>(FragmentHo
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    showExitConfirmationDialog()
+                    showDialog()
                 }
             }
         )
     }
 
-    private fun showExitConfirmationDialog() {
-        AlertDialog.Builder(requireContext())
-            .setMessage("Anda Yakin Ingin Keluar Aplikasi?")
-            .setPositiveButton("Ya") { _, _ ->
+    @SuppressLint("ClickableViewAccessibility")
+    private fun showDialog() {
+        val binding: DialogConfirmCustomBinding =
+            DialogConfirmCustomBinding.inflate(layoutInflater)
+        val dialog = AlertDialog.Builder(requireContext(), 0).create()
+
+        dialog.apply {
+            setView(binding.root)
+            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setCanceledOnTouchOutside(false)
+        }.show()
+        with(binding){
+            dialogTitle.text = "Anda Yakin Ingin Keluar Aplikasi?"
+            btnYes.setOnClickListener {
                 requireActivity().finishAffinity()
+                dialog.dismiss()
             }
-            .setNegativeButton("Tidak", null)
-            .show()
+            btnNo.setOnClickListener {
+                dialog.dismiss()
+            }
+            root.setOnTouchListener { _, _ ->
+                true
+            }
+        }
     }
 
     override fun onResume() {

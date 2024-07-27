@@ -88,9 +88,8 @@ dependencies {
     implementation ("com.google.android.gms:play-services-location:18.0.0")
     implementation ("com.google.android.gms:play-services-location:18.0.0")
 
-
     //osm
-    implementation ("org.osmdroid:osmdroid-android:6.1.11")
+    implementation (libs.osmdroid.android)
 
     // otp toast
     implementation("io.github.muddz:styleabletoast:2.4.0")

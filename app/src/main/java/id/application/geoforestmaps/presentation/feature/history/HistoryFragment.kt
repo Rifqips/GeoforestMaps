@@ -9,7 +9,7 @@ import id.application.core.domain.model.HistoryAlreadySent
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentHistoryBinding
-import id.application.geoforestmaps.presentation.adapter.geotags.GeotaggingAdapterItem
+import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
 import id.application.geoforestmaps.presentation.adapter.history.HistoryListAdapter
 import id.application.geoforestmaps.presentation.feature.history.HistoryData.listDataHistory
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
@@ -23,8 +23,8 @@ class HistoryFragment :
     private val adapterHistory = HistoryListAdapter()
     override val viewModel: VmApplication by viewModel()
 
-    private val adapterPagingGeotagging: GeotaggingAdapterItem by lazy {
-        GeotaggingAdapterItem{}
+    private val adapterPagingGeotagging: DatabaseListAdapterItem by lazy {
+        DatabaseListAdapterItem{}
     }
 
     override fun initView() {
@@ -48,7 +48,7 @@ class HistoryFragment :
     override fun initListener() {}
 
     private fun loadPagingGeotaging(
-        adapter: GeotaggingAdapterItem,
+        adapter: DatabaseListAdapterItem,
     ) {
         viewModel.loadPagingGeotagging(
             adapter,

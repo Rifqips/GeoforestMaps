@@ -1,4 +1,4 @@
-package id.application.geoforestmaps.presentation.feature.databaseoption
+package id.application.geoforestmaps.presentation.adapter.databaseoption
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -9,7 +9,9 @@ import id.application.core.domain.model.DatabaseOption
 import id.application.geoforestmaps.databinding.ItemCardDashboardDataBinding
 
 class DatabaseOptionAdapter(
-    private val onClickListener: (DatabaseOption) -> Unit
+    private val databaseList: (DatabaseOption) -> Unit,
+    private val databaseGallery: (DatabaseOption) -> Unit,
+    private val databaseMap: (DatabaseOption) -> Unit
 ) : RecyclerView.Adapter<DatabaseOptionAdapter.ViewHolder>() {
 
     private val dataDiffer = AsyncListDiffer(this, object : DiffUtil.ItemCallback<DatabaseOption>(){
@@ -48,8 +50,10 @@ class DatabaseOptionAdapter(
                 viewOverlay.setBackgroundResource(data.overlay)
                 tvTitle.text = data.name
                 itemView.setOnClickListener {
-                    if (position == 2) {
-                        onClickListener(data) // Memanggil lambda jika posisi adalah 2
+                    when(position){
+                        0 -> databaseList(data)
+                        1 -> databaseGallery(data)
+                        2 -> databaseMap(data)
                     }
                 }
             }

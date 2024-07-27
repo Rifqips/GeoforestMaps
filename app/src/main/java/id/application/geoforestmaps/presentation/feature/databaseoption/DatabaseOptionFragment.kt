@@ -7,6 +7,7 @@ import id.application.core.domain.model.DatabaseOption
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentDatabaseOptionBinding
+import id.application.geoforestmaps.presentation.adapter.databaseoption.DatabaseOptionAdapter
 import id.application.geoforestmaps.presentation.feature.databaseoption.DatabaseOptionData.listDataDatabaseOption
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -14,9 +15,11 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class DatabaseOptionFragment :
     BaseFragment<FragmentDatabaseOptionBinding, VmApplication>(FragmentDatabaseOptionBinding::inflate) {
 
-    private val adapter = DatabaseOptionAdapter(){
-        navigateToDatabaseOption(it)
-    }
+    private val adapter = DatabaseOptionAdapter(
+        { list -> navigateToFragment(R.id.action_databaseOptionFragment_to_databaseListFragment) },
+        { gallery -> navigateToFragment(R.id.action_databaseOptionFragment_to_databaseGalleryFragment) },
+        { map -> navigateToFragment(R.id.action_databaseOptionFragment_to_mapsFragment) }
+    )
 
     override val viewModel: VmApplication by viewModel()
     private var blockId = ""
@@ -33,29 +36,25 @@ class DatabaseOptionFragment :
         }
         with(binding){
             topbar.ivTitle.text = title
+            rvDatabaseOption.adapter = adapter
+            rvDatabaseOption.layoutManager = LinearLayoutManager(requireContext())
+            adapter.setData(listDataDatabaseOption)
         }
-        rvListData()
     }
 
     override fun initListener() {
         with(binding){
-            binding.topbar.ivBack.setOnClickListener {
+            topbar.ivBack.setOnClickListener {
                 findNavController().navigateUp()
             }
         }
     }
-
-    private fun rvListData() {
-        binding.rvDatabaseOption.adapter = adapter
-        binding.rvDatabaseOption.layoutManager = LinearLayoutManager(requireContext())
-        adapter.setData(listDataDatabaseOption)
-    }
-
-    private fun navigateToDatabaseOption(databaseOption : DatabaseOption){
-        val bundle = Bundle()
-        bundle.putString("blockId", blockId)
-        bundle.putString("blockName", blockName)
-        findNavController().navigate(R.id.action_databaseOptionFragment_to_mapsFragment, bundle)
+    private fun navigateToFragment(actionId: Int) {
+        val bundle = Bundle().apply {
+            putString("blockId", blockId)
+            putString("blockName", blockName)
+        }
+        findNavController().navigate(actionId, bundle)
     }
 }
 

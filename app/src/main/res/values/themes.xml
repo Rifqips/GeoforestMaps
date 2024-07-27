@@ -32,10 +32,20 @@
         <item name="android:layout_height">56dp</item>
         <item name="android:backgroundTint">@color/primary_green</item>
     </style>
-    <style name="Base.Theme.GeoforestMaps.DialogButton">
+    <style name="Base.Theme.GeoforestMaps.DialogButtonGreen">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">56dp</item>
-        <item name="android:backgroundTint">@color/dark_yellow</item>
+        <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:backgroundTint">@color/primary_green</item>
+    </style>
+
+    <style name="Base.Theme.GeoforestMaps.DialogButtonRed">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:backgroundTint">@color/red</item>
     </style>
 
     <style name="Base.Theme.GeoforestMaps.ButtonLogout">

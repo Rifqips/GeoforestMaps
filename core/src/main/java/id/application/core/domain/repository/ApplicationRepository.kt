@@ -19,8 +19,6 @@ import id.application.core.domain.model.plants.toAllPlantsResponse
 import id.application.core.domain.model.profile.UserProfileResponse
 import id.application.core.utils.AssetWrapperApp
 import id.application.core.utils.ResultWrapper
-import id.application.core.utils.Utils.saveFile
-import id.application.core.utils.Utils.unzip
 import id.application.core.utils.proceedFlow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -32,7 +30,6 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Response
-import java.io.File
 
 interface  ApplicationRepository{
 

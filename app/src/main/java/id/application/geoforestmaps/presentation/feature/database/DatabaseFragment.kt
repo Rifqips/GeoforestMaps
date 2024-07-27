@@ -74,7 +74,6 @@ class DatabaseFragment :
                                 isSmoothScrollbarEnabled = true
                             }
                             adapter = adapterPagingDatabase
-
                         }
                     }
                 }

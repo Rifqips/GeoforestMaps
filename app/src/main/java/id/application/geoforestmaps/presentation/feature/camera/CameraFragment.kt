@@ -51,7 +51,7 @@ import com.google.android.gms.location.LocationServices
 import id.application.core.utils.BaseFragment
 import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
-import id.application.geoforestmaps.databinding.DialogConfirmSaveDataBinding
+import id.application.geoforestmaps.databinding.DialogConfirmCustomBinding
 import id.application.geoforestmaps.databinding.FragmentCameraBinding
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant
@@ -725,8 +725,8 @@ class CameraFragment :
 
     @SuppressLint("ClickableViewAccessibility")
     private fun showDialogConfirmSaveData() {
-        val binding: DialogConfirmSaveDataBinding =
-            DialogConfirmSaveDataBinding.inflate(layoutInflater)
+        val binding: DialogConfirmCustomBinding =
+            DialogConfirmCustomBinding.inflate(layoutInflater)
         val dialog = AlertDialog.Builder(requireContext(), 0).create()
 
         dialog.apply {
@@ -734,18 +734,22 @@ class CameraFragment :
             window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             setCanceledOnTouchOutside(false)
         }.show()
+        with(binding){
+            dialogTitle.text = "Input Data Berhasil !"
+            tvDialogDesc.text = "Input data sudah berhasil disimpan"
+            tvDialogSubDesc.text = "Ambil Foto Lagi ?"
+            btnYes.setOnClickListener {
+                navigateToHome()
+                dialog.dismiss()
+            }
 
-        binding.btnFinish.setOnClickListener {
-            navigateToHome()
-            dialog.dismiss()
-        }
-
-        binding.btnTakePictureAgain.setOnClickListener {
-            findNavController().navigateUp()
-            dialog.dismiss()
-        }
-        binding.root.setOnTouchListener { _, _ ->
-            true
+            btnNo.setOnClickListener {
+                findNavController().navigateUp()
+                dialog.dismiss()
+            }
+            root.setOnTouchListener { _, _ ->
+                true
+            }
         }
     }
 
