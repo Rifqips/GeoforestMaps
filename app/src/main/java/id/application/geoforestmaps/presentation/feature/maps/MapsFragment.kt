@@ -51,6 +51,7 @@ class MapsFragment :
         }
     }
     var block: String? = ""
+    var blockName: String? = ""
 
     private val PERMISSIONS_REQUEST_CODE = 1
     private lateinit var mapView: MapView
@@ -62,6 +63,7 @@ class MapsFragment :
         binding.topbar.ivTitle.text = "Map"
         binding.topbar.ivDownlaod.load(R.drawable.ic_download)
         block = arguments?.getString("blockId")
+        blockName = arguments?.getString("blockName")
         checkPermissions()
 
         // Setup tile provider offline (jika ada)
@@ -120,7 +122,7 @@ class MapsFragment :
         if (!downloadDir.exists()) {
             downloadDir.mkdirs()
         }
-        val fileName = generateFileName("geotaging$block", ".xlsx")
+        val fileName = generateFileName("geotaging-$blockName", ".xlsx")
         val file = File(downloadDir, fileName)
         viewModel.eksports(type = "list", blockId = block?.toInt(), file.name, requireContext())
     }

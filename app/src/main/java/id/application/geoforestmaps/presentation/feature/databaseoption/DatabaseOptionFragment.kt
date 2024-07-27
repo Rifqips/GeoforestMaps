@@ -20,9 +20,13 @@ class DatabaseOptionFragment :
 
     override val viewModel: VmApplication by viewModel()
     private var blockId = ""
+    private var blockName = ""
 
     override fun initView() {
         val title = arguments?.getString("title")
+        if (title != null) {
+            this.blockName = title
+        }
         var block: String? = arguments?.getString("blockId")
         if (block != null) {
             this.blockId = block
@@ -50,6 +54,7 @@ class DatabaseOptionFragment :
     private fun navigateToDatabaseOption(databaseOption : DatabaseOption){
         val bundle = Bundle()
         bundle.putString("blockId", blockId)
+        bundle.putString("blockName", blockName)
         findNavController().navigate(R.id.action_databaseOptionFragment_to_mapsFragment, bundle)
     }
 }
