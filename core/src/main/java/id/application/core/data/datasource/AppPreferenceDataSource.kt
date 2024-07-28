@@ -9,7 +9,9 @@ interface AppPreferenceDataSource {
     suspend fun saveUserToken(token: String)
     suspend fun removeToken()
     suspend fun saveUserName(name: String)
+    suspend fun getUserName(): String
     suspend fun saveUserEmail(email: String)
+    suspend fun getUserEmail(): String
     suspend fun deleteAllData()
 }
 
@@ -31,8 +33,16 @@ class AppPreferenceDataSourceImpl(
         return preferenceHelper.putPreference(USER_NAME_KEY, name)
     }
 
+    override suspend fun getUserName(): String {
+        return preferenceHelper.getFirstPreference(USER_NAME_KEY, "")
+    }
+
     override suspend fun saveUserEmail(email: String) {
         return preferenceHelper.putPreference(USER_EMAIL_KEY, email)
+    }
+
+    override suspend fun getUserEmail(): String {
+        return preferenceHelper.getFirstPreference(USER_EMAIL_KEY, "")
     }
 
     override suspend fun deleteAllData() {

@@ -23,26 +23,18 @@ class DashboardFragment :
     @SuppressLint("SetTextI18n")
     private fun observeVM() {
         with(viewModel){
-            userProfile()
-            userProfileResult.observe(viewLifecycleOwner){ result ->
-                result.proceedWhen(
-                    doOnSuccess = {
-                        it.payload?.data.let {
-                            with(binding){
-                                tvTitleDescription.text = "Halo, " + it?.name
-                                it?.name?.let { name ->
-                                    if (name.isNotEmpty()) {
-                                        tvUserIcon.text = name[0].toString()
-                                    } else {
-                                        tvUserIcon.text = "E"
-                                    }
-                                } ?: run {
-                                    tvUserIcon.text = "E"
-                                }
-                            }
+            getUserName()
+            viewModel.isUserName.observe(viewLifecycleOwner){
+                with(binding){
+                    tvTitleDescription.text = "Halo, " + it
+                    it.let { name ->
+                        if (name.isNotEmpty()) {
+                            tvUserIcon.text = name[0].toString()
+                        } else {
+                            tvUserIcon.text = ""
                         }
                     }
-                )
+                }
             }
         }
     }

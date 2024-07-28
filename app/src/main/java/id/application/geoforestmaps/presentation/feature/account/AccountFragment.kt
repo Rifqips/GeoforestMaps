@@ -40,27 +40,22 @@ class AccountFragment :
 
     private fun observeVM() {
         with(viewModel){
-            userProfile()
-            userProfileResult.observe(viewLifecycleOwner){ result ->
-                result.proceedWhen(
-                    doOnSuccess = {
-                        it.payload?.data.let {
-                            with(binding){
-                                tvNameAccount.text = it?.name
-                                tvEmailAccount.text = it?.email
-                                it?.name?.let { name ->
-                                    if (name.isNotEmpty()) {
-                                        tvUserIcon.text = name[0].toString()
-                                    } else {
-                                        tvUserIcon.text = "E"
-                                    }
-                                } ?: run {
-                                    tvUserIcon.text = "E"
-                                }
-                            }
+            getUserName()
+            getUserEmail()
+            viewModel.isUserName.observe(viewLifecycleOwner){
+                with(binding){
+                    tvNameAccount.text =  it
+                    it.let { name ->
+                        if (name.isNotEmpty()) {
+                            tvUserIcon.text = name[0].toString()
+                        } else {
+                            tvUserIcon.text = ""
                         }
                     }
-                )
+                }
+            }
+            viewModel.isUserEmail.observe(viewLifecycleOwner){ email->
+                binding.tvEmailAccount.text = email
             }
             logoutResults.observe(viewLifecycleOwner) { result ->
                 result.proceedWhen(

@@ -47,11 +47,14 @@ class VmApplication(
     private val _isUserLogin = MutableLiveData<Boolean>()
     val isUserLogin: LiveData<Boolean> = _isUserLogin
 
+    private val _isUserName = MutableLiveData<String>()
+    val isUserName: LiveData<String> = _isUserName
+
+    private val _isUserEmail = MutableLiveData<String>()
+    val isUserEmail: LiveData<String> = _isUserEmail
+
     private val _logoutResults = MutableLiveData<ResultWrapper<Boolean>>()
     val logoutResults: LiveData<ResultWrapper<Boolean>> = _logoutResults
-
-    private val _userProfileResult = MutableLiveData<ResultWrapper<UserProfileResponse>>()
-    val userProfileResult: LiveData<ResultWrapper<UserProfileResponse>> = _userProfileResult
 
     private val _plantsResult = MutableLiveData<ResultWrapper<ItemAllPlantsResponse>>()
     val plantsResult: LiveData<ResultWrapper<ItemAllPlantsResponse>> = _plantsResult
@@ -61,7 +64,6 @@ class VmApplication(
 
     private val _downloadStatus = MutableLiveData<String>()
     val downloadStatus: LiveData<String> get() = _downloadStatus
-
 
     fun userLogin(request: UserLoginRequest) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -78,18 +80,25 @@ class VmApplication(
         }
     }
 
+    fun getUserName(){
+        viewModelScope.launch {
+            val userName = appPreferenceDataSource.getUserName()
+            _isUserName.postValue(userName)
+        }
+    }
+
+    fun getUserEmail(){
+        viewModelScope.launch {
+            val userEmail = appPreferenceDataSource.getUserEmail()
+            _isUserEmail.postValue(userEmail)
+        }
+    }
+
+
     fun userLogout() {
         viewModelScope.launch {
             _logoutResults.value = repo.userLogout().first()
 
-        }
-    }
-
-    fun userProfile() {
-        viewModelScope.launch(Dispatchers.IO) {
-            repo.userProfile().collect {
-                _userProfileResult.postValue(it)
-            }
         }
     }
 
@@ -228,6 +237,4 @@ class VmApplication(
             }
         }
     }
-
-
 }
