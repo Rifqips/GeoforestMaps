@@ -99,7 +99,6 @@ class DatabaseGalleryFragment :
                 "Mendownload File..." -> {
                     showDialogConfirmSaveData(true, status)
                 }
-
                 "Download berhasil!" -> {
                     showDialogConfirmSaveData(false, status)
                 }
@@ -114,9 +113,9 @@ class DatabaseGalleryFragment :
         if (!downloadDir.exists()) {
             downloadDir.mkdirs()
         }
-        val fileName = generateFileName("geotaging-$blockName", ".zip")
+        val fileName = generateFileName("geotaging-$blockName", ".jpeg")
         val file = File(downloadDir, fileName)
-        viewModel.eksports(type = "photos", block = blockName, geotagId, file.name, requireContext())
+        viewModel.eksports(type = "photo", block = blockName, geotagId, file.name, requireContext())
     }
 
 
