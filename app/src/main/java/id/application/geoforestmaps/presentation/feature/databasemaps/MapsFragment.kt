@@ -21,6 +21,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
+import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.DialogSaveDatabaseBinding
@@ -55,9 +56,11 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
 
     private val adapterPagingGeotagging: DatabaseListAdapterItem by lazy {
         DatabaseListAdapterItem {
+            Log.d("MapsFragment", "Adding marker at lat: ${it.latitude}, lon: ${it.longitude}")
             addMarkersToMap(it.latitude, it.longitude)
         }
     }
+
     var block: String? = ""
     var blockName: String? = ""
 
@@ -65,8 +68,8 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     private var activeDialog: AlertDialog? = null
 
     lateinit var mMap: MapView
-    lateinit var controller: IMapController;
-    lateinit var mMyLocationOverlay: MyLocationNewOverlay;
+    lateinit var controller: IMapController
+    lateinit var mMyLocationOverlay: MyLocationNewOverlay
 
     @SuppressLint("SetTextI18n")
     override fun initView() {
@@ -95,6 +98,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
             }
         }
     }
+
     private fun configMap() {
         // Initialize the Configuration instance
         Configuration.getInstance().load(
@@ -127,10 +131,6 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         Log.e("TAG", "onCreate: out  ${controller.zoomOut()}")
 
         mMap.overlays.add(mMyLocationOverlay)
-
-//        mMap.addMapListener { event ->
-//            // Handle map events here
-//        }
     }
 
     private fun exportFile() {
@@ -174,7 +174,6 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
             setCanceledOnTouchOutside(false)
         }.show()
         activeDialog = dialog
-
 
         binding.dialogTitle.text = text
         with(binding) {
@@ -246,7 +245,23 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
                         }
                     }
                 }
+                // Update markers after the data is loaded
+                lifecycleScope.launch {
+                    adapterPagingGeotagging.loadStateFlow.collect { loadState ->
+                        if (loadState.refresh is LoadState.NotLoading) {
+                            val items = adapterPagingGeotagging.snapshot().items
+                            addMarkersFromPagingData(items)
+                        }
+                    }
+                }
             }
+        }
+    }
+
+    private fun addMarkersFromPagingData(items: List<ItemAllGeotaging>) {
+        mMap.overlays.clear() // Clear existing markers if needed
+        items.forEach { item ->
+            addMarkersToMap(item.latitude, item.longitude)
         }
     }
 
@@ -254,6 +269,8 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         val marker = Marker(mMap)
         marker.position = GeoPoint(lat, lon)
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+//        marker.icon = resources.getDrawable(R.drawable.ic_marker, null)
+        marker.icon
         mMap.overlays.add(marker)
         mMap.invalidate()
     }
@@ -332,17 +349,14 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     }
 
     override fun onScroll(event: ScrollEvent?): Boolean {
-        // event?.source?.getMapCenter()
         Log.e("TAG", "onCreate:la ${event?.source?.getMapCenter()?.latitude}")
         Log.e("TAG", "onCreate:lo ${event?.source?.getMapCenter()?.longitude}")
-        //  Log.e("TAG", "onScroll   x: ${event?.x}  y: ${event?.y}", )
         return true
     }
 
     override fun onZoom(event: ZoomEvent?): Boolean {
-        //  event?.zoomLevel?.let { controller.setZoom(it) }
         Log.e("TAG", "onZoom zoom level: ${event?.zoomLevel}   source:  ${event?.source}")
-        return false;
+        return false
     }
 
     override fun onGpsStatusChanged(event: Int) {
@@ -360,6 +374,3 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         )
     }
 }
-
-
-
