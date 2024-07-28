@@ -58,8 +58,8 @@ class DatabaseGalleryAdapterItem(
         fun bindLinear(item: ItemAllGeotaging) {
             with(binding) {
                 ivGallery.load(item.photo)
-                tvTitleBlock.text = item.plantId.toString()
-                tvDescriptionBlock.text = item.blockId.toString()
+                tvTitleBlock.text = item.plant
+                tvDescriptionBlock.text = item.block
             }
             binding.root.setOnClickListener {
                 onClickLister(item)

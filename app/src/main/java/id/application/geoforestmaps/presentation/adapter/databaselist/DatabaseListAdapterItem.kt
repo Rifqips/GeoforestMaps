@@ -15,8 +15,8 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class DatabaseListAdapterItem(
-    private val onClickLister : (ItemAllGeotaging) -> Unit
-) : PagingDataAdapter<ItemAllGeotaging, RecyclerView.ViewHolder>(DIFF_CALLBACK) {
+    private val onClickListener: (ItemAllGeotaging) -> Unit
+) : PagingDataAdapter<ItemAllGeotaging, DatabaseListAdapterItem.LinearViewHolder>(DIFF_CALLBACK) {
 
     companion object {
         private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<ItemAllGeotaging>() {
@@ -24,6 +24,7 @@ class DatabaseListAdapterItem(
                 oldItem: ItemAllGeotaging,
                 newItem: ItemAllGeotaging
             ): Boolean {
+                // Assuming `id` uniquely identifies each item
                 return oldItem.id == newItem.id
             }
 
@@ -31,21 +32,18 @@ class DatabaseListAdapterItem(
                 oldItem: ItemAllGeotaging,
                 newItem: ItemAllGeotaging
             ): Boolean {
-                return oldItem.id == newItem.id
+                // Check if the content of items is the same
+                return oldItem == newItem
             }
         }
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: LinearViewHolder, position: Int) {
         val item = getItem(position)
-        item?.let {
-            when (holder) {
-                is LinearViewHolder -> holder.bindLinear(it)
-            }
-        }
+        item?.let { holder.bindLinear(it) }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LinearViewHolder {
         val binding = ItemHistoryDataBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return LinearViewHolder(binding)
     }
@@ -53,22 +51,23 @@ class DatabaseListAdapterItem(
     inner class LinearViewHolder(
         private val binding: ItemHistoryDataBinding
     ) : RecyclerView.ViewHolder(binding.root) {
+
         @SuppressLint("SetTextI18n", "NewApi")
         fun bindLinear(item: ItemAllGeotaging) {
             with(binding) {
-                ivItemHistory.load(item.photo)
+                ivItemHistory.load(item.photo)  // Ensure `item.photo` is a valid URL or resource ID
                 val dateString = item.createdAt
                 val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
                 val dateTime = ZonedDateTime.parse(dateString, formatter)
                 val formattedDate = dateTime.formatDate()
                 val formattedTime = dateTime.formatTime()
-                tvTitleItemHistory.text = item.plantId.toString()
-                tvDescItemHistory.text = item.blockId.toString()
+                tvTitleItemHistory.text = item.plant
+                tvDescItemHistory.text = item.block
                 tvTimeItemHistory.text = formattedTime.toString()
                 tvDateItemHistory.text = formattedDate.toString()
             }
             binding.root.setOnClickListener {
-                onClickLister(item)
+                onClickListener(item)
             }
         }
     }

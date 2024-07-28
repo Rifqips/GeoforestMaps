@@ -19,7 +19,8 @@ interface ApplicationDataSource {
     suspend fun userProfile(): ResponseProfileItem
 
     suspend fun getAllGeotaging(
-        blockId:Int? = null,
+        block:String? = null,
+        createdBy:String? = null,
         limitItem:Int? = null,
         pageItem:Int? = null,
     ): ResponseAllGeotagingItem
@@ -33,16 +34,15 @@ interface ApplicationDataSource {
     ): ResponseAllBlocksItem
 
     suspend fun createGeotaging(
-        plantId: RequestBody?,
-        blockId: RequestBody?,
+        plant: RequestBody?,
+        block: RequestBody?,
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
         userImage: MultipartBody.Part?
     ) : ResponseAllGeotagingItem
 
-    suspend fun exportFile(type: String?, blockId: Int?): Response<ResponseBody>
-
+    suspend fun exportFile(type: String?, blockId: String?): Response<ResponseBody>
 
 }
 
@@ -60,11 +60,12 @@ class ApplicationDataSourceImpl(private val service: ApplicationService) : Appli
     }
 
     override suspend fun getAllGeotaging(
-        blockId: Int?,
+        block: String?,
+        createdBy: String?,
         limitItem: Int?,
         pageItem: Int?
     ): ResponseAllGeotagingItem {
-        return service.getAllGeotaging("created_at:desc",blockId,limitItem, pageItem)
+        return service.getAllGeotaging("created_at:desc",block,createdBy,limitItem, pageItem)
     }
 
     override suspend fun getAllPlants(limitItem: Int?, pageItem: Int?): ResponseAllPlantsItem {
@@ -76,17 +77,17 @@ class ApplicationDataSourceImpl(private val service: ApplicationService) : Appli
     }
 
     override suspend fun createGeotaging(
-        plantId: RequestBody?,
-        blockId: RequestBody?,
+        plant: RequestBody?,
+        block: RequestBody?,
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
         userImage: MultipartBody.Part?
     ): ResponseAllGeotagingItem {
-        return service.createGeotaging( plantId, blockId, latitude, longitude, altitude, userImage)
+        return service.createGeotaging( plant, block, latitude, longitude, altitude, userImage)
     }
 
-    override suspend fun exportFile(type: String?, blockId: Int?): Response<ResponseBody> {
-        return service.eksports(type, blockId)
+    override suspend fun exportFile(type: String?, block: String?): Response<ResponseBody> {
+        return service.eksports(type, block)
     }
 }

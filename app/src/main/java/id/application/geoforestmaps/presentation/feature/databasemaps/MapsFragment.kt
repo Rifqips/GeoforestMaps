@@ -56,7 +56,6 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
 
     private val adapterPagingGeotagging: DatabaseListAdapterItem by lazy {
         DatabaseListAdapterItem {
-            Log.d("MapsFragment", "Adding marker at lat: ${it.latitude}, lon: ${it.longitude}")
             addMarkersToMap(it.latitude, it.longitude)
         }
     }
@@ -110,11 +109,16 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         mMap.setTileSource(TileSourceFactory.MAPNIK)
         mMap.setMultiTouchControls(true)
 
-        mMap.getLocalVisibleRect(Rect()) // Might be used for layout purposes
-
-        mMyLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(requireActivity()), mMap)
+        // Initialize the map controller
         controller = mMap.controller
 
+        // Set the map to display Indonesia
+        val indonesiaCenter = GeoPoint(-5.0, 120.0)
+        controller.setCenter(indonesiaCenter)
+        controller.setZoom(5.0)
+
+        // Setup MyLocationOverlay
+        mMyLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(requireActivity()), mMap)
         mMyLocationOverlay.enableMyLocation()
         mMyLocationOverlay.enableFollowLocation()
         mMyLocationOverlay.isDrawAccuracyEnabled = true
@@ -125,13 +129,9 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
             }
         }
 
-        controller.setZoom(6.0)
-
-        Log.e("TAG", "onCreate:in ${controller.zoomIn()}")
-        Log.e("TAG", "onCreate: out  ${controller.zoomOut()}")
-
         mMap.overlays.add(mMyLocationOverlay)
     }
+
 
     private fun exportFile() {
         viewModel.downloadStatus.observe(viewLifecycleOwner, Observer { status ->
@@ -156,7 +156,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         }
         val fileName = generateFileName("geotaging-$blockName", ".xlsx")
         val file = File(downloadDir, fileName)
-        viewModel.eksports(type = "list", blockId = block?.toInt(), file.name, requireContext())
+        viewModel.eksports(type = "list", block = block, file.name, requireContext())
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -208,10 +208,10 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     }
 
     private fun loadPagingGeotagingAdapter(adapter: DatabaseListAdapterItem) {
-        if (block != null) {
+        if (blockName != null) {
             viewModel.loadPagingGeotagging(
                 adapter,
-                block?.toInt(),
+                blockName,
             )
         }
     }
@@ -219,7 +219,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     private fun setUpPaging() {
         if (view != null) {
             parentFragment?.viewLifecycleOwner?.let {
-                viewModel.geotaggingList.observe(it) { pagingData ->
+                viewModel.geotaggingListAll.observe(it) { pagingData ->
                     adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
             }
@@ -359,6 +359,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         return false
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onGpsStatusChanged(event: Int) {
         TODO("Not yet implemented")
     }

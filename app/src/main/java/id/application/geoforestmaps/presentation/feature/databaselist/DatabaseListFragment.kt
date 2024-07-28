@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Environment
+import android.util.Log
 import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.lifecycle.Observer
@@ -32,7 +33,6 @@ class DatabaseListFragment :
     }
     private var activeDialog: AlertDialog? = null
 
-    var block: String? = ""
     var blockName: String? = ""
 
     override fun initView() {
@@ -41,7 +41,6 @@ class DatabaseListFragment :
             topbar.ivTitle.text = "List"
             topbar.ivDownlaod.load(R.drawable.ic_download)
         }
-        block = arguments?.getString("blockId")
         blockName = arguments?.getString("blockName")
         loadPagingGeotagingAdapter(adapterPagingGeotagging)
         setUpPaging()
@@ -81,8 +80,9 @@ class DatabaseListFragment :
         }
         val fileName = generateFileName("geotaging-$blockName", ".xlsx")
         val file = File(downloadDir, fileName)
-        viewModel.eksports(type = "list", blockId = block?.toInt(), file.name, requireContext())
+        viewModel.eksports(type = "list", block = blockName, file.name, requireContext())
     }
+
 
     @SuppressLint("ClickableViewAccessibility")
     private fun showDialogConfirmSaveData(state: Boolean, text: String) {
@@ -133,12 +133,11 @@ class DatabaseListFragment :
         }
     }
 
-
     private fun loadPagingGeotagingAdapter(adapter: DatabaseListAdapterItem) {
-        if (block != null) {
+        if (blockName != null) {
             viewModel.loadPagingGeotagging(
                 adapter,
-                block?.toInt(),
+                blockName,
             )
         }
     }
@@ -146,9 +145,12 @@ class DatabaseListFragment :
     private fun setUpPaging() {
         if (view != null) {
             parentFragment?.viewLifecycleOwner?.let {
-                viewModel.geotaggingList.observe(it) { pagingData ->
+                viewModel.geotaggingListAll.observe(it) { pagingData ->
                     adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
+            }
+            if (binding.rvDatabaseList.adapter == null) {
+                binding.rvDatabaseList.adapter = adapterPagingGeotagging
             }
 
             adapterPagingGeotagging.addLoadStateListener { loadState ->
@@ -161,21 +163,19 @@ class DatabaseListFragment :
                         topbar.ivDownlaod.visibility = View.VISIBLE
                         val isEmpty = (loadState.refresh is LoadState.NotLoading &&
                                 adapterPagingGeotagging.itemCount == 0)
+
                         if (isEmpty) {
                             tvValidatingData.visibility = View.VISIBLE
                             tvValidatingData.text = "Belum ada data"
                         }
 
-                        if (view != null) {
-                            rvDatabaseList.apply {
-                                layoutManager = LinearLayoutManager(
-                                    context,
-                                    LinearLayoutManager.VERTICAL,
-                                    false
-                                ).apply {
-                                    isSmoothScrollbarEnabled = true
-                                }
-                                adapter = adapterPagingGeotagging
+                        rvDatabaseList.apply {
+                            layoutManager = LinearLayoutManager(
+                                context,
+                                LinearLayoutManager.VERTICAL,
+                                false
+                            ).apply {
+                                isSmoothScrollbarEnabled = true
                             }
                         }
                     }
@@ -183,6 +183,7 @@ class DatabaseListFragment :
             }
         }
     }
+
 
     private fun onBackPressed() {
         requireActivity().onBackPressedDispatcher.addCallback(
@@ -194,5 +195,4 @@ class DatabaseListFragment :
             }
         )
     }
-
 }

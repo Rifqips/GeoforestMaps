@@ -25,13 +25,13 @@ data class ItemDataAllGeotaging(
 @Keep
 data class ItemAllGeotaging(
     val altitude: Double,
-    val blockId: Int,
+    val block: String,
     val createdAt: String,
     val id: Int,
     val latitude: Double,
     val longitude: Double,
     val photo: String,
-    val plantId: Int,
+    val plant: String,
     val updatedAt: String,
     val userId: Int
 )
@@ -54,13 +54,13 @@ fun DataAllGeotaging.toDataAllGeotagingItem() = ItemDataAllGeotaging(
 
 fun AllGeotaging.toAllGeotaging() = ItemAllGeotaging(
     altitude = this.altitude,
-    blockId = this.blockId,
+    block = this.block,
     createdAt = this.createdAt,
     id = this.id,
     latitude = this.latitude,
     longitude = this.longitude,
     photo = this.photo,
-    plantId = this.plantId,
+    plant = this.plant,
     updatedAt = this.updatedAt,
     userId = this.userId
 )

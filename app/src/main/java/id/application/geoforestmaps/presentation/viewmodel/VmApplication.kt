@@ -19,6 +19,7 @@ import id.application.core.domain.model.login.UserLoginResponse
 import id.application.core.domain.model.plants.ItemAllPlantsResponse
 import id.application.core.domain.model.profile.UserProfileResponse
 import id.application.core.domain.paging.BlocksPagingSource
+import id.application.core.domain.paging.GeotagingAllPagingSource
 import id.application.core.domain.paging.GeotagingPagingSource
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.utils.ResultWrapper
@@ -129,13 +130,13 @@ class VmApplication(
 
     fun loadPagingGeotagging(
         adapter: DatabaseListAdapterItem,
-        blockId: Int? = null,
+        block: String? = null,
         limitItem: Int?  = null,
         pageItem: Int?  = null
     ) {
         viewModelScope.launch {
             val response =  repo.getAllGeotaging(
-                blockId = blockId,
+                block = block,
                 limitItem = limitItem,
                 pageItem = pageItem
             )
@@ -151,13 +152,15 @@ class VmApplication(
 
     fun loadPagingGeotaggingGallery(
         adapter: DatabaseGalleryAdapterItem,
-        blockId: Int? = null,
+        block: String? = null,
+        createdBy: String? = null,
         limitItem: Int?  = null,
         pageItem: Int?  = null
     ) {
         viewModelScope.launch {
             val response =  repo.getAllGeotaging(
-                blockId = blockId,
+                block = block,
+                createdBy = createdBy,
                 limitItem = limitItem,
                 pageItem = pageItem
             )
@@ -173,6 +176,11 @@ class VmApplication(
 
     val geotaggingList = Pager(PagingConfig(pageSize = 4)) {
         GeotagingPagingSource(repo)
+    }.liveData.cachedIn(viewModelScope)
+
+
+    val geotaggingListAll = Pager(PagingConfig(pageSize = 4)) {
+        GeotagingAllPagingSource(repo)
     }.liveData.cachedIn(viewModelScope)
 
     fun getPlant() {
@@ -205,11 +213,11 @@ class VmApplication(
         }
     }
 
-    fun eksports(type: String?, blockId: Int?, fileName: String, context: Context) {
+    fun eksports(type: String?, block: String?, fileName: String, context: Context, isZip: Boolean = false) {
         viewModelScope.launch {
             _downloadStatus.value = "Mendownload File..."
             try {
-                val response = repo.exportFile(type, blockId)
+                val response = repo.exportFile(type, block) // Pastikan tipe dan blok sesuai dengan API
                 if (response.isSuccessful) {
                     response.body()?.let { responseBody ->
                         val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)

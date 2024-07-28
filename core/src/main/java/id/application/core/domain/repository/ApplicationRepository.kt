@@ -40,7 +40,8 @@ interface  ApplicationRepository{
     suspend fun userProfile(): Flow<ResultWrapper<UserProfileResponse>>
 
     suspend fun getAllGeotaging(
-        blockId:Int? = null,
+        block:String? = null,
+        createdBy:String? = null,
         limitItem:Int? = null,
         pageItem:Int? = null,
     ): ItemAllGeotagingResponse
@@ -64,7 +65,7 @@ interface  ApplicationRepository{
         userImage: MultipartBody.Part?
     ):Flow<ResultWrapper<List<ItemAllGeotaging>>>
 
-    suspend fun exportFile(type: String?, blockId: Int?): Response<ResponseBody>
+    suspend fun exportFile(type: String?, block: String?): Response<ResponseBody>
 
 }
 
@@ -105,11 +106,12 @@ class ApplicationRepositoryImpl(
     }
 
     override suspend fun getAllGeotaging(
-        blockId:Int?,
+        block:String?,
+        createdBy:String?,
         limitItem: Int?,
         pageItem: Int?
     ): ItemAllGeotagingResponse {
-        return appDataSource.getAllGeotaging(blockId, limitItem, pageItem).toAllGeotagingResponse()
+        return appDataSource.getAllGeotaging(block, createdBy,limitItem, pageItem).toAllGeotagingResponse()
     }
 
     override suspend fun getAllPlants(
@@ -162,7 +164,7 @@ class ApplicationRepositoryImpl(
         }
     }
 
-    override suspend fun exportFile(type: String?, blockId: Int?):  Response<ResponseBody> {
-        return appDataSource.exportFile(type, blockId)
+    override suspend fun exportFile(type: String?, block: String?):  Response<ResponseBody> {
+        return appDataSource.exportFile(type, block)
     }
 }

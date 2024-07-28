@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -37,7 +38,6 @@ class DatabaseGalleryFragment :
         DatabaseGalleryAdapterItem {}
     }
 
-    var block: String? = ""
     var blockName: String? = ""
     private var activeDialog: AlertDialog? = null
 
@@ -47,7 +47,6 @@ class DatabaseGalleryFragment :
             topbar.ivTitle.text = "Gallery"
             topbar.ivDownlaod.load(R.drawable.ic_download)
         }
-        block = arguments?.getString("blockId")
         blockName = arguments?.getString("blockName")
         loadPagingGeotagingAdapter(adapterPagingGeotagging)
         setUpPaging()
@@ -86,7 +85,7 @@ class DatabaseGalleryFragment :
         }
         val fileName = generateFileName("geotaging-$blockName", ".zip")
         val file = File(downloadDir, fileName)
-        viewModel.eksports(type = "photos", blockId = block?.toInt(), file.name, requireContext())
+        viewModel.eksports(type = "photos", block = blockName, file.name, requireContext())
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -139,10 +138,10 @@ class DatabaseGalleryFragment :
     }
 
     private fun loadPagingGeotagingAdapter(adapter: DatabaseGalleryAdapterItem) {
-        if (block != null) {
+        if (blockName != null) {
             viewModel.loadPagingGeotaggingGallery(
                 adapter,
-                block?.toInt(),
+                blockName,
             )
         }
     }
@@ -150,7 +149,7 @@ class DatabaseGalleryFragment :
     private fun setUpPaging() {
         if (view != null) {
             parentFragment?.viewLifecycleOwner?.let {
-                viewModel.geotaggingList.observe(it) { pagingData ->
+                viewModel.geotaggingListAll.observe(it) { pagingData ->
                     adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
             }
