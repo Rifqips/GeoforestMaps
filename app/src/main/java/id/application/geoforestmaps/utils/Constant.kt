@@ -92,5 +92,10 @@ object Constant {
         return "${baseName}_$timestamp.$extension"
     }
 
+    fun generateFileName(baseName: String, extension: String): String {
+        val timestamp = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
+        return "$baseName$timestamp$extension"
+    }
+
 
 }

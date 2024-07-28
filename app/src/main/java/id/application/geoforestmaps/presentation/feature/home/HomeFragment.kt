@@ -87,7 +87,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, VmApplication>(FragmentHo
             setCanceledOnTouchOutside(false)
         }.show()
         with(binding){
-            dialogTitle.text = "Anda Yakin Ingin Keluar Aplikasi?"
+            dialogTitle.text = "Anda Yakin Ingin Keluar\nAplikasi?"
             btnYes.setOnClickListener {
                 requireActivity().finishAffinity()
                 dialog.dismiss()

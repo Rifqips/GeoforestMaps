@@ -24,6 +24,7 @@ import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.utils.ResultWrapper
 import id.application.core.utils.Utils.saveFile
 import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
+import id.application.geoforestmaps.presentation.adapter.databasegallery.DatabaseGalleryAdapterItem
 import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
 import id.application.geoforestmaps.utils.Constant.generateUniqueFileName
 import kotlinx.coroutines.Dispatchers
@@ -119,6 +120,28 @@ class VmApplication(
 
     fun loadPagingGeotagging(
         adapter: DatabaseListAdapterItem,
+        blockId: Int? = null,
+        limitItem: Int?  = null,
+        pageItem: Int?  = null
+    ) {
+        viewModelScope.launch {
+            val response =  repo.getAllGeotaging(
+                blockId = blockId,
+                limitItem = limitItem,
+                pageItem = pageItem
+            )
+            if (response.code == 200) {
+                val postsResponse = response.data
+                postsResponse.let {
+                    val store = it.items
+                    adapter.submitData(PagingData.from(store))
+                }
+            }
+        }
+    }
+
+    fun loadPagingGeotaggingGallery(
+        adapter: DatabaseGalleryAdapterItem,
         blockId: Int? = null,
         limitItem: Int?  = null,
         pageItem: Int?  = null

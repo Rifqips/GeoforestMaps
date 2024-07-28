@@ -12,6 +12,7 @@ import android.location.GpsStatus
 import android.os.Environment
 import android.util.Log
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
@@ -26,6 +27,7 @@ import id.application.geoforestmaps.databinding.DialogSaveDatabaseBinding
 import id.application.geoforestmaps.databinding.FragmentMapsBinding
 import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import id.application.geoforestmaps.utils.Constant.generateFileName
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.osmdroid.api.IMapController
@@ -69,6 +71,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     @SuppressLint("SetTextI18n")
     override fun initView() {
         configMap()
+        onBackPressed()
         with(binding){
             topbar.ivTitle.text = "Map"
             topbar.ivDownlaod.load(R.drawable.ic_download)
@@ -85,7 +88,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     override fun initListener() {
         with(binding) {
             topbar.ivBack.setOnClickListener {
-                findNavController().navigateUp()
+                findNavController().navigate(R.id.action_mapsFragment_to_homeFragment)
             }
             topbar.ivDownlaod.setOnClickListener {
                 exportFile()
@@ -171,22 +174,31 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
             setCanceledOnTouchOutside(false)
         }.show()
         activeDialog = dialog
+
+
         binding.dialogTitle.text = text
         with(binding) {
+            when(text){
+                "Download berhasil!"->{
+                    ivSuccess.load(R.drawable.ic_success)
+                }
+                "Download gagal!"->{
+                    ivSuccess.load(R.drawable.ic_download_failed)
+                }
+            }
             when (state) {
                 true -> {
                     pBar.visibility = View.VISIBLE
                     ivSuccess.visibility = View.GONE
-                    tvSucese.visibility = View.GONE
+                    ivClose.visibility = View.GONE
                 }
-
                 false -> {
                     pBar.visibility = View.GONE
                     ivSuccess.visibility = View.VISIBLE
-                    tvSucese.visibility = View.VISIBLE
+                    ivClose.visibility = View.VISIBLE
                 }
             }
-            tvSucese.setOnClickListener {
+            ivClose.setOnClickListener {
                 dialog.dismiss()
                 activeDialog = null
             }
@@ -194,11 +206,6 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         binding.root.setOnTouchListener { _, _ ->
             true
         }
-    }
-
-    private fun generateFileName(baseName: String, extension: String): String {
-        val timestamp = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
-        return "$baseName$timestamp$extension"
     }
 
     private fun loadPagingGeotagingAdapter(adapter: DatabaseListAdapterItem) {
@@ -334,20 +341,23 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
 
     override fun onZoom(event: ZoomEvent?): Boolean {
         //  event?.zoomLevel?.let { controller.setZoom(it) }
-
-
         Log.e("TAG", "onZoom zoom level: ${event?.zoomLevel}   source:  ${event?.source}")
         return false;
     }
 
     override fun onGpsStatusChanged(event: Int) {
-
-
         TODO("Not yet implemented")
     }
 
-    companion object {
-        private const val PERMISSIONS_REQUEST_CODE = 1
+    private fun onBackPressed() {
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    findNavController().navigate(R.id.action_mapsFragment_to_homeFragment)
+                }
+            }
+        )
     }
 }
 
