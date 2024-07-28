@@ -2,7 +2,6 @@ package id.application.geoforestmaps.presentation.feature.dashboard
 
 import android.annotation.SuppressLint
 import androidx.navigation.fragment.findNavController
-import id.application.core.domain.model.Dashboard
 import id.application.core.utils.BaseFragment
 import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
@@ -52,32 +51,5 @@ class DashboardFragment :
     private fun navigateToLogin() {
         findNavController().navigate(R.id.action_homeFragment_to_loginFragment)
     }
-
-}
-
-object DashboardData {
-    private var images = intArrayOf(
-        R.drawable.ic_list_data,
-        R.drawable.ic_image,
-        R.drawable.ic_map
-    )
-
-    private var names = arrayOf(
-        "List Data",
-        "Image",
-        "Map"
-    )
-
-    val listDataDash : ArrayList<Dashboard>
-        get() {
-            val listData = arrayListOf<Dashboard>()
-            for (position in names.indices){
-                val dataDash = Dashboard()
-                dataDash.image = images[position]
-                dataDash.name = names[position]
-                listData.add(dataDash)
-            }
-            return listData
-        }
 
 }

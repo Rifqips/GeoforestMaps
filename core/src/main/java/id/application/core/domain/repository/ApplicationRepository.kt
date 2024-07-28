@@ -66,8 +66,6 @@ interface  ApplicationRepository{
 
     suspend fun exportFile(type: String?, blockId: Int?): Response<ResponseBody>
 
-
-
 }
 
 class ApplicationRepositoryImpl(
@@ -167,5 +165,4 @@ class ApplicationRepositoryImpl(
     override suspend fun exportFile(type: String?, blockId: Int?):  Response<ResponseBody> {
         return appDataSource.exportFile(type, blockId)
     }
-
 }

@@ -5,7 +5,6 @@ import androidx.core.view.isGone
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import id.application.core.domain.model.History
-import id.application.core.domain.model.HistoryAlreadySent
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentHistoryBinding
@@ -138,46 +137,5 @@ object HistoryData {
                 listHistory.add(dataHistory)
             }
             return listHistory
-        }
-
-
-    private var images_already_sent = intArrayOf(
-        R.drawable.img_green_tree,
-        R.drawable.img_green_tree
-    )
-
-    private var titles_already_sent = arrayOf(
-        "Blok X",
-        "Blok Y"
-    )
-
-    private var descriptions_already_sent = arrayOf(
-        "Karet",
-        "Kayu"
-    )
-
-    private var times_already_sent = arrayOf(
-        "02:13 AM",
-        "10:00 PM"
-    )
-
-    private var dates_already_sent = arrayOf(
-        "9 Mei 2024",
-        "10 Juli 2024"
-    )
-
-    val listDataHistoryAlreadySent : ArrayList<HistoryAlreadySent>
-        get() {
-            val listHistoryAlreadySent = arrayListOf<HistoryAlreadySent>()
-            for (position in titles_already_sent.indices){
-                val dataHistoryAlreadySent = HistoryAlreadySent()
-                dataHistoryAlreadySent.image = images_already_sent[position]
-                dataHistoryAlreadySent.title = titles_already_sent[position]
-                dataHistoryAlreadySent.description = descriptions_already_sent[position]
-                dataHistoryAlreadySent.time = times_already_sent[position]
-                dataHistoryAlreadySent.date = dates_already_sent[position]
-                listHistoryAlreadySent.add(dataHistoryAlreadySent)
-            }
-            return listHistoryAlreadySent
         }
 }

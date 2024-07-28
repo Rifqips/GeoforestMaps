@@ -89,6 +89,4 @@ class ApplicationDataSourceImpl(private val service: ApplicationService) : Appli
     override suspend fun exportFile(type: String?, blockId: Int?): Response<ResponseBody> {
         return service.eksports(type, blockId)
     }
-
-
 }
