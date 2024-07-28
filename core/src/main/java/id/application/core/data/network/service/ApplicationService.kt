@@ -72,6 +72,7 @@ interface ApplicationService {
     suspend fun eksports(
         @Query("type") type:String? = null,
         @Query("block") block:String? = null,
+        @Query("geotag_id") geotagId:Int? = null,
         ): Response<ResponseBody>
 
 

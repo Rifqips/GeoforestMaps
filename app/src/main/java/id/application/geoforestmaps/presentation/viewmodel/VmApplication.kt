@@ -213,11 +213,11 @@ class VmApplication(
         }
     }
 
-    fun eksports(type: String?, block: String?, fileName: String, context: Context, isZip: Boolean = false) {
+    fun eksports(type: String?, block: String?, geoatagId : Int? = null,fileName: String, context: Context, isZip: Boolean = false) {
         viewModelScope.launch {
             _downloadStatus.value = "Mendownload File..."
             try {
-                val response = repo.exportFile(type, block) // Pastikan tipe dan blok sesuai dengan API
+                val response = repo.exportFile(type, block, geoatagId)
                 if (response.isSuccessful) {
                     response.body()?.let { responseBody ->
                         val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)

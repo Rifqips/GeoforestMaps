@@ -80,7 +80,7 @@ class DatabaseListFragment :
         }
         val fileName = generateFileName("geotaging-$blockName", ".xlsx")
         val file = File(downloadDir, fileName)
-        viewModel.eksports(type = "list", block = blockName, file.name, requireContext())
+        viewModel.eksports(type = "list", block = blockName,null, file.name, requireContext())
     }
 
 

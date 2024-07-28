@@ -42,7 +42,7 @@ interface ApplicationDataSource {
         userImage: MultipartBody.Part?
     ) : ResponseAllGeotagingItem
 
-    suspend fun exportFile(type: String?, blockId: String?): Response<ResponseBody>
+    suspend fun exportFile(type: String?, block: String?, geoatagId : Int?): Response<ResponseBody>
 
 }
 
@@ -87,7 +87,7 @@ class ApplicationDataSourceImpl(private val service: ApplicationService) : Appli
         return service.createGeotaging( plant, block, latitude, longitude, altitude, userImage)
     }
 
-    override suspend fun exportFile(type: String?, block: String?): Response<ResponseBody> {
-        return service.eksports(type, block)
+    override suspend fun exportFile(type: String?, block: String?, geoatagId : Int?): Response<ResponseBody> {
+        return service.eksports(type, block, geoatagId)
     }
 }

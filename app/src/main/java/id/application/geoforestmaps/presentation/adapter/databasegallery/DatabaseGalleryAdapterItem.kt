@@ -16,7 +16,8 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class DatabaseGalleryAdapterItem(
-    private val onClickLister : (ItemAllGeotaging) -> Unit
+    private val onClickLister : (ItemAllGeotaging) -> Unit,
+    private val onClickListerDownload : (ItemAllGeotaging) -> Unit,
 ) : PagingDataAdapter<ItemAllGeotaging, RecyclerView.ViewHolder>(DIFF_CALLBACK) {
 
     companion object {
@@ -60,6 +61,9 @@ class DatabaseGalleryAdapterItem(
                 ivGallery.load(item.photo)
                 tvTitleBlock.text = item.plant
                 tvDescriptionBlock.text = item.block
+                ivGallery.setOnClickListener {
+                    onClickListerDownload(item)
+                }
             }
             binding.root.setOnClickListener {
                 onClickLister(item)

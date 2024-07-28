@@ -35,10 +35,14 @@ class DatabaseGalleryFragment :
     override val viewModel: VmApplication by viewModel()
 
     private val adapterPagingGeotagging: DatabaseGalleryAdapterItem by lazy {
-        DatabaseGalleryAdapterItem {}
+        DatabaseGalleryAdapterItem(
+            { _ -> },
+            { onDownloadClick -> exportFileSingle(onDownloadClick.id) }
+        )
     }
 
     var blockName: String? = ""
+    var blockId: String? = ""
     private var activeDialog: AlertDialog? = null
 
     override fun initView() {
@@ -48,6 +52,7 @@ class DatabaseGalleryFragment :
             topbar.ivDownlaod.load(R.drawable.ic_download)
         }
         blockName = arguments?.getString("blockName")
+        blockId = arguments?.getString("blockId")
         loadPagingGeotagingAdapter(adapterPagingGeotagging)
         setUpPaging()
     }
@@ -85,8 +90,35 @@ class DatabaseGalleryFragment :
         }
         val fileName = generateFileName("geotaging-$blockName", ".zip")
         val file = File(downloadDir, fileName)
-        viewModel.eksports(type = "photos", block = blockName, file.name, requireContext())
+        viewModel.eksports(type = "photos", block = blockName, null, file.name, requireContext())
     }
+
+    private fun exportFileSingle(geotagId: Int) {
+        viewModel.downloadStatus.observe(viewLifecycleOwner, Observer { status ->
+            when (status) {
+                "Mendownload File..." -> {
+                    showDialogConfirmSaveData(true, status)
+                }
+
+                "Download berhasil!" -> {
+                    showDialogConfirmSaveData(false, status)
+                }
+
+                "Download gagal!" -> {
+                    showDialogConfirmSaveData(false, status)
+                }
+            }
+        })
+        val downloadDir =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        if (!downloadDir.exists()) {
+            downloadDir.mkdirs()
+        }
+        val fileName = generateFileName("geotaging-$blockName", ".zip")
+        val file = File(downloadDir, fileName)
+        viewModel.eksports(type = "photos", block = blockName, geotagId, file.name, requireContext())
+    }
+
 
     @SuppressLint("ClickableViewAccessibility")
     private fun showDialogConfirmSaveData(state: Boolean, text: String) {

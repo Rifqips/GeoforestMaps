@@ -22,6 +22,7 @@ class DatabaseOptionFragment :
     )
 
     override val viewModel: VmApplication by viewModel()
+    private var blockId = ""
     private var blockName = ""
 
     override fun initView() {
@@ -29,6 +30,11 @@ class DatabaseOptionFragment :
         if (title != null) {
             this.blockName = title
         }
+        val block: String? = arguments?.getString("blockId")
+        if (block != null) {
+            this.blockId = block
+        }
+
         with(binding){
             topbar.ivTitle.text = title
             rvDatabaseOption.adapter = adapter
@@ -47,6 +53,7 @@ class DatabaseOptionFragment :
     private fun navigateToFragment(actionId: Int) {
         val bundle = Bundle().apply {
             putString("blockName", blockName)
+            putString("blockId", blockId)
         }
         findNavController().navigate(actionId, bundle)
     }

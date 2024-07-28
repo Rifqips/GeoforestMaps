@@ -156,7 +156,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         }
         val fileName = generateFileName("geotaging-$blockName", ".xlsx")
         val file = File(downloadDir, fileName)
-        viewModel.eksports(type = "list", block = block, file.name, requireContext())
+        viewModel.eksports(type = "list", block = block, null, file.name, requireContext())
     }
 
     @SuppressLint("ClickableViewAccessibility")
