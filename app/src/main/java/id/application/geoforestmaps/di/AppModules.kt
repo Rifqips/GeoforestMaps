@@ -48,7 +48,7 @@ object AppModules {
     private val networkModule = module{
         single { ChuckerInterceptor(androidContext()) }
         single { AuthInterceptor(get(),get()) }
-        single { ApplicationService.invoke(get(), get()) }
+        single { ApplicationService.invoke(get()) }
     }
 
     private val dataSourceModule = module {
