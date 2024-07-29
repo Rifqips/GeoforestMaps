@@ -37,7 +37,7 @@ class DatabaseGalleryFragment :
     private val adapterPagingGeotagging: DatabaseGalleryAdapterItem by lazy {
         DatabaseGalleryAdapterItem(
             { _ -> },
-            { onDownloadClick -> exportFileSingle(onDownloadClick.id) }
+            { itemDownload -> exportFileSingle(itemDownload.id) }
         )
     }
 

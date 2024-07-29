@@ -61,7 +61,7 @@ class DatabaseGalleryAdapterItem(
                 ivGallery.load(item.photo)
                 tvTitleBlock.text = item.plant
                 tvDescriptionBlock.text = item.block
-                ivGallery.setOnClickListener {
+                ivDownload.setOnClickListener {
                     onClickListerDownload(item)
                 }
             }
