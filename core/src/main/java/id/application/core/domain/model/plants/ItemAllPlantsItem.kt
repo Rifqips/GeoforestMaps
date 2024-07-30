@@ -1,6 +1,9 @@
 package id.application.core.domain.model.plants
 
 import androidx.annotation.Keep
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import id.application.core.data.network.model.plants.AllPlants
 import id.application.core.data.network.model.plants.DataAllPlants
 import id.application.core.data.network.model.plants.ResponseAllPlantsItem
@@ -21,11 +24,16 @@ data class ItemDataAllPlants(
     val totalPages: Int
 )
 
-@Keep
+@Entity(tableName = "all_plants")
 data class ItemAllPlants(
-    val createdAt: String,
+    @field:PrimaryKey
+    @field:ColumnInfo(name = "id")
     val id: Int,
+    @field:ColumnInfo(name = "created_at")
+    val createdAt: String,
+    @field:ColumnInfo(name = "name")
     val name: String,
+    @field:ColumnInfo(name = "updated_at")
     val updatedAt: String
 )
 

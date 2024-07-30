@@ -3,7 +3,6 @@ package id.application.geoforestmaps.presentation.feature.dashboard
 import android.annotation.SuppressLint
 import androidx.navigation.fragment.findNavController
 import id.application.core.utils.BaseFragment
-import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentDashboardBinding
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication

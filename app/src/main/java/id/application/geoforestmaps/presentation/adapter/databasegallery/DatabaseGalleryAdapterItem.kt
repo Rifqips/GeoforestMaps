@@ -9,11 +9,6 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.geoforestmaps.databinding.ItemDatabaseGalleryBinding
-import id.application.geoforestmaps.databinding.ItemHistoryDataBinding
-import id.application.geoforestmaps.utils.Constant.formatDate
-import id.application.geoforestmaps.utils.Constant.formatTime
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 class DatabaseGalleryAdapterItem(
     private val onClickLister : (ItemAllGeotaging) -> Unit,

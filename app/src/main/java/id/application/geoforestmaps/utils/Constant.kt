@@ -7,14 +7,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.os.Environment
 import android.util.Log
 import id.application.geoforestmaps.R
 import okhttp3.ResponseBody
 import java.io.File
 import java.io.FileOutputStream
-import java.io.InputStream
-import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -82,7 +79,6 @@ object Constant {
         file.outputStream().use { outputStream ->
             responseBody.byteStream().copyTo(outputStream)
         }
-        Log.d("test-response", "File saved at: $filePath")
     }
 
     fun generateUniqueFileName(fileName: String): String {

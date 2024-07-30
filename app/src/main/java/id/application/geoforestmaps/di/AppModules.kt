@@ -16,7 +16,9 @@ import id.application.core.data.local.datastore.PreferenceDataStoreHelperImpl
 import id.application.core.data.local.datastore.appDataSource
 import id.application.core.data.network.interceptor.AuthInterceptor
 import id.application.core.data.network.service.ApplicationService
+import id.application.core.domain.paging.BlockPagingMediator
 import id.application.core.domain.paging.GeotagingPagingMediator
+import id.application.core.domain.paging.PlantPagingMediator
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.domain.repository.ApplicationRepositoryImpl
 import id.application.core.utils.AssetWrapperApp
@@ -36,7 +38,7 @@ object AppModules {
         single { AssetWrapperApp(androidContext()) }
     }
 
-    private val firebaseModule = module{
+    private val firebaseModule = module {
         single { Firebase.analytics }
         single { Firebase.crashlytics }
         single<FirebaseDataSource> { FirebaseDataSourceImpl(get()) }
@@ -52,9 +54,9 @@ object AppModules {
 
     }
 
-    private val networkModule = module{
+    private val networkModule = module {
         single { ChuckerInterceptor(androidContext()) }
-        single { AuthInterceptor(get(),get()) }
+        single { AuthInterceptor(get(), get()) }
         single { ApplicationService.invoke(get(), get()) }
     }
 
@@ -64,11 +66,22 @@ object AppModules {
     }
 
     private val repositoryModule = module {
-        single<ApplicationRepository> { ApplicationRepositoryImpl(get(), get(), get(), get())  }
+        single<ApplicationRepository> {
+            ApplicationRepositoryImpl(
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get()
+            )
+        }
     }
 
     private val pagingSource = module {
         single { GeotagingPagingMediator(get(), get()) }
+        single { BlockPagingMediator(get(), get()) }
+        single { PlantPagingMediator(get(), get()) }
     }
 
     val modules: List<Module> = listOf(

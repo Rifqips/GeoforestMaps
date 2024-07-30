@@ -1,20 +1,16 @@
 package id.application.geoforestmaps.presentation.feature.history
 
+import android.util.Log
 import android.view.View
 import androidx.core.view.isGone
 import androidx.paging.LoadState
-import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
-import id.application.core.data.network.model.geotags.AllGeotaging
 import id.application.core.domain.model.History
 import id.application.core.utils.BaseFragment
-import id.application.core.utils.ResultWrapper
-import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentHistoryBinding
-import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
+import id.application.geoforestmaps.presentation.adapter.history.AdapterGeotagingLocal
 import id.application.geoforestmaps.presentation.adapter.history.HistoryListAdapter
-import id.application.geoforestmaps.presentation.feature.databaselist.AdapterGeotagingLocal
 import id.application.geoforestmaps.presentation.feature.history.HistoryData.listDataHistory
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
@@ -22,7 +18,7 @@ import io.github.muddz.styleabletoast.StyleableToast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class HistoryFragment :
-    BaseFragment<FragmentHistoryBinding, VmApplication>(FragmentHistoryBinding::inflate)  {
+    BaseFragment<FragmentHistoryBinding, VmApplication>(FragmentHistoryBinding::inflate) {
 
     private val adapterHistory = HistoryListAdapter()
     override val viewModel: VmApplication by viewModel()
@@ -30,10 +26,12 @@ class HistoryFragment :
     private val adapterPagingLocalGeotagging: AdapterGeotagingLocal by lazy {
         AdapterGeotagingLocal {}
     }
+
     override fun initView() {
         rvListHistory()
+        setUpPaging()
+
         if (isNetworkAvailable(requireContext())) {
-            setUpPaging()
             binding.layoutNoSignal.root.isGone = true
         } else {
             binding.layoutNoSignal.root.isGone = false
@@ -49,22 +47,22 @@ class HistoryFragment :
 
     override fun initListener() {}
 
-    private fun setUpPaging(){
-        if (view != null){
+    private fun setUpPaging() {
+        if (view != null) {
             viewModel.fetchAllGeotagingLocal()
             parentFragment?.viewLifecycleOwner?.let {
-                viewModel.geotagingLocalResult.observe(viewLifecycleOwner){
+                viewModel.geotagingLocalResult.observe(viewLifecycleOwner) {
                     adapterPagingLocalGeotagging.submitData(viewLifecycleOwner.lifecycle, it)
                 }
             }
         }
         adapterPagingLocalGeotagging.addLoadStateListener { loadState ->
-            with(binding){
+            with(binding) {
                 if (loadState.refresh is LoadState.Loading) {
                     pbLoading.visibility = View.VISIBLE
                 } else {
                     pbLoading.visibility = View.GONE
-                    if (view != null){
+                    if (view != null) {
                         rvHistoryAlreadySentData.apply {
                             layoutManager = LinearLayoutManager(context).apply {
                                 isSmoothScrollbarEnabled = true
@@ -80,11 +78,10 @@ class HistoryFragment :
 
     private fun rvListHistory() {
         binding.rvHistoryData.adapter = adapterHistory
-        binding.rvHistoryData.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        binding.rvHistoryData.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         adapterHistory.setData(listDataHistory)
     }
-
-
 
 }
 
@@ -121,10 +118,10 @@ object HistoryData {
         "13 Juli 2024"
     )
 
-    val listDataHistory : ArrayList<History>
+    val listDataHistory: ArrayList<History>
         get() {
             val listHistory = arrayListOf<History>()
-            for (position in titles.indices){
+            for (position in titles.indices) {
                 val dataHistory = History()
                 dataHistory.image = images[position]
                 dataHistory.title = titles[position]

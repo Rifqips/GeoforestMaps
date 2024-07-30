@@ -2,6 +2,7 @@ package id.application.geoforestmaps.presentation.feature.geotagginglocation
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.view.isGone
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -9,26 +10,39 @@ import id.application.core.domain.model.blocks.ItemAllBlocks
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentGeotaggingLocationBinding
-import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
+import id.application.geoforestmaps.presentation.adapter.blocks.AdapterBlockLocal
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
+import io.github.muddz.styleabletoast.StyleableToast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class GeotaggingLocationFragment :
     BaseFragment<FragmentGeotaggingLocationBinding, VmApplication>
         (FragmentGeotaggingLocationBinding::inflate) {
 
-    private val adapterPagingDatabase: DatabaseAdapterItem by lazy {
-        DatabaseAdapterItem{navigateToCamera(it)}
+    private val adapterPagingLocalBlock: AdapterBlockLocal by lazy {
+        AdapterBlockLocal {
+            navigateToCamera(it)
+        }
     }
-
     override val viewModel: VmApplication by viewModel()
 
     override fun initView() {
         with(binding){
             topBar.ivTitle.text = "Ambil Data"
         }
-        loadPagingBlocks(adapter = adapterPagingDatabase)
-        setUpPaging()
+        if (isNetworkAvailable(requireContext())) {
+            setUpPaging()
+            binding.layoutNoSignal.root.isGone = true
+        } else {
+            binding.layoutNoSignal.root.isGone = false
+            binding.pbLoading.isGone = true
+            StyleableToast.makeText(
+                requireContext(),
+                getString(R.string.text_no_internet_connection),
+                R.style.failedtoast
+            ).show()
+        }
     }
 
     override fun initListener() {
@@ -38,35 +52,28 @@ class GeotaggingLocationFragment :
             }
         }
     }
-
-    private fun loadPagingBlocks(
-        adapter: DatabaseAdapterItem,
-    ) {
-        viewModel.loadPagingBlocks(
-            adapter,
-        )
-    }
-
-    private fun setUpPaging(){
-        if (view != null){
+    private fun setUpPaging() {
+        if (view != null) {
+            viewModel.fetchAllBlockLocal()
             parentFragment?.viewLifecycleOwner?.let {
-                viewModel.blockList.observe(it) { pagingData ->
-                    adapterPagingDatabase.submitData(lifecycle, pagingData)
+                viewModel.blockLocalResult.observe(viewLifecycleOwner) {
+                    adapterPagingLocalBlock.submitData(viewLifecycleOwner.lifecycle, it)
                 }
             }
         }
-        adapterPagingDatabase.addLoadStateListener { loadState ->
-            with(binding){
+        adapterPagingLocalBlock.addLoadStateListener { loadState ->
+            with(binding) {
                 if (loadState.refresh is LoadState.Loading) {
                     pbLoading.visibility = View.VISIBLE
                 } else {
                     pbLoading.visibility = View.GONE
-                    if (view != null){
+                    if (view != null) {
                         rvBlokData.apply {
                             layoutManager = LinearLayoutManager(context).apply {
                                 isSmoothScrollbarEnabled = true
                             }
-                            adapter = adapterPagingDatabase
+                            adapter = adapterPagingLocalBlock
+
                         }
                     }
                 }

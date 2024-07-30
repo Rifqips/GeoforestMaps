@@ -1,6 +1,5 @@
 package id.application.core.data.local.mediator
 
-import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -8,15 +7,15 @@ import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import id.application.core.data.local.database.ApplicationDatabase
 import id.application.core.data.network.service.ApplicationService
-import id.application.core.domain.model.geotags.ItemAllGeotaging
-import id.application.core.domain.model.geotags.toAllGeotagingList
+import id.application.core.domain.model.plants.ItemAllPlants
+import id.application.core.domain.model.plants.toAllPlantsList
 import id.application.core.domain.model.remotekeys.RemoteKeys
 
 @OptIn(ExperimentalPagingApi::class)
-class GeotagingRemoteMediator(
+class PlantRemoteMediator(
     private val apiEndPoint: ApplicationService,
     private val database: ApplicationDatabase
-) : RemoteMediator<Int, ItemAllGeotaging>() {
+) : RemoteMediator<Int, ItemAllPlants>() {
 
     override suspend fun initialize(): InitializeAction {
         return InitializeAction.LAUNCH_INITIAL_REFRESH
@@ -24,7 +23,7 @@ class GeotagingRemoteMediator(
 
     override suspend fun load(
         loadType: LoadType,
-        state: PagingState<Int, ItemAllGeotaging>
+        state: PagingState<Int, ItemAllPlants>
     ): MediatorResult {
         val page = when (loadType) {
             LoadType.REFRESH -> {
@@ -49,19 +48,19 @@ class GeotagingRemoteMediator(
             }
         }
         return try {
-            val responseData = apiEndPoint.getAllGeotaging(pageItem = page, createdBy = "user")
+            val responseData = apiEndPoint.getAllPlants(pageItem = page)
             val endOfPaginationReached = responseData.data.items.isEmpty()
             database.withTransaction {
                 if (loadType == LoadType.REFRESH){
-                    database.geotagsDao().deleteAllGeotags()
+                    database.plantsDao().deleteAllPlants()
                 }
                 val prevKey = if (page == 1) null else page -1
                 val nextKey = if (endOfPaginationReached) null else page + 1
                 val keys = responseData.data.items.map {
                     RemoteKeys(id = it.id.toString(), prevKey = prevKey, nextKey=nextKey)
                 }
-                database.geotagsDao().insertAllKeyGeotags(keys)
-                database.geotagsDao().insertAllGeotags(responseData.data.items.toAllGeotagingList())
+                database.plantsDao().insertAllKeyPlants(keys)
+                database.plantsDao().insertAllplants(responseData.data.items.toAllPlantsList())
             }
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
         }catch (exception: Exception){
@@ -69,21 +68,21 @@ class GeotagingRemoteMediator(
         }
     }
 
-    private suspend fun getRemoteKeyForFirstItem(state: PagingState<Int, ItemAllGeotaging>): RemoteKeys? {
+    private suspend fun getRemoteKeyForFirstItem(state: PagingState<Int, ItemAllPlants>): RemoteKeys? {
         return state.pages.firstOrNull { it.data.isNotEmpty()}?.data?.firstOrNull()?.let { data ->
-            database.geotagsDao().getRemoteKeysIdGeotags(data.id.toString())
+            database.plantsDao().getRemoteKeysIdPlants(data.id.toString())
         }
     }
 
-    private suspend fun getRemoteKeyForLastItem(state: PagingState<Int, ItemAllGeotaging>): RemoteKeys? {
+    private suspend fun getRemoteKeyForLastItem(state: PagingState<Int, ItemAllPlants>): RemoteKeys? {
         return state.pages.lastOrNull { it.data.isNotEmpty()}?.data?.lastOrNull()?.let { data ->
-            database.geotagsDao().getRemoteKeysIdGeotags(data.id.toString())
+            database.plantsDao().getRemoteKeysIdPlants(data.id.toString())
         }
     }
-    private suspend fun getRemoteKeyClosestToCurrentPosition(state: PagingState<Int, ItemAllGeotaging>): RemoteKeys? {
+    private suspend fun getRemoteKeyClosestToCurrentPosition(state: PagingState<Int, ItemAllPlants>): RemoteKeys? {
         return state.anchorPosition?.let { position ->
             state.closestItemToPosition(position)?.id?.let { id ->
-                database.geotagsDao().getRemoteKeysIdGeotags(id.toString())
+                database.plantsDao().getRemoteKeysIdPlants(id.toString())
             }
         }
     }

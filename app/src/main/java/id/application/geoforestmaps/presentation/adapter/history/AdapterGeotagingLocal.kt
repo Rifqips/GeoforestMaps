@@ -1,4 +1,4 @@
-package id.application.geoforestmaps.presentation.feature.databaselist
+package id.application.geoforestmaps.presentation.adapter.history
 
 
 import android.annotation.SuppressLint
@@ -8,9 +8,7 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
-import id.application.core.data.network.model.geotags.AllGeotaging
 import id.application.core.domain.model.geotags.ItemAllGeotaging
-import id.application.core.utils.ResultWrapper
 import id.application.geoforestmaps.databinding.ItemHistoryDataBinding
 import id.application.geoforestmaps.utils.Constant.formatDate
 import id.application.geoforestmaps.utils.Constant.formatTime
@@ -18,22 +16,22 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class AdapterGeotagingLocal(
-    private val onClickListener: (AllGeotaging) -> Unit
-) : PagingDataAdapter<AllGeotaging, AdapterGeotagingLocal.LinearViewHolder>(DIFF_CALLBACK) {
+    private val onClickListener: (ItemAllGeotaging) -> Unit
+) : PagingDataAdapter<ItemAllGeotaging, AdapterGeotagingLocal.LinearViewHolder>(DIFF_CALLBACK) {
 
     companion object {
-        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<AllGeotaging>() {
+        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<ItemAllGeotaging>() {
             override fun areItemsTheSame(
-                oldItem: AllGeotaging,
-                newItem: AllGeotaging
+                oldItem: ItemAllGeotaging,
+                newItem: ItemAllGeotaging
             ): Boolean {
                 // Assuming `id` uniquely identifies each item
                 return oldItem.id == newItem.id
             }
 
             override fun areContentsTheSame(
-                oldItem: AllGeotaging,
-                newItem: AllGeotaging
+                oldItem: ItemAllGeotaging,
+                newItem: ItemAllGeotaging
             ): Boolean {
                 // Check if the content of items is the same
                 return oldItem == newItem
@@ -56,7 +54,7 @@ class AdapterGeotagingLocal(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         @SuppressLint("SetTextI18n", "NewApi")
-        fun bindLinear(item: AllGeotaging) {
+        fun bindLinear(item: ItemAllGeotaging) {
             with(binding) {
                 ivItemHistory.load(item.photo)  // Ensure `item.photo` is a valid URL or resource ID
                 val dateString = item.createdAt

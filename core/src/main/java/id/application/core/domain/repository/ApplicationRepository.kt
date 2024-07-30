@@ -4,9 +4,9 @@ import androidx.paging.PagingData
 import id.application.core.R
 import id.application.core.data.datasource.AppPreferenceDataSource
 import id.application.core.data.datasource.ApplicationDataSource
-import id.application.core.data.network.model.geotags.AllGeotaging
 import id.application.core.data.network.model.login.RequestLoginItem
 import id.application.core.data.network.model.profile.toProfileResponse
+import id.application.core.domain.model.blocks.ItemAllBlocks
 import id.application.core.domain.model.blocks.ItemAllBlocksResponse
 import id.application.core.domain.model.blocks.toAllBlockResponse
 import id.application.core.domain.model.geotags.ItemAllGeotaging
@@ -16,10 +16,13 @@ import id.application.core.domain.model.geotags.toAllGeotagingResponse
 import id.application.core.domain.model.login.UserLoginRequest
 import id.application.core.domain.model.login.UserLoginResponse
 import id.application.core.domain.model.login.toLoginResponse
+import id.application.core.domain.model.plants.ItemAllPlants
 import id.application.core.domain.model.plants.ItemAllPlantsResponse
 import id.application.core.domain.model.plants.toAllPlantsResponse
 import id.application.core.domain.model.profile.UserProfileResponse
+import id.application.core.domain.paging.BlockPagingMediator
 import id.application.core.domain.paging.GeotagingPagingMediator
+import id.application.core.domain.paging.PlantPagingMediator
 import id.application.core.utils.AssetWrapperApp
 import id.application.core.utils.ResultWrapper
 import id.application.core.utils.proceedFlow
@@ -49,8 +52,9 @@ interface  ApplicationRepository{
         pageItem:Int? = null,
     ): ItemAllGeotagingResponse
 
-    suspend fun fetchAllGeotagingLocal(): Flow<PagingData<AllGeotaging>>
-
+    suspend fun fetchAllGeotagingLocal(): Flow<PagingData<ItemAllGeotaging>>
+    suspend fun fetchAllBlockLocal(): Flow<PagingData<ItemAllBlocks>>
+    suspend fun fetchAllPlantLocal(): Flow<PagingData<ItemAllPlants>>
 
     suspend fun getAllPlants(
         limitItem:Int? = null,
@@ -79,7 +83,9 @@ class ApplicationRepositoryImpl(
     private val appDataSource: ApplicationDataSource,
     private val appPreferenceDataSource: AppPreferenceDataSource,
     private val assetWrapper : AssetWrapperApp,
-    private val paging : GeotagingPagingMediator
+    private val pagingGeotaging : GeotagingPagingMediator,
+    private val pagingBlock : BlockPagingMediator,
+    private val pagingPlant : PlantPagingMediator,
 ) : ApplicationRepository{
     override suspend fun userLogin(request: UserLoginRequest): Flow<ResultWrapper<UserLoginResponse>> {
         return proceedFlow {
@@ -111,7 +117,6 @@ class ApplicationRepositoryImpl(
             emit(ResultWrapper.Error(e as? Exception ?: Exception(assetWrapper.getString(R.string.text_unknown_error))))
         }
     }
-
     override suspend fun getAllGeotaging(
         block:String?,
         createdBy:String?,
@@ -121,8 +126,17 @@ class ApplicationRepositoryImpl(
         return appDataSource.getAllGeotaging(block, createdBy,limitItem, pageItem).toAllGeotagingResponse()
     }
 
-    override suspend fun fetchAllGeotagingLocal(): Flow<PagingData<AllGeotaging>> {
-        return paging.fetchGeotags()
+    override suspend fun fetchAllGeotagingLocal(): Flow<PagingData<ItemAllGeotaging>> {
+        return pagingGeotaging.fetchGeotags()
+    }
+
+    override suspend fun fetchAllBlockLocal(): Flow<PagingData<ItemAllBlocks>> {
+        return pagingBlock.fetchBlocks()
+
+    }
+
+    override suspend fun fetchAllPlantLocal(): Flow<PagingData<ItemAllPlants>> {
+        return pagingPlant.fetchPlants()
     }
 
     override suspend fun getAllPlants(
