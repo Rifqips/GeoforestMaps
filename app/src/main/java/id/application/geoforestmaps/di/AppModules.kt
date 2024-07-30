@@ -10,6 +10,7 @@ import id.application.core.data.datasource.ApplicationDataSource
 import id.application.core.data.datasource.ApplicationDataSourceImpl
 import id.application.core.data.datasource.FirebaseDataSource
 import id.application.core.data.datasource.FirebaseDataSourceImpl
+import id.application.core.data.local.database.ApplicationDatabase
 import id.application.core.data.local.datastore.PreferenceDataStoreHelper
 import id.application.core.data.local.datastore.PreferenceDataStoreHelperImpl
 import id.application.core.data.local.datastore.appDataSource
@@ -42,7 +43,12 @@ object AppModules {
 
     private val localModule = module {
         single { androidContext().appDataSource }
+        single { ApplicationDatabase.getInstance(get()) }
         single<PreferenceDataStoreHelper> { PreferenceDataStoreHelperImpl(get()) }
+        single { get<ApplicationDatabase>().blocksDao() }
+        single { get<ApplicationDatabase>().geotagsDao() }
+        single { get<ApplicationDatabase>().plantsDao() }
+
     }
 
     private val networkModule = module{
@@ -54,15 +60,10 @@ object AppModules {
     private val dataSourceModule = module {
         single<AppPreferenceDataSource> { AppPreferenceDataSourceImpl(get()) }
         single<ApplicationDataSource> { ApplicationDataSourceImpl(get()) }
-
     }
 
     private val repositoryModule = module {
         single<ApplicationRepository> { ApplicationRepositoryImpl(get(), get(), get())  }
-
-    }
-
-    private val pagingSource = module {
     }
 
     val modules: List<Module> = listOf(
@@ -73,7 +74,6 @@ object AppModules {
         dataSourceModule,
         repositoryModule,
         utilsModule,
-        pagingSource,
         firebaseModule
     )
 

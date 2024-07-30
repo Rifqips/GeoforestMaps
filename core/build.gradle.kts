@@ -53,43 +53,28 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
-    // firebase
-    api(platform("com.google.firebase:firebase-bom:32.3.1"))
-    api("com.google.firebase:firebase-crashlytics-ktx")
-    api("com.google.firebase:firebase-analytics-ktx")
-    api("com.google.firebase:firebase-config-ktx:21.6.1")
-    api("com.google.firebase:firebase-messaging-ktx:23.4.1")
-
-    // chucker
+    api(platform(libs.firebase.bom))
+    api(libs.firebase.crashlytics.ktx)
+    api(libs.firebase.analytics.ktx)
     debugImplementation("com.github.chuckerteam.chucker:library:4.0.0")
     releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.0.0")
-
-    /**
-     * For all module
-     */
-    // koin
-    api("io.insert-koin:koin-android:3.5.0")
-    // data store
-    api("androidx.datastore:datastore-preferences:1.0.0")
-    // retrofit & okhttp
-    api("com.squareup.retrofit2:retrofit:2.9.0")
-    api("com.squareup.retrofit2:converter-gson:2.9.0")
-    api("com.squareup.okhttp3:okhttp:4.11.0")
-    api("com.squareup.okhttp3:logging-interceptor:4.11.0")
-    // coroutine
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    // ktx lifecycle
-    api("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    api("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    api("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
-
-    //Gson
-    api("com.google.code.gson:gson:2.9.1")
-    //paging
-    api("androidx.paging:paging-common-ktx:3.1.1")
-    api("androidx.paging:paging-runtime-ktx:3.1.1")
+    api(libs.koin.android)
+    api(libs.androidx.datastore.preferences)
+    api(libs.retrofit)
+    api(libs.converter.gson)
+    api(libs.okhttp)
+    api(libs.logging.interceptor)
+    api(libs.kotlinx.coroutines.core)
+    api(libs.kotlinx.coroutines.android)
+    api(libs.androidx.lifecycle.runtime.ktx)
+    api(libs.androidx.lifecycle.viewmodel.ktx)
+    api(libs.androidx.lifecycle.livedata.ktx)
+    api(libs.gson)
+    api(libs.androidx.paging.common.ktx)
+    api(libs.androidx.paging.runtime.ktx)
+    api(libs.room.runtime)
+    api(libs.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
 
 }
