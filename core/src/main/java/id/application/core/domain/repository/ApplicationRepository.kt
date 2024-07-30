@@ -1,9 +1,11 @@
 package id.application.core.domain.repository
 
+import android.util.Log
 import androidx.paging.PagingData
 import id.application.core.R
 import id.application.core.data.datasource.AppPreferenceDataSource
 import id.application.core.data.datasource.ApplicationDataSource
+import id.application.core.data.local.database.plants.PlantsDao
 import id.application.core.data.network.model.login.RequestLoginItem
 import id.application.core.data.network.model.profile.toProfileResponse
 import id.application.core.domain.model.blocks.ItemAllBlocks
@@ -22,7 +24,6 @@ import id.application.core.domain.model.plants.toAllPlantsResponse
 import id.application.core.domain.model.profile.UserProfileResponse
 import id.application.core.domain.paging.BlockPagingMediator
 import id.application.core.domain.paging.GeotagingPagingMediator
-import id.application.core.domain.paging.PlantPagingMediator
 import id.application.core.utils.AssetWrapperApp
 import id.application.core.utils.ResultWrapper
 import id.application.core.utils.proceedFlow
@@ -54,12 +55,14 @@ interface  ApplicationRepository{
 
     suspend fun fetchAllGeotagingLocal(): Flow<PagingData<ItemAllGeotaging>>
     suspend fun fetchAllBlockLocal(): Flow<PagingData<ItemAllBlocks>>
-    suspend fun fetchAllPlantLocal(): Flow<PagingData<ItemAllPlants>>
 
     suspend fun getAllPlants(
         limitItem:Int? = null,
         pageItem:Int? = null,
     ): Flow<ResultWrapper<ItemAllPlantsResponse>>
+
+    suspend fun retrieveAllPlants(): List<ItemAllPlants>
+
 
     suspend fun getAllBlocks(
         limitItem:Int? = null,
@@ -85,8 +88,9 @@ class ApplicationRepositoryImpl(
     private val assetWrapper : AssetWrapperApp,
     private val pagingGeotaging : GeotagingPagingMediator,
     private val pagingBlock : BlockPagingMediator,
-    private val pagingPlant : PlantPagingMediator,
+    private val plantsDao: PlantsDao,
 ) : ApplicationRepository{
+
     override suspend fun userLogin(request: UserLoginRequest): Flow<ResultWrapper<UserLoginResponse>> {
         return proceedFlow {
             val dataReq = RequestLoginItem(request.email, request.password)
@@ -135,19 +139,22 @@ class ApplicationRepositoryImpl(
 
     }
 
-    override suspend fun fetchAllPlantLocal(): Flow<PagingData<ItemAllPlants>> {
-        return pagingPlant.fetchPlants()
-    }
-
     override suspend fun getAllPlants(
         limitItem: Int?,
         pageItem: Int?
     ): Flow<ResultWrapper<ItemAllPlantsResponse>> {
         return proceedFlow {
-            appDataSource.getAllPlants(limitItem, pageItem).toAllPlantsResponse()
+            val list = appDataSource.getAllPlants(limitItem, pageItem).toAllPlantsResponse()
+            plantsDao.insertAllplants(list.data.items)
+            plantsDao.retrieveAllPlants()
+            list
         }.catch { e ->
             emit(ResultWrapper.Error(e as? Exception ?: Exception(assetWrapper.getString(R.string.text_unknown_error))))
         }
+    }
+
+    override suspend fun retrieveAllPlants(): List<ItemAllPlants> {
+        return plantsDao.retrieveAllPlants()
     }
 
     override suspend fun getAllBlocks(

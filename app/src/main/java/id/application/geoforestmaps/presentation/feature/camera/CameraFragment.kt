@@ -148,56 +148,37 @@ class CameraFragment :
     }
 
     private fun initViewModel() {
+        viewModel.fetchPlants()
         viewModel.getPlant()
-        viewModel.plantsResult.observe(viewLifecycleOwner) { result ->
-            result.proceedWhen(
-                doOnLoading = {
-                    loadingState(true)
-                },
-                doOnSuccess = {
-                    loadingState(false)
-                    val data = it.payload?.data?.items
-                    data?.let { items ->
-                        plantTypes.clear()
-                        plantTypes.addAll(items.map { item -> item.name })
-                        val adapter =
-                            ArrayAdapter(requireContext(), R.layout.item_spinner, plantTypes)
-                        adapter.setDropDownViewResource(R.layout.item_dropdown_spinner)
-                        with(binding) {
-                            spinnerPlantTypes.adapter = adapter
-                            spinnerPlantTypes.dropDownVerticalOffset = 146
-                            spinnerPlantTypes.onItemSelectedListener =
-                                object : AdapterView.OnItemSelectedListener {
-                                    override fun onItemSelected(
-                                        parent: AdapterView<*>,
-                                        view: View?,
-                                        position: Int,
-                                        id: Long
-                                    ) {
-                                        if (view != null) {
-                                            selectedPlantType = plantTypes[position]
-
-                                            Toast.makeText(
-                                                requireContext(),
-                                                getString(R.string.selected_item) + " " + plantTypes[position],
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-
-                                            // get id plant selected
-                                            items.forEach { item ->
-                                                if (item.name == selectedPlantType) {
-                                                    idPlant = item.id
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    override fun onNothingSelected(parent: AdapterView<*>) {}
-                                }
+        viewModel.plantsLiveData.observe(viewLifecycleOwner) { plants ->
+            Log.d("spinner-plants", plants.toString())
+            val plantNames = plants.map { it.name }
+            val adapter = ArrayAdapter(requireContext(), R.layout.item_spinner, plantNames)
+            adapter.setDropDownViewResource(R.layout.item_dropdown_spinner)
+            with(binding) {
+                spinnerPlantTypes.adapter = adapter
+                spinnerPlantTypes.dropDownVerticalOffset = 146
+                spinnerPlantTypes.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                    override fun onItemSelected(
+                        parent: AdapterView<*>,
+                        view: View?,
+                        position: Int,
+                        id: Long
+                    ) {
+                        if (view != null) {
+                            val selectedPlantType = plantNames[position]
+                            Toast.makeText(
+                                requireContext(),
+                                getString(R.string.selected_item) + " " + selectedPlantType,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            idPlant = plants.find { it.name == selectedPlantType }?.id ?: 0
                         }
                     }
+
+                    override fun onNothingSelected(parent: AdapterView<*>) {}
                 }
-            )
+            }
         }
         viewModel.geotagingCreateResult.observe(viewLifecycleOwner){ result ->
             result.proceedWhen(

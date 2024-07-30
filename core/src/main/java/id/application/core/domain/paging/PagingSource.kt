@@ -9,7 +9,6 @@ import androidx.paging.PagingState
 import id.application.core.data.local.database.ApplicationDatabase
 import id.application.core.data.local.mediator.BlockRemoteMediator
 import id.application.core.data.local.mediator.GeotagingRemoteMediator
-import id.application.core.data.local.mediator.PlantRemoteMediator
 import id.application.core.data.network.service.ApplicationService
 import id.application.core.domain.model.blocks.ItemAllBlocks
 import id.application.core.domain.model.geotags.ItemAllGeotaging
@@ -87,25 +86,6 @@ class BlockPagingMediator(
         remoteMediator = BlockRemoteMediator(api, database),
         pagingSourceFactory = {
             database.blocksDao().retrieveAllBlock()
-        }
-    ).flow
-}
-
-class PlantPagingMediator(
-    private val api : ApplicationService,
-    private val database : ApplicationDatabase)
-{
-    @OptIn(ExperimentalPagingApi::class)
-    fun fetchPlants() : Flow<PagingData<ItemAllPlants>> = Pager(
-        config = PagingConfig(
-            enablePlaceholders = false,
-            pageSize = 10,
-            initialLoadSize = 10,
-            prefetchDistance = 1
-        ),
-        remoteMediator = PlantRemoteMediator(api, database),
-        pagingSourceFactory = {
-            database.plantsDao().retrieveAllplants()
         }
     ).flow
 }

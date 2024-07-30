@@ -18,7 +18,6 @@ import id.application.core.data.network.interceptor.AuthInterceptor
 import id.application.core.data.network.service.ApplicationService
 import id.application.core.domain.paging.BlockPagingMediator
 import id.application.core.domain.paging.GeotagingPagingMediator
-import id.application.core.domain.paging.PlantPagingMediator
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.domain.repository.ApplicationRepositoryImpl
 import id.application.core.utils.AssetWrapperApp
@@ -81,7 +80,6 @@ object AppModules {
     private val pagingSource = module {
         single { GeotagingPagingMediator(get(), get()) }
         single { BlockPagingMediator(get(), get()) }
-        single { PlantPagingMediator(get(), get()) }
     }
 
     val modules: List<Module> = listOf(

@@ -14,14 +14,8 @@ interface PlantsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllplants(plants: List<ItemAllPlants>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAllKeyPlants(remoteKey: List<RemoteKeys>)
-
-    @Query("SELECT * FROM remote_keys WHERE id = :id")
-    suspend fun getRemoteKeysIdPlants(id:String): RemoteKeys?
-
     @Query("SELECT * FROM all_plants")
-    fun retrieveAllplants(): PagingSource<Int, ItemAllPlants>
+    suspend fun retrieveAllPlants(): List<ItemAllPlants>
 
     @Query("DELETE FROM all_plants")
     suspend fun deleteAllPlants()

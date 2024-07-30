@@ -50,11 +50,11 @@ class VmApplication(
     val geotagingLocalResult: LiveData<PagingData<ItemAllGeotaging>> = _geotagingLocalResult
 
 
-    private val _plantLocalResult = MutableStateFlow<PagingData<ItemAllPlants>>(PagingData.empty())
-    val plantLocalResult: StateFlow<PagingData<ItemAllPlants>> = _plantLocalResult
-
     private val _blockLocalResult = MutableLiveData<PagingData<ItemAllBlocks>>()
     val blockLocalResult: LiveData<PagingData<ItemAllBlocks>> = _blockLocalResult
+
+    private val _plantsLiveData = MutableLiveData<List<ItemAllPlants>>()
+    val plantsLiveData: LiveData<List<ItemAllPlants>> = _plantsLiveData
 
     private val _isUserLogin = MutableLiveData<Boolean>()
     val isUserLogin: LiveData<Boolean> = _isUserLogin
@@ -115,6 +115,16 @@ class VmApplication(
         }
     }
 
+    fun fetchPlants() {
+        viewModelScope.launch {
+            try {
+                val plants = repo.retrieveAllPlants()
+                _plantsLiveData.postValue(plants)
+            } catch (e: Exception) {
+                _plantsLiveData.postValue(emptyList())
+            }
+        }
+    }
 
     fun loadPagingGeotagging(
         adapter: DatabaseListAdapterItem,
@@ -182,14 +192,6 @@ class VmApplication(
         }
     }
 
-    fun fetchPlantLocal() {
-        viewModelScope.launch {
-            repo.fetchAllPlantLocal() // Assuming this returns Flow<PagingData<ItemAllPlants>>
-                .collect { pagingData ->
-                    _plantLocalResult.value = pagingData
-                }
-        }
-    }
 
     fun getPlant() {
         viewModelScope.launch {
