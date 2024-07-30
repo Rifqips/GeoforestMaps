@@ -3,13 +3,18 @@ package id.application.geoforestmaps.presentation.feature.history
 import android.view.View
 import androidx.core.view.isGone
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
+import id.application.core.data.network.model.geotags.AllGeotaging
 import id.application.core.domain.model.History
 import id.application.core.utils.BaseFragment
+import id.application.core.utils.ResultWrapper
+import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentHistoryBinding
 import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
 import id.application.geoforestmaps.presentation.adapter.history.HistoryListAdapter
+import id.application.geoforestmaps.presentation.feature.databaselist.AdapterGeotagingLocal
 import id.application.geoforestmaps.presentation.feature.history.HistoryData.listDataHistory
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
@@ -22,14 +27,12 @@ class HistoryFragment :
     private val adapterHistory = HistoryListAdapter()
     override val viewModel: VmApplication by viewModel()
 
-    private val adapterPagingGeotagging: DatabaseListAdapterItem by lazy {
-        DatabaseListAdapterItem{}
+    private val adapterPagingLocalGeotagging: AdapterGeotagingLocal by lazy {
+        AdapterGeotagingLocal {}
     }
-
     override fun initView() {
         rvListHistory()
         if (isNetworkAvailable(requireContext())) {
-            loadPagingGeotaging(adapter = adapterPagingGeotagging)
             setUpPaging()
             binding.layoutNoSignal.root.isGone = true
         } else {
@@ -46,23 +49,16 @@ class HistoryFragment :
 
     override fun initListener() {}
 
-    private fun loadPagingGeotaging(
-        adapter: DatabaseListAdapterItem,
-    ) {
-        viewModel.loadPagingGeotagging(
-            adapter,
-        )
-    }
-
     private fun setUpPaging(){
         if (view != null){
+            viewModel.fetchAllGeotagingLocal()
             parentFragment?.viewLifecycleOwner?.let {
-                viewModel.geotaggingList.observe(it) { pagingData ->
-                    adapterPagingGeotagging.submitData(lifecycle, pagingData)
+                viewModel.geotagingLocalResult.observe(viewLifecycleOwner){
+                    adapterPagingLocalGeotagging.submitData(viewLifecycleOwner.lifecycle, it)
                 }
             }
         }
-        adapterPagingGeotagging.addLoadStateListener { loadState ->
+        adapterPagingLocalGeotagging.addLoadStateListener { loadState ->
             with(binding){
                 if (loadState.refresh is LoadState.Loading) {
                     pbLoading.visibility = View.VISIBLE
@@ -73,7 +69,7 @@ class HistoryFragment :
                             layoutManager = LinearLayoutManager(context).apply {
                                 isSmoothScrollbarEnabled = true
                             }
-                            adapter = adapterPagingGeotagging
+                            adapter = adapterPagingLocalGeotagging
 
                         }
                     }
@@ -87,6 +83,7 @@ class HistoryFragment :
         binding.rvHistoryData.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         adapterHistory.setData(listDataHistory)
     }
+
 
 
 }

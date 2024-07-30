@@ -11,9 +11,10 @@ import id.application.core.data.local.database.plants.PlantsDao
 import id.application.core.data.network.model.blocks.AllBlocks
 import id.application.core.data.network.model.geotags.AllGeotaging
 import id.application.core.data.network.model.plants.AllPlants
+import id.application.core.domain.model.remotekeys.RemoteKeys
 
 @Database(
-    entities = [AllBlocks::class, AllGeotaging::class,AllPlants::class],
+    entities = [AllBlocks::class, AllGeotaging::class,AllPlants::class, RemoteKeys::class],
     version = 1,
     exportSchema = false
 )

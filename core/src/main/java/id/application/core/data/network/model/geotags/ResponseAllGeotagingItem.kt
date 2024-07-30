@@ -18,7 +18,7 @@ import com.google.gson.annotations.SerializedName
 @Keep
 data class DataAllGeotaging(
     @SerializedName("currentItemCount") val currentItemCount: Int,
-    @SerializedName("items") val items: List<AllGeotaging>,
+    @SerializedName("items") val items: List<AllGeotaging> = listOf(),
     @SerializedName("itemsPerPage") val itemsPerPage: Int,
     @SerializedName("pageIndex") val pageIndex: Int,
     @SerializedName("totalPages") val totalPages: Int

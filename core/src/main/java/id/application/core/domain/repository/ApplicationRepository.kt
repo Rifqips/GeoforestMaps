@@ -1,8 +1,10 @@
 package id.application.core.domain.repository
 
+import androidx.paging.PagingData
 import id.application.core.R
 import id.application.core.data.datasource.AppPreferenceDataSource
 import id.application.core.data.datasource.ApplicationDataSource
+import id.application.core.data.network.model.geotags.AllGeotaging
 import id.application.core.data.network.model.login.RequestLoginItem
 import id.application.core.data.network.model.profile.toProfileResponse
 import id.application.core.domain.model.blocks.ItemAllBlocksResponse
@@ -17,6 +19,7 @@ import id.application.core.domain.model.login.toLoginResponse
 import id.application.core.domain.model.plants.ItemAllPlantsResponse
 import id.application.core.domain.model.plants.toAllPlantsResponse
 import id.application.core.domain.model.profile.UserProfileResponse
+import id.application.core.domain.paging.GeotagingPagingMediator
 import id.application.core.utils.AssetWrapperApp
 import id.application.core.utils.ResultWrapper
 import id.application.core.utils.proceedFlow
@@ -46,6 +49,9 @@ interface  ApplicationRepository{
         pageItem:Int? = null,
     ): ItemAllGeotagingResponse
 
+    suspend fun fetchAllGeotagingLocal(): Flow<PagingData<AllGeotaging>>
+
+
     suspend fun getAllPlants(
         limitItem:Int? = null,
         pageItem:Int? = null,
@@ -72,7 +78,8 @@ interface  ApplicationRepository{
 class ApplicationRepositoryImpl(
     private val appDataSource: ApplicationDataSource,
     private val appPreferenceDataSource: AppPreferenceDataSource,
-    private val assetWrapper : AssetWrapperApp
+    private val assetWrapper : AssetWrapperApp,
+    private val paging : GeotagingPagingMediator
 ) : ApplicationRepository{
     override suspend fun userLogin(request: UserLoginRequest): Flow<ResultWrapper<UserLoginResponse>> {
         return proceedFlow {
@@ -112,6 +119,10 @@ class ApplicationRepositoryImpl(
         pageItem: Int?
     ): ItemAllGeotagingResponse {
         return appDataSource.getAllGeotaging(block, createdBy,limitItem, pageItem).toAllGeotagingResponse()
+    }
+
+    override suspend fun fetchAllGeotagingLocal(): Flow<PagingData<AllGeotaging>> {
+        return paging.fetchGeotags()
     }
 
     override suspend fun getAllPlants(

@@ -13,6 +13,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.liveData
 import id.application.core.data.datasource.AppPreferenceDataSource
+import id.application.core.data.network.model.geotags.AllGeotaging
 import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.core.domain.model.login.UserLoginRequest
 import id.application.core.domain.model.login.UserLoginResponse
@@ -44,6 +45,9 @@ class VmApplication(
 
     private val _loginResult = MutableLiveData<ResultWrapper<UserLoginResponse>>()
     val loginResult: LiveData<ResultWrapper<UserLoginResponse>> = _loginResult
+
+    private val _geotagingLocalResult = MutableLiveData<PagingData<AllGeotaging>>()
+    val geotagingLocalResult: LiveData<PagingData<AllGeotaging>> = _geotagingLocalResult
 
     private val _isUserLogin = MutableLiveData<Boolean>()
     val isUserLogin: LiveData<Boolean> = _isUserLogin
@@ -182,6 +186,14 @@ class VmApplication(
     val geotaggingListAll = Pager(PagingConfig(pageSize = 4)) {
         GeotagingAllPagingSource(repo)
     }.liveData.cachedIn(viewModelScope)
+
+    fun fetchAllGeotagingLocal(){
+        viewModelScope.launch {
+            repo.fetchAllGeotagingLocal().collect{
+                _geotagingLocalResult.postValue(it)
+            }
+        }
+    }
 
     fun getPlant() {
         viewModelScope.launch {

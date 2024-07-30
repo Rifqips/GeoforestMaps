@@ -16,6 +16,7 @@ import id.application.core.data.local.datastore.PreferenceDataStoreHelperImpl
 import id.application.core.data.local.datastore.appDataSource
 import id.application.core.data.network.interceptor.AuthInterceptor
 import id.application.core.data.network.service.ApplicationService
+import id.application.core.domain.paging.GeotagingPagingMediator
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.domain.repository.ApplicationRepositoryImpl
 import id.application.core.utils.AssetWrapperApp
@@ -63,7 +64,11 @@ object AppModules {
     }
 
     private val repositoryModule = module {
-        single<ApplicationRepository> { ApplicationRepositoryImpl(get(), get(), get())  }
+        single<ApplicationRepository> { ApplicationRepositoryImpl(get(), get(), get(), get())  }
+    }
+
+    private val pagingSource = module {
+        single { GeotagingPagingMediator(get(), get()) }
     }
 
     val modules: List<Module> = listOf(
@@ -74,7 +79,7 @@ object AppModules {
         dataSourceModule,
         repositoryModule,
         utilsModule,
+        pagingSource,
         firebaseModule
     )
-
 }
