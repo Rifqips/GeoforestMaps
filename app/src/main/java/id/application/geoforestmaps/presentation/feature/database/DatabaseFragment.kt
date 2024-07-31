@@ -32,7 +32,6 @@ class DatabaseFragment :
         if (isNetworkAvailable(requireContext())) {
             binding.layoutNoSignal.root.isGone = true
         } else {
-            binding.layoutNoSignal.root.isGone = false
             binding.pbLoading.isGone = true
             StyleableToast.makeText(
                 requireContext(),

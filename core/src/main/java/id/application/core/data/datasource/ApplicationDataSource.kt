@@ -34,8 +34,8 @@ interface ApplicationDataSource {
     ): ResponseAllBlocksItem
 
     suspend fun createGeotaging(
-        plant: RequestBody?,
-        block: RequestBody?,
+        plantId: RequestBody?,
+        blockId: RequestBody?,
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
@@ -77,14 +77,14 @@ class ApplicationDataSourceImpl(private val service: ApplicationService) : Appli
     }
 
     override suspend fun createGeotaging(
-        plant: RequestBody?,
-        block: RequestBody?,
+        plantId: RequestBody?,
+        blockId: RequestBody?,
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
         userImage: MultipartBody.Part?
     ): ResponseAllGeotagingItem {
-        return service.createGeotaging( plant, block, latitude, longitude, altitude, userImage)
+        return service.createGeotaging(plantId, blockId, latitude, longitude, altitude, userImage)
     }
 
     override suspend fun exportFile(type: String?, block: String?, geoatagId : Int?): Response<ResponseBody> {

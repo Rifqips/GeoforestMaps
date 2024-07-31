@@ -200,25 +200,36 @@ class VmApplication(
             }
         }
     }
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> get() = _isLoading
+
+    private val _error = MutableLiveData<String>()
+    val error: LiveData<String> get() = _error
 
     fun createGeotaging(
-        plant: RequestBody?,
-        block: RequestBody?,
+        plantId: RequestBody?,
+        blockId: RequestBody?,
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
         userImage: MultipartBody.Part?
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            repo.createGeotaging(
-                plant,
-                block,
-                latitude,
-                longitude,
-                altitude,
-                userImage
-            ).collect {
-                _geotagingCreateResult.postValue(it)
+            _isLoading.postValue(true) // Set loading to true
+
+            try {
+                repo.createGeotaging(
+                    plantId,
+                    blockId,
+                    latitude,
+                    longitude,
+                    altitude,
+                    userImage
+                )
+                _isLoading.postValue(false) // Set loading to false when done
+            } catch (e: Exception) {
+                _isLoading.postValue(false) // Set loading to false in case of error
+                _error.postValue(e.message) // Post error message
             }
         }
     }

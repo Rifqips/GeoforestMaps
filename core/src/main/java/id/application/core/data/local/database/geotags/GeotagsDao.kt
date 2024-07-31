@@ -20,7 +20,7 @@ interface GeotagsDao {
     @Query("SELECT * FROM remote_keys WHERE id = :id")
     suspend fun getRemoteKeysIdGeotags(id:String): RemoteKeys?
 
-    @Query("SELECT * FROM all_geotaging")
+    @Query("SELECT * FROM all_geotaging ORDER BY created_at DESC")
     fun retrieveAllGeotags(): PagingSource<Int, ItemAllGeotaging>
 
     @Query("DELETE FROM all_geotaging")

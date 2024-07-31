@@ -265,8 +265,10 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         val marker = Marker(mMap)
         marker.position = GeoPoint(lat, lon)
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-//        marker.icon = resources.getDrawable(R.drawable.ic_marker, null)
-        marker.icon
+
+        val icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_marker_purple)
+        marker.icon = icon
+
         mMap.overlays.add(marker)
         mMap.invalidate()
     }

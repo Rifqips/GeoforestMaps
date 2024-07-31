@@ -1,6 +1,5 @@
 package id.application.core.data.local.mediator
 
-import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -49,7 +48,7 @@ class GeotagingRemoteMediator(
             }
         }
         return try {
-            val responseData = apiEndPoint.getAllGeotaging(pageItem = page, createdBy = "user")
+            val responseData = apiEndPoint.getAllGeotaging(pageItem = page, createdBy = "user", sort = "created_at:desc")
             val endOfPaginationReached = responseData.data.items.isEmpty()
             database.withTransaction {
                 if (loadType == LoadType.REFRESH){

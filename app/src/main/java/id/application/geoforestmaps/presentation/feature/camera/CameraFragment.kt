@@ -44,6 +44,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import coil.load
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -57,6 +58,8 @@ import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant
 import id.application.geoforestmaps.utils.Constant.IMAGE_FORMAT
 import io.github.muddz.styleabletoast.StyleableToast
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -81,8 +84,8 @@ class CameraFragment :
     private var selectedPlantType = ""
     private var blokName = ""
     private var plantTypes = mutableListOf<String>()
-    private var idPlant = 0
-    private var idBlock: Int? = 0
+    private var idPlant = ""
+    private var idBlock = ""
     private var addressText = ""
     private var latitude = 0.0
     private var longitude = 0.0
@@ -98,7 +101,7 @@ class CameraFragment :
 
         // inisialisasi blok_name
         blokName = title.toString()
-        idBlock = arguments?.getInt("ID_BLOCK")
+        idBlock = arguments?.getInt("ID_BLOCK").toString()
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         checkPermissions()
@@ -176,7 +179,7 @@ class CameraFragment :
                                 getString(R.string.selected_item) + " " + selectedPlantType,
                                 Toast.LENGTH_SHORT
                             ).show()
-                            idPlant = plants.find { it.name == selectedPlantType }?.id ?: 0
+                            idPlant = (plants.find { it.name == selectedPlantType }?.id ?: 0).toString()
                         }
                     }
 
@@ -184,26 +187,23 @@ class CameraFragment :
                 }
             }
         }
-        viewModel.geotagingCreateResult.observe(viewLifecycleOwner){ result ->
-            result.proceedWhen(
-                doOnLoading = {
-                    binding.pbLoadingCamera.isGone = false
-                },
-                doOnSuccess = {
-                    binding.pbLoadingCamera.isGone = true
-                    StyleableToast.makeText(
-                        requireContext(),
-                        getString(R.string.sukses_membuat_geotaging),
-                        R.style.successtoast
-                    ).show()
-                },
-            )
-        }
-
-        // inisialisasi user name
         viewModel.getUserName()
         viewModel.isUserName.observe(viewLifecycleOwner){
             userName = it
+        }
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            if (isLoading) {
+                binding.pbLoadingCamera.visibility = View.VISIBLE
+            } else {
+                binding.pbLoadingCamera.visibility = View.GONE
+                showDialogConfirmSaveData()
+            }
+        }
+
+        viewModel.error.observe(viewLifecycleOwner) { errorMessage ->
+            errorMessage?.let {
+                Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -236,7 +236,6 @@ class CameraFragment :
                 startCamera()
                 getCurrentLocation()
             } else {
-                // Permission denied
                 Toast.makeText(requireContext(), "Permissions not granted", Toast.LENGTH_SHORT)
                     .show()
             }
@@ -296,7 +295,6 @@ class CameraFragment :
                     imageCapture,
                     imageAnalysis
                 )
-                Log.d("CameraFragment", "Camera started")
             } catch (e: Exception) {
                 Log.e("CameraFragment", "Error starting camera: ${e.message}", e)
             }
@@ -706,17 +704,17 @@ class CameraFragment :
                         imageRequestBody
                     )
                     viewModel.createGeotaging(
-                        selectedPlantType.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-                        blokName.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                        idPlant.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                        idBlock.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
                         latitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
                         longitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
                         altitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
                         imageMultipart
                     )
+                    Log.d("check-post", "$idPlant $idBlock $latitude $longitude $altitude")
                 } else {
                     Toast.makeText(requireContext(), "File tidak dapat diakses", Toast.LENGTH_SHORT).show()
                 }
-                showDialogConfirmSaveData()
             }
             layoutCheckData.topBar.ivBack.setOnClickListener {
                 stateLayout(false)
@@ -741,12 +739,12 @@ class CameraFragment :
             tvDialogDesc.text = "Input data sudah berhasil disimpan"
             tvDialogSubDesc.text = "Ambil Foto Lagi ?"
             btnYes.setOnClickListener {
-                navigateToHome()
+                findNavController().navigateUp()
                 dialog.dismiss()
             }
 
             btnNo.setOnClickListener {
-                findNavController().navigateUp()
+                navigateToHome()
                 dialog.dismiss()
             }
             root.setOnTouchListener { _, _ ->
