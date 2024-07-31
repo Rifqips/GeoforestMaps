@@ -12,11 +12,12 @@ import id.application.core.data.local.database.geotags.GeotagsOfflineDao
 import id.application.core.data.local.database.plants.PlantsDao
 import id.application.core.domain.model.blocks.ItemAllBlocks
 import id.application.core.domain.model.geotags.ItemAllGeotaging
+import id.application.core.domain.model.geotags.ItemAllGeotagingOffline
 import id.application.core.domain.model.plants.ItemAllPlants
 import id.application.core.domain.model.remotekeys.RemoteKeys
 
 @Database(
-    entities = [ItemAllBlocks::class, ItemAllGeotaging::class, ItemAllPlants::class, RemoteKeys::class],
+    entities = [ItemAllBlocks::class, ItemAllGeotaging::class, ItemAllPlants::class, RemoteKeys::class, ItemAllGeotagingOffline::class],
     version = 2,
     exportSchema = false
 )

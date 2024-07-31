@@ -74,8 +74,8 @@ interface  ApplicationRepository{
     ): ItemAllBlocksResponse
 
     suspend fun createGeotaging(
-        plantId: RequestBody?,
-        blockId: RequestBody?,
+        plant: RequestBody?,
+        block: RequestBody?,
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
@@ -173,8 +173,8 @@ class ApplicationRepositoryImpl(
     }
 
     override suspend fun createGeotaging(
-        plantId: RequestBody?,
-        blockId: RequestBody?,
+        plant: RequestBody?,
+        block: RequestBody?,
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
@@ -182,8 +182,8 @@ class ApplicationRepositoryImpl(
     ): Flow<ResultWrapper<List<ItemAllGeotaging>>> {
         return proceedFlow {
             appDataSource.createGeotaging(
-                plantId,
-                blockId,
+                plant,
+                block,
                 latitude,
                 longitude,
                 altitude,

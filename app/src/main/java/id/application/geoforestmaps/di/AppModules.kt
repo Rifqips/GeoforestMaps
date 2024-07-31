@@ -50,6 +50,7 @@ object AppModules {
         single { get<ApplicationDatabase>().blocksDao() }
         single { get<ApplicationDatabase>().geotagsDao() }
         single { get<ApplicationDatabase>().plantsDao() }
+        single { get<ApplicationDatabase>().geotagsOfflineDao() }
 
     }
 
@@ -67,6 +68,7 @@ object AppModules {
     private val repositoryModule = module {
         single<ApplicationRepository> {
             ApplicationRepositoryImpl(
+                get(),
                 get(),
                 get(),
                 get(),

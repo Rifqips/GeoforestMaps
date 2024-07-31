@@ -202,8 +202,8 @@ class VmApplication(
     }
 
     fun createGeotaging(
-        plantId: RequestBody?,
-        blockId: RequestBody?,
+        plant: RequestBody?,
+        block: RequestBody?,
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
@@ -211,8 +211,8 @@ class VmApplication(
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             repo.createGeotaging(
-                plantId,
-                blockId,
+                plant,
+                block,
                 latitude,
                 longitude,
                 altitude,

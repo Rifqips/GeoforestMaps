@@ -706,8 +706,8 @@ class CameraFragment :
                         imageRequestBody
                     )
                     viewModel.createGeotaging(
-                        idPlant.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-                        idBlock.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                        selectedPlantType.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                        blokName.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
                         latitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
                         longitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
                         altitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
