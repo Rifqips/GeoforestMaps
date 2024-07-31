@@ -65,6 +65,8 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class CameraFragment :
@@ -86,6 +88,8 @@ class CameraFragment :
     private var longitude = 0.0
     private var altitude = 0
     private var savedUri: Uri = Uri.EMPTY
+    private var userName = ""
+    private var dateTime = ""
 
     override fun initView() {
         onBackPressed()
@@ -166,7 +170,7 @@ class CameraFragment :
                         id: Long
                     ) {
                         if (view != null) {
-                            val selectedPlantType = plantNames[position]
+                            selectedPlantType = plantNames[position]
                             Toast.makeText(
                                 requireContext(),
                                 getString(R.string.selected_item) + " " + selectedPlantType,
@@ -194,6 +198,12 @@ class CameraFragment :
                     ).show()
                 },
             )
+        }
+
+        // inisialisasi user name
+        viewModel.getUserName()
+        viewModel.isUserName.observe(viewLifecycleOwner){
+            userName = it
         }
     }
 
@@ -314,6 +324,10 @@ class CameraFragment :
             if (result.resultCode == Activity.RESULT_OK) {
                 val selectedImg: Uri? = result.data?.data
                 selectedImg?.let {
+                    // inisialisasi datetime
+                    val dateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale("id", "ID"))
+                    dateTime = dateFormat.format(Date())
+
                     // add location to image and intent result to checkdata layout
                     addLocationToImageFromGallery(it)
                 }
@@ -354,7 +368,8 @@ class CameraFragment :
                 addressText = if (addresses.isNullOrEmpty()) {
                     "Alamat tidak tersedia"
                 } else {
-                    addresses[0].getAddressLine(0) + " | Longitude: ${it.longitude} | Latitude: ${it.latitude}"
+                    "Latitude\t: ${it.latitude}\nLongitude\t: ${it.longitude}\nAltitude\t: ${it.altitude}" +
+                            "\nBlock\t: $blokName\nPlant\t: $selectedPlantType\nUser\t: $userName\nDate Time\t: $dateTime"
                 }
                 latitude = it.latitude
                 longitude = it.longitude
@@ -440,6 +455,11 @@ class CameraFragment :
         getCurrentLocation()
         val photoFile = Constant.createFile(requireActivity().application)
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+        // inisialisasi datetime
+        val dateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale("id", "ID"))
+        dateTime = dateFormat.format(Date())
+
         imageCapture.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(requireContext()),
@@ -515,7 +535,8 @@ class CameraFragment :
                 addressText = if (addresses.isNullOrEmpty()) {
                     "Alamat tidak tersedia"
                 } else {
-                    addresses[0].getAddressLine(0) + " | Longitude: ${it.longitude} | Latitude: ${it.latitude}"
+                    "Latitude\t: ${it.latitude}\nLongitude\t: ${it.longitude}\nAltitude\t: ${it.altitude}" +
+                            "\nBlock\t: $blokName\nPlant\t: $selectedPlantType\nUser\t: $userName\nDate Time\t: $dateTime "
                 }
                 // inisialisasi request data for create geotaging
                 latitude = it.latitude

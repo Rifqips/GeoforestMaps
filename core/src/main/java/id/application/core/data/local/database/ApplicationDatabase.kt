@@ -8,6 +8,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import id.application.core.data.local.database.blocks.BlocksDao
 import id.application.core.data.local.database.geotags.GeotagsDao
+import id.application.core.data.local.database.geotags.GeotagsOfflineDao
 import id.application.core.data.local.database.plants.PlantsDao
 import id.application.core.domain.model.blocks.ItemAllBlocks
 import id.application.core.domain.model.geotags.ItemAllGeotaging
@@ -24,6 +25,7 @@ abstract class ApplicationDatabase : RoomDatabase() {
     abstract fun blocksDao(): BlocksDao
     abstract fun geotagsDao(): GeotagsDao
     abstract fun plantsDao(): PlantsDao
+    abstract fun geotagsOfflineDao(): GeotagsOfflineDao
 
     companion object {
 
@@ -35,6 +37,7 @@ abstract class ApplicationDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE all_geotaging RENAME TO all_geotaging_two")
                 db.execSQL("ALTER TABLE all_blocks RENAME TO all_blocks_two")
                 db.execSQL("ALTER TABLE all_plants RENAME TO all_plants_two")
+                db.execSQL("ALTER TABLE all_geotaging_offline RENAME TO all_geotaging_offline_two")
 
                 // Membuat tabel baru untuk all_geotaging
                 db.execSQL(
@@ -78,6 +81,24 @@ abstract class ApplicationDatabase : RoomDatabase() {
             """
                 )
 
+                // Membuat tabel baru untuk all_geotaging_offline
+                db.execSQL(
+                    """
+            CREATE TABLE all_geotaging_offline (
+                id INTEGER PRIMARY KEY NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                altitude REAL NOT NULL,
+                block TEXT NOT NULL,
+                latitude REAL NOT NULL,
+                longitude REAL NOT NULL,
+                photo TEXT NOT NULL,
+                plant TEXT NOT NULL,
+                user_id INTEGER NOT NULL
+            )
+            """
+                )
+
                 // Menyalin data dari tabel lama ke tabel baru
                 db.execSQL(
                     """
@@ -103,10 +124,20 @@ abstract class ApplicationDatabase : RoomDatabase() {
             """
                 )
 
+                // GeotagsOffline
+                db.execSQL(
+                    """
+            INSERT INTO all_geotaging_offline (id, created_at, updated_at, altitude, block, latitude, longitude, photo, plant, user_id)
+            SELECT id, created_at, updated_at, altitude, block, latitude, longitude, photo, plant, user_id
+            FROM all_geotaging_offline_two
+            """
+                )
+
                 // Menghapus tabel lama
                 db.execSQL("DROP TABLE all_geotaging_two")
                 db.execSQL("DROP TABLE all_blocks_two")
                 db.execSQL("DROP TABLE all_plants_two")
+                db.execSQL("DROP TABLE all_geotaging_offline_two")
             }
         }
 

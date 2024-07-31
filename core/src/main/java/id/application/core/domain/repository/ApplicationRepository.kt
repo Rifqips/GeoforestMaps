@@ -5,6 +5,7 @@ import androidx.paging.PagingData
 import id.application.core.R
 import id.application.core.data.datasource.AppPreferenceDataSource
 import id.application.core.data.datasource.ApplicationDataSource
+import id.application.core.data.local.database.geotags.GeotagsOfflineDao
 import id.application.core.data.local.database.plants.PlantsDao
 import id.application.core.data.network.model.login.RequestLoginItem
 import id.application.core.data.network.model.profile.toProfileResponse
@@ -12,6 +13,7 @@ import id.application.core.domain.model.blocks.ItemAllBlocks
 import id.application.core.domain.model.blocks.ItemAllBlocksResponse
 import id.application.core.domain.model.blocks.toAllBlockResponse
 import id.application.core.domain.model.geotags.ItemAllGeotaging
+import id.application.core.domain.model.geotags.ItemAllGeotagingOffline
 import id.application.core.domain.model.geotags.ItemAllGeotagingResponse
 import id.application.core.domain.model.geotags.toAllGeotagingList
 import id.application.core.domain.model.geotags.toAllGeotagingResponse
@@ -26,6 +28,7 @@ import id.application.core.domain.paging.BlockPagingMediator
 import id.application.core.domain.paging.GeotagingPagingMediator
 import id.application.core.utils.AssetWrapperApp
 import id.application.core.utils.ResultWrapper
+import id.application.core.utils.proceed
 import id.application.core.utils.proceedFlow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +36,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.toList
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -80,6 +84,8 @@ interface  ApplicationRepository{
 
     suspend fun exportFile(type: String?, block: String?, geoatagId : Int?): Response<ResponseBody>
 
+    fun getAllGeotagingOffline(): Flow<ResultWrapper<List<ItemAllGeotagingOffline>>>
+
 }
 
 class ApplicationRepositoryImpl(
@@ -89,6 +95,7 @@ class ApplicationRepositoryImpl(
     private val pagingGeotaging : GeotagingPagingMediator,
     private val pagingBlock : BlockPagingMediator,
     private val plantsDao: PlantsDao,
+    private val geotagsOfflineDao : GeotagsOfflineDao
 ) : ApplicationRepository{
 
     override suspend fun userLogin(request: UserLoginRequest): Flow<ResultWrapper<UserLoginResponse>> {
@@ -199,4 +206,23 @@ class ApplicationRepositoryImpl(
     override suspend fun exportFile(type: String?, block: String?, geoatagId: Int?):  Response<ResponseBody> {
         return appDataSource.exportFile(type, block, geoatagId)
     }
+
+    override fun getAllGeotagingOffline(): Flow<ResultWrapper<List<ItemAllGeotagingOffline>>> {
+        return proceedFlow {
+            geotagsOfflineDao.getAllGeotagsOffline().toList()
+        }.map{
+            if (it.payload?.isEmpty() == true) {
+                ResultWrapper.Empty(it.payload)
+            } else {
+                it
+            }
+        }.catch {
+            emit(ResultWrapper.Error(Exception(it)))
+        }.onStart {
+            emit(ResultWrapper.Loading())
+            delay(3000)
+        }
+    }
+
+
 }

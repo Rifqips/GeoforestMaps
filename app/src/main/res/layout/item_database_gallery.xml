@@ -16,8 +16,8 @@
         
         <ImageView
             android:id="@+id/iv_download"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:translationZ="10dp"
             android:padding="10dp"
             android:src="@drawable/ic_download_white"
