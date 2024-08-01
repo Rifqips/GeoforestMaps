@@ -7,7 +7,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.util.Log
 import id.application.geoforestmaps.R
 import okhttp3.ResponseBody
 import java.io.File

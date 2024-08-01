@@ -16,6 +16,7 @@ interface AppPreferenceDataSource {
     suspend fun saveUserEmail(email: String)
     suspend fun getUserEmail(): String
     suspend fun deleteAllData()
+
 }
 
 class AppPreferenceDataSourceImpl(

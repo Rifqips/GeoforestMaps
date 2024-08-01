@@ -1,12 +1,11 @@
 package id.application.geoforestmaps.presentation.feature.database
 
-import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.core.view.isGone
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
-import id.application.core.domain.model.blocks.ItemAllBlocks
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentDatabaseBinding
@@ -23,7 +22,10 @@ class DatabaseFragment :
 
     private val adapterPagingLocalBlock: AdapterBlockLocal by lazy {
         AdapterBlockLocal {
-            navigateToDatabaseOption(it)
+            viewModel.saveBlockName({
+                navigateToDatabaseOption()
+            }, it.name)
+            Toast.makeText(context, "block ${it.name}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -72,8 +74,7 @@ class DatabaseFragment :
         }
     }
 
-    private fun navigateToDatabaseOption(itemAllBlocks : ItemAllBlocks){
-        viewModel.saveBlockName(itemAllBlocks.name)
+    private fun navigateToDatabaseOption(){
         val navController =
             activity?.supportFragmentManager
                 ?.findFragmentById(R.id.container_navigation)?.findNavController()

@@ -7,7 +7,6 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Environment
 import android.view.View
 import androidx.activity.OnBackPressedCallback
-import androidx.core.view.isGone
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
@@ -60,6 +59,7 @@ class DatabaseGalleryFragment :
         with(binding){
             topbar.ivBack.setOnClickListener {
                 findNavController().popBackStack()
+                clearTrafficPaging()
             }
             topbar.ivDownlaod.setOnClickListener {
                 exportFile()
@@ -178,55 +178,74 @@ class DatabaseGalleryFragment :
     }
 
     private fun setUpPaging() {
-        if (view != null) {
-            parentFragment?.viewLifecycleOwner?.let {
-                viewModel.geotaggingListAll.observe(it) { pagingData ->
+        view?.let {
+            parentFragment?.viewLifecycleOwner?.let { lifecycleOwner ->
+                viewModel.geotaggingListAll.observe(lifecycleOwner) { pagingData ->
                     adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
             }
 
             adapterPagingGeotagging.addLoadStateListener { loadState ->
                 with(binding) {
-                    if (loadState.refresh is LoadState.Loading) {
-                        pbLoading.visibility = View.VISIBLE
-                        topbar.ivDownlaod.visibility = View.GONE
-                    } else {
-                        pbLoading.visibility = View.GONE
-                        topbar.ivDownlaod.visibility = View.VISIBLE
-                        val isEmpty = (loadState.refresh is LoadState.NotLoading &&
-                                adapterPagingGeotagging.itemCount == 0)
-                        if (isEmpty) {
-                            tvValidatingData.isGone = false
-                            tvValidatingData.text = "Belum ada data"
+                    when (loadState.refresh) {
+                        is LoadState.Loading -> {
+                            pbLoading.visibility = View.VISIBLE
+                            topbar.ivDownlaod.visibility = View.GONE
                         }
+                        is LoadState.NotLoading -> {
+                            pbLoading.visibility = View.GONE
+                            topbar.ivDownlaod.visibility = View.VISIBLE
 
-                        if (view != null) {
-                            rvDatabaseGallery.apply {
-                                layoutManager = GridLayoutManager(
-                                    context,
-                                    2,
-                                    GridLayoutManager.VERTICAL,
-                                    false
-                                ).apply {
-                                    isSmoothScrollbarEnabled = true
-                                }
-                                adapter = adapterPagingGeotagging
+                            // Handle empty state
+                            if (adapterPagingGeotagging.itemCount == 0) {
+                                tvValidatingData.visibility = View.VISIBLE
+                                tvValidatingData.text = "Belum ada data"
+                            } else {
+                                tvValidatingData.visibility = View.GONE
                             }
+                        }
+                        is LoadState.Error -> {
+                            pbLoading.visibility = View.GONE
+                            topbar.ivDownlaod.visibility = View.VISIBLE
                         }
                     }
                 }
             }
+
+            // Initialize RecyclerView layout and adapter
+            binding.rvDatabaseGallery.apply {
+                layoutManager = GridLayoutManager(
+                    context,
+                    2,
+                    GridLayoutManager.VERTICAL,
+                    false
+                ).apply {
+                    isSmoothScrollbarEnabled = true
+                }
+                adapter = adapterPagingGeotagging
+            }
         }
     }
+
+
     private fun onBackPressed() {
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     findNavController().popBackStack()
+                    clearTrafficPaging()
                 }
             }
         )
     }
 
+    private fun clearTrafficPaging(){
+        viewModel.geotaggingListAll.removeObservers(viewLifecycleOwner)
+        binding.rvDatabaseGallery.adapter = null
+    }
+
+    override fun onStart() {
+        super.onStart()
+    }
 }

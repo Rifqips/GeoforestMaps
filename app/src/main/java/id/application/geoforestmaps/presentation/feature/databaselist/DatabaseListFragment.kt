@@ -49,6 +49,7 @@ class DatabaseListFragment :
         with(binding){
             topbar.ivBack.setOnClickListener {
                 findNavController().popBackStack()
+                clearTrafficPaging()
             }
             topbar.ivDownlaod.setOnClickListener {
                 exportFile()
@@ -148,34 +149,44 @@ class DatabaseListFragment :
     }
 
     private fun setUpPaging() {
-        if (view != null) {
-            parentFragment?.viewLifecycleOwner?.let {
-                viewModel.geotaggingListAll.observe(it) { pagingData ->
+        // Ensure the view and lifecycleOwner are not null
+        view?.let { view ->
+            parentFragment?.viewLifecycleOwner?.let { lifecycleOwner ->
+                // Observe PagingData from the ViewModel
+                viewModel.geotaggingListAll.observe(lifecycleOwner) { pagingData ->
+                    // Submit data to the adapter
                     adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
             }
+
             if (binding.rvDatabaseList.adapter == null) {
                 binding.rvDatabaseList.adapter = adapterPagingGeotagging
             }
 
+            // Listen to load state changes and update UI accordingly
             adapterPagingGeotagging.addLoadStateListener { loadState ->
                 with(binding) {
+                    // Handle loading state
                     if (loadState.refresh is LoadState.Loading) {
                         pbLoading.visibility = View.VISIBLE
                         topbar.ivDownlaod.visibility = View.GONE
+                        tvValidatingData.visibility = View.GONE
                     } else {
+                        // Handle not loading state
                         pbLoading.visibility = View.GONE
                         topbar.ivDownlaod.visibility = View.VISIBLE
                         val isEmpty = (loadState.refresh is LoadState.NotLoading &&
                                 adapterPagingGeotagging.itemCount == 0)
-
                         if (isEmpty) {
                             tvValidatingData.visibility = View.VISIBLE
                             tvValidatingData.text = "Belum ada data"
+                        } else {
+                            tvValidatingData.visibility = View.GONE
                         }
 
-                        rvDatabaseList.apply {
-                            layoutManager = LinearLayoutManager(
+                        // Ensure RecyclerView layout manager is set up
+                        if (binding.rvDatabaseList.layoutManager == null) {
+                            binding.rvDatabaseList.layoutManager = LinearLayoutManager(
                                 context,
                                 LinearLayoutManager.VERTICAL,
                                 false
@@ -184,19 +195,32 @@ class DatabaseListFragment :
                             }
                         }
                     }
+
+                    if (loadState.refresh is LoadState.Error) {
+                        pbLoading.visibility = View.GONE
+                        topbar.ivDownlaod.visibility = View.VISIBLE
+                    }
                 }
             }
         }
     }
+
+
     private fun onBackPressed() {
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     findNavController().popBackStack()
+                    clearTrafficPaging()
                 }
             }
         )
+    }
+
+    private fun clearTrafficPaging(){
+        viewModel.geotaggingListAll.removeObservers(viewLifecycleOwner)
+        binding.rvDatabaseList.adapter = null
     }
 
 }

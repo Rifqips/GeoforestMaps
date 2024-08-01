@@ -25,6 +25,7 @@ class DatabaseOptionFragment :
 
     override fun initView() {
         initVm()
+        onBackPressed()
         with(binding){
             rvDatabaseOption.adapter = adapter
             rvDatabaseOption.layoutManager = LinearLayoutManager(requireContext())
@@ -32,33 +33,37 @@ class DatabaseOptionFragment :
         }
     }
 
-    override fun initListener() {
-        with(binding){
-            topbar.ivBack.setOnClickListener {
-                findNavController().popBackStack()
-                onBackPressed()
-            }
-        }
-    }
-
     private fun initVm() {
         viewModel.getBlockName()
         viewModel.isBlockName.observe(viewLifecycleOwner) { blockName ->
             binding.topbar.ivTitle.text = blockName
+//            viewModel.deleteBlockName() kalo disini bisa ke triger hapus
+
         }
     }
+
+    override fun initListener() {
+        with(binding){
+            topbar.ivBack.setOnClickListener {
+                viewModel.deleteBlockName {
+                    findNavController().navigateUp()
+                }
+            }
+        }
+    }
+
     private fun navigateToFragment(actionId: Int) {
         findNavController().navigate(actionId)
     }
-
 
     private fun onBackPressed() {
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    viewModel.deleteBlockName()
-                    findNavController().popBackStack()
+                    viewModel.deleteBlockName {
+                        findNavController().navigateUp()
+                    }
                 }
             }
         )

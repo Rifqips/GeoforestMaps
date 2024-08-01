@@ -71,6 +71,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         with(binding) {
             topbar.ivBack.setOnClickListener {
                 findNavController().popBackStack()
+                clearTrafficPaging()
             }
         }
     }
@@ -277,9 +278,20 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     findNavController().popBackStack()
+                    clearTrafficPaging()
                 }
             }
         )
+    }
+
+    private fun clearTrafficPaging(){
+        viewModel.geotaggingListAll.removeObservers(viewLifecycleOwner)
+        binding.rvGeotaging.adapter = null
+    }
+
+    override fun onStart() {
+        super.onStart()
+        initVm()
     }
 
 }

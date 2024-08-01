@@ -2,7 +2,6 @@ package id.application.geoforestmaps.presentation.viewmodel
 
 import android.content.Context
 import android.os.Environment
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -27,9 +26,6 @@ import id.application.geoforestmaps.presentation.adapter.databasegallery.Databas
 import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
 import id.application.geoforestmaps.utils.Constant.generateUniqueFileName
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -97,6 +93,12 @@ class VmApplication(
         }
     }
 
+    fun deleteBlockName(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            appPreferenceDataSource.deleteBlockName()
+            onComplete()
+        }
+    }
     fun getUserName() {
         viewModelScope.launch {
             val userName = appPreferenceDataSource.getUserName()
@@ -104,21 +106,16 @@ class VmApplication(
         }
     }
 
-
-    fun saveBlockName(blockName: String){
+    fun saveBlockName(onComplete: () -> Unit, blockName: String) {
         viewModelScope.launch {
             appPreferenceDataSource.saveBlockName(blockName)
+            onComplete()
         }
     }
     fun getBlockName(){
         viewModelScope.launch {
             val blockName = appPreferenceDataSource.getBlockName()
             _isBlockName.postValue(blockName)
-        }
-    }
-    fun deleteBlockName(){
-        viewModelScope.launch {
-            appPreferenceDataSource.deleteBlockName()
         }
     }
 
@@ -133,7 +130,6 @@ class VmApplication(
     fun userLogout() {
         viewModelScope.launch {
             _logoutResults.value = repo.userLogout().first()
-
         }
     }
 

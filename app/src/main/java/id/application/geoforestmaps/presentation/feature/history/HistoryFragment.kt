@@ -1,6 +1,5 @@
 package id.application.geoforestmaps.presentation.feature.history
 
-import android.util.Log
 import android.view.View
 import androidx.core.view.isGone
 import androidx.paging.LoadState
