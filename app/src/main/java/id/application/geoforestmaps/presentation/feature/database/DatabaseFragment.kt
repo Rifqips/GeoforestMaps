@@ -25,7 +25,6 @@ class DatabaseFragment :
             viewModel.saveBlockName({
                 navigateToDatabaseOption()
             }, it.name)
-            Toast.makeText(context, "block ${it.name}", Toast.LENGTH_SHORT).show()
         }
     }
 

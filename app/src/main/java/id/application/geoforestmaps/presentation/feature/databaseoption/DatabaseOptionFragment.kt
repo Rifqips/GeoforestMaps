@@ -37,7 +37,6 @@ class DatabaseOptionFragment :
         viewModel.getBlockName()
         viewModel.isBlockName.observe(viewLifecycleOwner) { blockName ->
             binding.topbar.ivTitle.text = blockName
-//            viewModel.deleteBlockName() kalo disini bisa ke triger hapus
 
         }
     }

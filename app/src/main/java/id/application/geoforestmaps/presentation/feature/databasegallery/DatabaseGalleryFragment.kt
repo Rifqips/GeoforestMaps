@@ -7,10 +7,13 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Environment
 import android.view.View
 import androidx.activity.OnBackPressedCallback
+import androidx.core.view.size
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
@@ -176,17 +179,16 @@ class DatabaseGalleryFragment :
             blockName,
         )
     }
-
     private fun setUpPaging() {
-        view?.let {
+        view?.let { _ ->
             parentFragment?.viewLifecycleOwner?.let { lifecycleOwner ->
                 viewModel.geotaggingListAll.observe(lifecycleOwner) { pagingData ->
                     adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
             }
-
             adapterPagingGeotagging.addLoadStateListener { loadState ->
                 with(binding) {
+                    // Handle loading, not loading, and error states
                     when (loadState.refresh) {
                         is LoadState.Loading -> {
                             pbLoading.visibility = View.VISIBLE
@@ -195,34 +197,41 @@ class DatabaseGalleryFragment :
                         is LoadState.NotLoading -> {
                             pbLoading.visibility = View.GONE
                             topbar.ivDownlaod.visibility = View.VISIBLE
-
-                            // Handle empty state
-                            if (adapterPagingGeotagging.itemCount == 0) {
-                                tvValidatingData.visibility = View.VISIBLE
-                                tvValidatingData.text = "Belum ada data"
-                            } else {
-                                tvValidatingData.visibility = View.GONE
-                            }
                         }
                         is LoadState.Error -> {
                             pbLoading.visibility = View.GONE
                             topbar.ivDownlaod.visibility = View.VISIBLE
                         }
                     }
+
+                    with(binding.rvDatabaseGallery) {
+                        if (adapter == null) {
+                            adapter = adapterPagingGeotagging
+                        }
+                        if (layoutManager == null) {
+                            layoutManager = LinearLayoutManager(
+                                context,
+                                androidx.recyclerview.widget.LinearLayoutManager.VERTICAL,
+                                false
+                            ).apply {
+                                isSmoothScrollbarEnabled = true
+                            }
+                        }
+                    }
                 }
             }
-
-            // Initialize RecyclerView layout and adapter
-            binding.rvDatabaseGallery.apply {
-                layoutManager = GridLayoutManager(
-                    context,
-                    2,
-                    GridLayoutManager.VERTICAL,
-                    false
-                ).apply {
-                    isSmoothScrollbarEnabled = true
+            viewModel.loadingPagingResults.observe(viewLifecycleOwner){onLoadPaging ->
+                when(onLoadPaging){
+                    true ->{}
+                    false ->{
+                        if (adapterPagingGeotagging.itemCount == 0 && binding.rvDatabaseGallery.size == 0) {
+                            binding.tvValidatingData.visibility = View.VISIBLE
+                            binding.tvValidatingData.text = "Belum ada data"
+                        } else {
+                            binding.tvValidatingData.visibility = View.GONE
+                        }
+                    }
                 }
-                adapter = adapterPagingGeotagging
             }
         }
     }
@@ -243,6 +252,7 @@ class DatabaseGalleryFragment :
     private fun clearTrafficPaging(){
         viewModel.geotaggingListAll.removeObservers(viewLifecycleOwner)
         binding.rvDatabaseGallery.adapter = null
+        adapterPagingGeotagging.submitData(lifecycle, PagingData.empty())
     }
 
     override fun onStart() {

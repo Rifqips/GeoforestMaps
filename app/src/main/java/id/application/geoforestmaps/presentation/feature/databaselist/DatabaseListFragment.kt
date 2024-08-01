@@ -5,11 +5,16 @@ import android.app.AlertDialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Environment
+import android.util.Log
 import android.view.View
 import androidx.activity.OnBackPressedCallback
+import androidx.core.view.size
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
+import androidx.paging.PagingData
+import androidx.paging.map
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import id.application.core.utils.BaseFragment
@@ -19,6 +24,8 @@ import id.application.geoforestmaps.databinding.FragmentDatabaseListBinding
 import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant.generateFileName
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 
@@ -35,13 +42,13 @@ class DatabaseListFragment :
     var blockName: String? = ""
 
     override fun initView() {
+        setUpPaging()
         initVm()
         onBackPressed()
         with(binding){
             topbar.ivTitle.text = "List"
             topbar.ivDownlaod.load(R.drawable.ic_download)
         }
-        setUpPaging()
     }
 
 
@@ -149,44 +156,36 @@ class DatabaseListFragment :
     }
 
     private fun setUpPaging() {
-        // Ensure the view and lifecycleOwner are not null
-        view?.let { view ->
+        view?.let { _ ->
             parentFragment?.viewLifecycleOwner?.let { lifecycleOwner ->
-                // Observe PagingData from the ViewModel
                 viewModel.geotaggingListAll.observe(lifecycleOwner) { pagingData ->
-                    // Submit data to the adapter
                     adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
             }
-
-            if (binding.rvDatabaseList.adapter == null) {
-                binding.rvDatabaseList.adapter = adapterPagingGeotagging
-            }
-
-            // Listen to load state changes and update UI accordingly
             adapterPagingGeotagging.addLoadStateListener { loadState ->
                 with(binding) {
-                    // Handle loading state
-                    if (loadState.refresh is LoadState.Loading) {
-                        pbLoading.visibility = View.VISIBLE
-                        topbar.ivDownlaod.visibility = View.GONE
-                        tvValidatingData.visibility = View.GONE
-                    } else {
-                        // Handle not loading state
-                        pbLoading.visibility = View.GONE
-                        topbar.ivDownlaod.visibility = View.VISIBLE
-                        val isEmpty = (loadState.refresh is LoadState.NotLoading &&
-                                adapterPagingGeotagging.itemCount == 0)
-                        if (isEmpty) {
-                            tvValidatingData.visibility = View.VISIBLE
-                            tvValidatingData.text = "Belum ada data"
-                        } else {
-                            tvValidatingData.visibility = View.GONE
+                    // Handle loading, not loading, and error states
+                    when (loadState.refresh) {
+                        is LoadState.Loading -> {
+                            pbLoading.visibility = View.VISIBLE
+                            topbar.ivDownlaod.visibility = View.GONE
                         }
+                        is LoadState.NotLoading -> {
+                            pbLoading.visibility = View.GONE
+                            topbar.ivDownlaod.visibility = View.VISIBLE
+                        }
+                        is LoadState.Error -> {
+                            pbLoading.visibility = View.GONE
+                            topbar.ivDownlaod.visibility = View.VISIBLE
+                        }
+                    }
 
-                        // Ensure RecyclerView layout manager is set up
-                        if (binding.rvDatabaseList.layoutManager == null) {
-                            binding.rvDatabaseList.layoutManager = LinearLayoutManager(
+                    with(binding.rvDatabaseList) {
+                        if (adapter == null) {
+                            adapter = adapterPagingGeotagging
+                        }
+                        if (layoutManager == null) {
+                            layoutManager = LinearLayoutManager(
                                 context,
                                 LinearLayoutManager.VERTICAL,
                                 false
@@ -195,16 +194,23 @@ class DatabaseListFragment :
                             }
                         }
                     }
-
-                    if (loadState.refresh is LoadState.Error) {
-                        pbLoading.visibility = View.GONE
-                        topbar.ivDownlaod.visibility = View.VISIBLE
+                }
+            }
+            viewModel.loadingPagingResults.observe(viewLifecycleOwner){onLoadPaging ->
+                when(onLoadPaging){
+                    true ->{}
+                    false ->{
+                        if (adapterPagingGeotagging.itemCount == 0 && binding.rvDatabaseList.size == 0) {
+                            binding.tvValidatingData.visibility = View.VISIBLE
+                            binding.tvValidatingData.text = "Belum ada data"
+                        } else {
+                            binding.tvValidatingData.visibility = View.GONE
+                        }
                     }
                 }
             }
         }
     }
-
 
     private fun onBackPressed() {
         requireActivity().onBackPressedDispatcher.addCallback(
@@ -221,6 +227,7 @@ class DatabaseListFragment :
     private fun clearTrafficPaging(){
         viewModel.geotaggingListAll.removeObservers(viewLifecycleOwner)
         binding.rvDatabaseList.adapter = null
+        adapterPagingGeotagging.submitData(lifecycle, PagingData.empty())
     }
 
 }

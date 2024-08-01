@@ -1,6 +1,7 @@
 package id.application.core.domain.model.geotags
 
 
+import androidx.annotation.Keep
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey

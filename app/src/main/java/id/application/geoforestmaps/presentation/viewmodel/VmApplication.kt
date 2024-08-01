@@ -45,7 +45,6 @@ class VmApplication(
     private val _geotagingLocalResult = MutableLiveData<PagingData<ItemAllGeotaging>>()
     val geotagingLocalResult: LiveData<PagingData<ItemAllGeotaging>> = _geotagingLocalResult
 
-
     private val _blockLocalResult = MutableLiveData<PagingData<ItemAllBlocks>>()
     val blockLocalResult: LiveData<PagingData<ItemAllBlocks>> = _blockLocalResult
 
@@ -58,7 +57,6 @@ class VmApplication(
     private val _isUserName = MutableLiveData<String>()
     val isUserName: LiveData<String> = _isUserName
 
-
     private val _isBlockName = MutableLiveData<String>()
     val isBlockName: LiveData<String> = _isBlockName
 
@@ -67,6 +65,10 @@ class VmApplication(
 
     private val _logoutResults = MutableLiveData<ResultWrapper<Boolean>>()
     val logoutResults: LiveData<ResultWrapper<Boolean>> = _logoutResults
+
+
+    private val _loadingPagingResults = MutableLiveData<Boolean>()
+    val loadingPagingResults: LiveData<Boolean> = _loadingPagingResults
 
     private val _plantsResult = MutableLiveData<ResultWrapper<ItemAllPlantsResponse>>()
     val plantsResult: LiveData<ResultWrapper<ItemAllPlantsResponse>> = _plantsResult
@@ -150,6 +152,7 @@ class VmApplication(
         limitItem: Int? = null,
         pageItem: Int? = null
     ) {
+        _loadingPagingResults.postValue(true)
         viewModelScope.launch(Dispatchers.IO) {
             val response = repo.getAllGeotaging(
                 block = block,
@@ -162,6 +165,7 @@ class VmApplication(
                     val store = it.items
                     adapter.submitData(PagingData.from(store))
                 }
+                _loadingPagingResults.postValue(false)
             }
         }
     }
