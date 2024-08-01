@@ -35,24 +35,32 @@ class DatabaseListFragment :
     var blockName: String? = ""
 
     override fun initView() {
+        initVm()
         onBackPressed()
         with(binding){
             topbar.ivTitle.text = "List"
             topbar.ivDownlaod.load(R.drawable.ic_download)
         }
-        blockName = arguments?.getString("blockName")
-        loadPagingGeotagingAdapter(adapterPagingGeotagging)
         setUpPaging()
     }
+
 
     override fun initListener() {
         with(binding){
             topbar.ivBack.setOnClickListener {
-                findNavController().navigate(R.id.action_databaseListFragment_to_homeFragment)
+                findNavController().popBackStack()
             }
             topbar.ivDownlaod.setOnClickListener {
                 exportFile()
             }
+        }
+    }
+
+    private fun initVm() {
+        viewModel.getBlockName()
+        viewModel.isBlockName.observe(viewLifecycleOwner) { blockName ->
+            this.blockName = blockName
+            loadPagingGeotagingAdapter(adapterPagingGeotagging, blockName)
         }
     }
 
@@ -132,13 +140,11 @@ class DatabaseListFragment :
         }
     }
 
-    private fun loadPagingGeotagingAdapter(adapter: DatabaseListAdapterItem) {
-        if (blockName != null) {
-            viewModel.loadPagingGeotagging(
-                adapter,
-                blockName,
-            )
-        }
+    private fun loadPagingGeotagingAdapter(adapter: DatabaseListAdapterItem, blockName : String) {
+        viewModel.loadPagingGeotagging(
+            adapter,
+            blockName,
+        )
     }
 
     private fun setUpPaging() {
@@ -182,16 +188,15 @@ class DatabaseListFragment :
             }
         }
     }
-
-
     private fun onBackPressed() {
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    findNavController().navigate(R.id.action_databaseListFragment_to_homeFragment)
+                    findNavController().popBackStack()
                 }
             }
         )
     }
+
 }

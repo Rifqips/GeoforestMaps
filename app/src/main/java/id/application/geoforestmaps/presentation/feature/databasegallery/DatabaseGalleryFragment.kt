@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Environment
 import android.view.View
 import androidx.activity.OnBackPressedCallback
+import androidx.core.view.isGone
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
@@ -34,32 +35,40 @@ class DatabaseGalleryFragment :
         )
     }
 
-    var blockName: String? = ""
-    var blockId: String? = ""
     private var activeDialog: AlertDialog? = null
+    var blockName = ""
 
     override fun initView() {
-        onBackPressed()
+        initVm()
         with(binding){
             topbar.ivTitle.text = "Gallery"
             topbar.ivDownlaod.load(R.drawable.ic_download)
         }
-        blockName = arguments?.getString("blockName")
-        blockId = arguments?.getString("blockId")
-        loadPagingGeotagingAdapter(adapterPagingGeotagging)
+        onBackPressed()
         setUpPaging()
+    }
+
+    private fun initVm() {
+        viewModel.getBlockName()
+        viewModel.isBlockName.observe(viewLifecycleOwner) { blockName ->
+            this.blockName = blockName
+            loadPagingGeotagingAdapter(adapterPagingGeotagging, blockName)
+        }
     }
 
     override fun initListener() {
         with(binding){
             topbar.ivBack.setOnClickListener {
-                findNavController().navigate(R.id.action_databaseGalleryFragment_to_homeFragment)
+                findNavController().popBackStack()
             }
             topbar.ivDownlaod.setOnClickListener {
                 exportFile()
             }
         }
     }
+
+
+
     private fun exportFile() {
         viewModel.downloadStatus.observe(viewLifecycleOwner, Observer { status ->
             when (status) {
@@ -161,13 +170,11 @@ class DatabaseGalleryFragment :
         }
     }
 
-    private fun loadPagingGeotagingAdapter(adapter: DatabaseGalleryAdapterItem) {
-        if (blockName != null) {
-            viewModel.loadPagingGeotaggingGallery(
-                adapter,
-                blockName,
-            )
-        }
+    private fun loadPagingGeotagingAdapter(adapter: DatabaseGalleryAdapterItem, blockName :String) {
+        viewModel.loadPagingGeotaggingGallery(
+            adapter,
+            blockName,
+        )
     }
 
     private fun setUpPaging() {
@@ -189,7 +196,7 @@ class DatabaseGalleryFragment :
                         val isEmpty = (loadState.refresh is LoadState.NotLoading &&
                                 adapterPagingGeotagging.itemCount == 0)
                         if (isEmpty) {
-                            tvValidatingData.visibility = View.VISIBLE
+                            tvValidatingData.isGone = false
                             tvValidatingData.text = "Belum ada data"
                         }
 
@@ -211,13 +218,12 @@ class DatabaseGalleryFragment :
             }
         }
     }
-
     private fun onBackPressed() {
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    findNavController().navigate(R.id.action_databaseGalleryFragment_to_homeFragment)
+                    findNavController().popBackStack()
                 }
             }
         )

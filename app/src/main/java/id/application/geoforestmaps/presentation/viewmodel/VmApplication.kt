@@ -62,6 +62,10 @@ class VmApplication(
     private val _isUserName = MutableLiveData<String>()
     val isUserName: LiveData<String> = _isUserName
 
+
+    private val _isBlockName = MutableLiveData<String>()
+    val isBlockName: LiveData<String> = _isBlockName
+
     private val _isUserEmail = MutableLiveData<String>()
     val isUserEmail: LiveData<String> = _isUserEmail
 
@@ -100,6 +104,24 @@ class VmApplication(
         }
     }
 
+
+    fun saveBlockName(blockName: String){
+        viewModelScope.launch {
+            appPreferenceDataSource.saveBlockName(blockName)
+        }
+    }
+    fun getBlockName(){
+        viewModelScope.launch {
+            val blockName = appPreferenceDataSource.getBlockName()
+            _isBlockName.postValue(blockName)
+        }
+    }
+    fun deleteBlockName(){
+        viewModelScope.launch {
+            appPreferenceDataSource.deleteBlockName()
+        }
+    }
+
     fun getUserEmail() {
         viewModelScope.launch {
             val userEmail = appPreferenceDataSource.getUserEmail()
@@ -132,7 +154,7 @@ class VmApplication(
         limitItem: Int? = null,
         pageItem: Int? = null
     ) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val response = repo.getAllGeotaging(
                 block = block,
                 limitItem = limitItem,
@@ -216,7 +238,6 @@ class VmApplication(
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             _isLoading.postValue(true) // Set loading to true
-
             try {
                 repo.createGeotaging(
                     plantId,
