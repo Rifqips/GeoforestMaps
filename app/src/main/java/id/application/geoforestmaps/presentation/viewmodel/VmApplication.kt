@@ -177,6 +177,7 @@ class VmApplication(
         limitItem: Int? = null,
         pageItem: Int? = null
     ) {
+        _loadingPagingResults.postValue(true)
         viewModelScope.launch {
             val response = repo.getAllGeotaging(
                 block = block,
@@ -190,6 +191,7 @@ class VmApplication(
                     val store = it.items
                     adapter.submitData(PagingData.from(store))
                 }
+                _loadingPagingResults.postValue(false)
             }
         }
     }

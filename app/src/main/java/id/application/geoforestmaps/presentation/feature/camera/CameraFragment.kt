@@ -153,7 +153,6 @@ class CameraFragment :
         viewModel.fetchPlants()
         viewModel.getPlant()
         viewModel.plantsLiveData.observe(viewLifecycleOwner) { plants ->
-            Log.d("spinner-plants", plants.toString())
             val plantNames = plants.map { it.name }
             val adapter = ArrayAdapter(requireContext(), R.layout.item_spinner, plantNames)
             adapter.setDropDownViewResource(R.layout.item_dropdown_spinner)

@@ -29,10 +29,10 @@ class HistoryFragment :
     override fun initView() {
         rvListHistory()
         setUpPaging()
-
         if (isNetworkAvailable(requireContext())) {
             binding.layoutNoSignal.root.isGone = true
         } else {
+            binding.layoutNoSignal.root.isGone = true
             binding.pbLoading.isGone = true
             StyleableToast.makeText(
                 requireContext(),

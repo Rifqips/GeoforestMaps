@@ -21,7 +21,12 @@ import id.application.core.domain.paging.GeotagingPagingMediator
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.domain.repository.ApplicationRepositoryImpl
 import id.application.core.utils.AssetWrapperApp
+import id.application.geoforestmaps.presentation.feature.databasegallery.DatabaseGalleryFragment
+import id.application.geoforestmaps.presentation.feature.databaselist.DatabaseListFragment
+import id.application.geoforestmaps.presentation.feature.databasemaps.MapsFragment
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import id.application.geoforestmaps.utils.NetworkCallback
+import id.application.geoforestmaps.utils.NetworkChangeReceiver
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.module.Module
@@ -84,6 +89,16 @@ object AppModules {
         single { BlockPagingMediator(get(), get()) }
     }
 
+    private val callbackModule = module {
+        factory { (fragment: MapsFragment) -> fragment::refreshData }
+        factory { (fragment: DatabaseGalleryFragment) -> fragment::refreshDataGallery }
+        factory { (fragment: DatabaseListFragment) -> fragment::refreshDataList }
+    }
+
+    private val receiverModule = module {
+        factory { (onNetworkAvailable: () -> Unit) -> NetworkChangeReceiver(onNetworkAvailable) }
+    }
+
     val modules: List<Module> = listOf(
         viewModelModule,
         utilsModule,
@@ -93,6 +108,8 @@ object AppModules {
         repositoryModule,
         utilsModule,
         pagingSource,
-        firebaseModule
+        firebaseModule,
+        receiverModule,
+        callbackModule
     )
 }

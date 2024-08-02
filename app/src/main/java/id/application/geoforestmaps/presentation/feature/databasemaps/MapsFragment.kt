@@ -3,13 +3,16 @@ package id.application.geoforestmaps.presentation.feature.databasemaps
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.GpsStatus
+import android.net.ConnectivityManager
 import android.util.Log
 import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.isGone
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
@@ -20,8 +23,15 @@ import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentMapsBinding
 import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
+import id.application.geoforestmaps.utils.NetworkCallback
+import id.application.geoforestmaps.utils.NetworkChangeReceiver
+import io.github.muddz.styleabletoast.StyleableToast
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.getKoin
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 import org.osmdroid.api.IMapController
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapListener
@@ -38,7 +48,7 @@ import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.io.File
 
 class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMapsBinding::inflate),
-    MapListener, GpsStatus.Listener  {
+    MapListener, GpsStatus.Listener, NetworkCallback {
 
     override val viewModel: VmApplication by viewModel()
 
@@ -48,23 +58,40 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         }
     }
 
+    private val networkChangeReceiver: NetworkChangeReceiver by lazy {
+        val refreshDataCallback = { refreshData() }
+        getKoin().get<NetworkChangeReceiver> { parametersOf(refreshDataCallback) }
+    }
+
+
     var blockName: String? = ""
 
     private val PERMISSIONS_REQUEST_CODE = 1
-    lateinit var mMap: MapView
     lateinit var controller: IMapController
     lateinit var mMyLocationOverlay: MyLocationNewOverlay
 
     @SuppressLint("SetTextI18n")
     override fun initView() {
-        initVm()
-        onBackPressed()
-        configMap()
+        requireActivity().registerReceiver(networkChangeReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
         with(binding){
             topbar.ivTitle.text = "Map"
         }
-        checkPermissions()
-        setUpPaging()
+        if (isNetworkAvailable(requireContext())) {
+            binding.layoutNoSignal.root.isGone = true
+            setUpPaging()
+            initVm()
+            onBackPressed()
+            configMap()
+            checkPermissions()
+        } else {
+            binding.pbLoading.isGone = true
+            binding.layoutNoSignal.root.isGone = false
+            StyleableToast.makeText(
+                requireContext(),
+                getString(R.string.text_no_internet_connection),
+                R.style.failedtoast
+            ).show()
+        }
     }
 
     override fun initListener() {
@@ -91,12 +118,11 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
             requireContext().getSharedPreferences("osmdroid", Context.MODE_PRIVATE)
         )
 
-        mMap = binding.map
-        mMap.setTileSource(TileSourceFactory.MAPNIK)
-        mMap.setMultiTouchControls(true)
+        binding.map.setTileSource(TileSourceFactory.MAPNIK)
+        binding.map.setMultiTouchControls(true)
 
         // Initialize the map controller
-        controller = mMap.controller
+        controller = binding.map.controller
 
         // Set the map to display Indonesia
         val indonesiaCenter = GeoPoint(-5.0, 120.0)
@@ -104,7 +130,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         controller.setZoom(5.0)
 
         // Setup MyLocationOverlay
-        mMyLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(requireActivity()), mMap)
+        mMyLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(requireActivity()), binding.map)
         mMyLocationOverlay.enableMyLocation()
         mMyLocationOverlay.enableFollowLocation()
         mMyLocationOverlay.isDrawAccuracyEnabled = true
@@ -115,7 +141,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
             }
         }
 
-        mMap.overlays.add(mMyLocationOverlay)
+        binding.map.overlays.add(mMyLocationOverlay)
     }
 
     private fun loadPagingGeotagingAdapter(adapter: DatabaseListAdapterItem, blockName : String) {
@@ -168,20 +194,20 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     }
 
     private fun addMarkersFromPagingData(items: List<ItemAllGeotaging>) {
-        mMap.overlays.clear() // Clear existing markers if needed
+        binding.map.overlays.clear() // Clear existing markers if needed
         items.forEach { item ->
             addMarkersToMap(item.latitude, item.longitude)
         }
     }
 
     private fun addMarkersToMap(lat: Double, lon: Double) {
-        val marker = Marker(mMap)
+        val marker = Marker(binding.map)
         marker.position = GeoPoint(lat, lon)
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
         marker.icon = resources.getDrawable(R.drawable.ic_marker_purple, null)
 //        marker.icon
-        mMap.overlays.add(marker)
-        mMap.invalidate()
+        binding.map.overlays.add(marker)
+        binding.map.invalidate()
     }
 
     private fun setupOfflineTileProvider(): OfflineTileProvider? {
@@ -192,7 +218,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
                 val receiver = SimpleRegisterReceiver(requireContext())
                 val fileProvider = OfflineTileProvider(receiver, arrayOf(archiveFile))
                 val tileSource = TileSourceFactory.MAPNIK
-                mMap.setTileSource(tileSource)
+                binding.map.setTileSource(tileSource)
                 fileProvider
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -205,7 +231,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
 
     private fun setupOnlineTileProvider() {
         val tileSource = TileSourceFactory.MAPNIK
-        mMap.setTileSource(tileSource)
+        binding.map.setTileSource(tileSource)
     }
 
     private fun checkPermissions() {
@@ -229,17 +255,18 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
 
     override fun onResume() {
         super.onResume()
-        mMap.onResume()
+        binding.map.onResume()
     }
 
     override fun onPause() {
         super.onPause()
-        mMap.onPause()
+        binding.map.onPause()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        mMap.onDetach() // Membersihkan sumber daya MapView
+        binding.map.onDetach()
+        requireActivity().unregisterReceiver(networkChangeReceiver)
     }
 
     override fun onRequestPermissionsResult(
@@ -289,9 +316,14 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         binding.rvGeotaging.adapter = null
     }
 
-    override fun onStart() {
-        super.onStart()
-        initVm()
+    override fun onNetworkAvailable() {
+        refreshData()
     }
 
+    fun refreshData() {
+        setUpPaging()
+        initVm()
+        binding.pbLoading.isGone = true
+        binding.layoutNoSignal.root.isGone = true
+    }
 }
