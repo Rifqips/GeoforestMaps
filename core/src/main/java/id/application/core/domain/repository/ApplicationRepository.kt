@@ -1,6 +1,5 @@
 package id.application.core.domain.repository
 
-import android.util.Log
 import androidx.paging.PagingData
 import id.application.core.R
 import id.application.core.data.datasource.AppPreferenceDataSource
@@ -28,7 +27,6 @@ import id.application.core.domain.paging.BlockPagingMediator
 import id.application.core.domain.paging.GeotagingPagingMediator
 import id.application.core.utils.AssetWrapperApp
 import id.application.core.utils.ResultWrapper
-import id.application.core.utils.proceed
 import id.application.core.utils.proceedFlow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow

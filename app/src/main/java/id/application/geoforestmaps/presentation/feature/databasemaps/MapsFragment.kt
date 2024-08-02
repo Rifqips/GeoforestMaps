@@ -29,7 +29,6 @@ import id.application.geoforestmaps.utils.NetworkChangeReceiver
 import io.github.muddz.styleabletoast.StyleableToast
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.getKoin
-import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import org.osmdroid.api.IMapController
@@ -41,7 +40,6 @@ import org.osmdroid.tileprovider.modules.OfflineTileProvider
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.tileprovider.util.SimpleRegisterReceiver
 import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay

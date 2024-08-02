@@ -12,7 +12,6 @@ import id.application.core.data.local.mediator.GeotagingRemoteMediator
 import id.application.core.data.network.service.ApplicationService
 import id.application.core.domain.model.blocks.ItemAllBlocks
 import id.application.core.domain.model.geotags.ItemAllGeotaging
-import id.application.core.domain.model.plants.ItemAllPlants
 import id.application.core.domain.repository.ApplicationRepository
 import kotlinx.coroutines.flow.Flow
 

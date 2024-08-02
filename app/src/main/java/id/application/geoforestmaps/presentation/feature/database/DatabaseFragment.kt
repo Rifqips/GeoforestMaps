@@ -1,7 +1,6 @@
 package id.application.geoforestmaps.presentation.feature.database
 
 import android.view.View
-import android.widget.Toast
 import androidx.core.view.isGone
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState

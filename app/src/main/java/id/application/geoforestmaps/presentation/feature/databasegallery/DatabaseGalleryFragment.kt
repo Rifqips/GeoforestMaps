@@ -10,13 +10,12 @@ import android.os.Environment
 import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isGone
-import androidx.core.view.size
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
@@ -29,6 +28,8 @@ import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
 import id.application.geoforestmaps.utils.NetworkCallback
 import id.application.geoforestmaps.utils.NetworkChangeReceiver
 import io.github.muddz.styleabletoast.StyleableToast
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.getKoin
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
@@ -66,9 +67,12 @@ class DatabaseGalleryFragment :
             topbar.ivDownlaod.load(R.drawable.ic_download)
         }
         if (isNetworkAvailable(requireContext())) {
-            binding.layoutNoSignal.root.isGone = true
             setUpPaging()
-            initVm()
+            binding.layoutNoSignal.root.isGone = true
+            lifecycleScope.launch {
+                delay(2000)
+                initVm()
+            }
             onBackPressed()
         } else {
             binding.pbLoading.isGone = true
@@ -215,14 +219,20 @@ class DatabaseGalleryFragment :
         view?.let { _ ->
             parentFragment?.viewLifecycleOwner?.let { lifecycleOwner ->
                 viewModel.geotaggingListAll.observe(lifecycleOwner) { pagingData ->
+                    // Submit data to adapter
                     adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
             }
-            binding.rvDatabaseGallery.apply {
-                adapter = adapterPagingGeotagging
-                layoutManager = GridLayoutManager(context, 2)
+
+            // Setup RecyclerView layout manager and adapter if not already set
+            if (binding.rvDatabaseGallery.adapter == null) {
+                binding.rvDatabaseGallery.apply {
+                    adapter = adapterPagingGeotagging
+                    layoutManager = GridLayoutManager(context, 2)
+                }
             }
 
+            // Add load state listener to adapter
             adapterPagingGeotagging.addLoadStateListener { loadState ->
                 with(binding) {
                     when (loadState.refresh) {
@@ -230,12 +240,10 @@ class DatabaseGalleryFragment :
                             pbLoading.visibility = View.VISIBLE
                             topbar.ivDownlaod.visibility = View.GONE
                         }
-
                         is LoadState.NotLoading -> {
                             pbLoading.visibility = View.GONE
                             topbar.ivDownlaod.visibility = View.VISIBLE
                         }
-
                         is LoadState.Error -> {
                             pbLoading.visibility = View.GONE
                             topbar.ivDownlaod.visibility = View.VISIBLE
@@ -244,11 +252,13 @@ class DatabaseGalleryFragment :
                 }
             }
         }
+
+        // Observe loading state
         viewModel.loadingPagingResults.observe(viewLifecycleOwner) { onLoadPaging ->
             when (onLoadPaging) {
                 true -> {}
                 false -> {
-                    if (adapterPagingGeotagging.itemCount == 0 && binding.rvDatabaseGallery.size == 0) {
+                    if (adapterPagingGeotagging.itemCount == 0) {
                         binding.tvValidatingData.visibility = View.VISIBLE
                         binding.tvValidatingData.text = "Belum ada data"
                     } else {
@@ -258,6 +268,7 @@ class DatabaseGalleryFragment :
             }
         }
     }
+
 
     private fun clearTrafficPaging(){
         viewModel.geotaggingListAll.removeObservers(viewLifecycleOwner)

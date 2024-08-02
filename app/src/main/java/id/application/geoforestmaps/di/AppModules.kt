@@ -25,7 +25,6 @@ import id.application.geoforestmaps.presentation.feature.databasegallery.Databas
 import id.application.geoforestmaps.presentation.feature.databaselist.DatabaseListFragment
 import id.application.geoforestmaps.presentation.feature.databasemaps.MapsFragment
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
-import id.application.geoforestmaps.utils.NetworkCallback
 import id.application.geoforestmaps.utils.NetworkChangeReceiver
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModelOf

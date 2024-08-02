@@ -7,7 +7,6 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.os.Environment
-import android.util.Log
 import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isGone
@@ -17,7 +16,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
-import androidx.paging.map
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import id.application.core.utils.BaseFragment
@@ -61,15 +59,21 @@ class DatabaseListFragment :
     }
 
     override fun initView() {
-        requireActivity().registerReceiver(networkChangeReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+        requireActivity().registerReceiver(
+            networkChangeReceiver,
+            IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+        )
         with(binding) {
             topbar.ivTitle.text = "List"
             topbar.ivDownlaod.load(R.drawable.ic_download)
         }
         if (isNetworkAvailable(requireContext())) {
-            binding.layoutNoSignal.root.isGone = true
             setUpPaging()
-            initVm()
+            binding.layoutNoSignal.root.isGone = true
+            lifecycleScope.launch {
+                delay(2000)
+                initVm()
+            }
             onBackPressed()
         } else {
             binding.pbLoading.isGone = true
@@ -193,7 +197,6 @@ class DatabaseListFragment :
         view?.let { _ ->
             parentFragment?.viewLifecycleOwner?.let { lifecycleOwner ->
                 viewModel.geotaggingListAll.observe(lifecycleOwner) { pagingData ->
-                    adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
             }
             binding.rvDatabaseList.apply {
@@ -260,6 +263,7 @@ class DatabaseListFragment :
             refreshDataList()
         }
     }
+
     fun refreshDataList() {
         setUpPaging()
         initVm()
