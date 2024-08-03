@@ -11,12 +11,16 @@ import kotlinx.coroutines.flow.Flow
 interface GeotagsOfflineDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAllGeotagsOffline(geotagsOffline: ItemAllGeotagingOffline) : Long
+    suspend fun insertAllGeotagsOffline(geotagsOffline: ItemAllGeotagingOffline)
 
     @Query("SELECT * FROM all_geotaging_offline")
     fun getAllGeotagsOffline(): Flow<ItemAllGeotagingOffline>
 
+    @Query("DELETE FROM all_geotaging_offline WHERE id = :geotaggingId")
+    suspend fun deleteGeotaggingById(geotaggingId: Int)
+
     @Query("DELETE FROM all_geotaging_offline")
     suspend fun deleteAllGeotagsOffline()
+
 
 }

@@ -53,8 +53,9 @@ interface ApplicationService {
         @Part("latitude") latitude: RequestBody?,
         @Part("longitude") longitude: RequestBody?,
         @Part("altitude") altitude: RequestBody?,
-        @Part userImage: MultipartBody.Part?
-    ): ResponseAllGeotagingItem
+        @Part userImage: MultipartBody.Part?,
+        @Part("base64") photoBase64: RequestBody?
+    ) : Response<ResponseBody>
 
     @GET("v1/plants")
     suspend fun getAllPlants(

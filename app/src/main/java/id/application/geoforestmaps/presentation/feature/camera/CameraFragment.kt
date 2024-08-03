@@ -44,10 +44,12 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import coil.load
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import id.application.core.domain.model.geotags.ItemAllGeotagingOffline
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.DialogConfirmCustomBinding
@@ -55,6 +57,10 @@ import id.application.geoforestmaps.databinding.FragmentCameraBinding
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant
 import id.application.geoforestmaps.utils.Constant.IMAGE_FORMAT
+import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
+import io.github.muddz.styleabletoast.StyleableToast
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -190,7 +196,6 @@ class CameraFragment :
                 binding.pbLoadingCamera.visibility = View.VISIBLE
             } else {
                 binding.pbLoadingCamera.visibility = View.GONE
-                showDialogConfirmSaveData()
             }
         }
 
@@ -198,6 +203,17 @@ class CameraFragment :
             errorMessage?.let {
                 Toast.makeText(context, it, Toast.LENGTH_LONG).show()
             }
+        }
+        viewModel.state.observe(viewLifecycleOwner) { result ->
+            result.fold(
+                onSuccess = {
+                    Toast.makeText(context, "Geotagging created successfully", Toast.LENGTH_SHORT).show()
+                    showDialogConfirmSaveData()
+                },
+                onFailure = { exception ->
+                    Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                }
+            )
         }
     }
 
@@ -690,6 +706,7 @@ class CameraFragment :
                     }
                     else -> null
                 }
+
                 if (imageFile != null) {
                     val imageRequestBody = imageFile.asRequestBody("multipart/form-data".toMediaTypeOrNull())
                     val imageMultipart: MultipartBody.Part = MultipartBody.Part.createFormData(
@@ -697,22 +714,41 @@ class CameraFragment :
                         imageFile.name,
                         imageRequestBody
                     )
-                    viewModel.createGeotaging(
-                        idPlant.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-                        idBlock.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-                        latitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-                        longitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-                        altitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-                        imageMultipart
-                    )
-                    Log.d("check-post", "$idPlant $idBlock $latitude $longitude $altitude")
+
+                    // Convert image file to Base64
+                    val base64String = Constant.convertImageToBase64(imageFile)
+                    val base64RequestBody = base64String.toRequestBody("multipart/form-data".toMediaTypeOrNull())
+
+                    if (isNetworkAvailable(requireContext())) {
+                        viewModel.createGeotaging(
+                            idPlant.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                            idBlock.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                            latitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                            longitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                            altitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                            imageMultipart,
+                            base64RequestBody
+                        )
+                    } else {
+                        val itemOffline = ItemAllGeotagingOffline(
+                            plantId = idPlant.toInt(),
+                            blockId = idBlock.toInt(),
+                            latitude = latitude.toString(),
+                            longitude = longitude.toString(),
+                            altitude = altitude.toString(),
+                            base64 = base64String
+                        )
+                        viewModel.createGeotaggingOflline(itemOffline)
+                    }
+                    Log.d("check-post", "$idPlant $idBlock $latitude $longitude $altitude $imageMultipart")
+                    Log.d("check-post", "$base64RequestBody")
                 } else {
                     Toast.makeText(requireContext(), "File tidak dapat diakses", Toast.LENGTH_SHORT).show()
                 }
             }
+
             layoutCheckData.topBar.ivBack.setOnClickListener {
                 stateLayout(false)
-
             }
         }
     }

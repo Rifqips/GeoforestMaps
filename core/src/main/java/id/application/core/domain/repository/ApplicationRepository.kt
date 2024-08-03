@@ -48,6 +48,16 @@ interface  ApplicationRepository{
 
     suspend fun userProfile(): Flow<ResultWrapper<UserProfileResponse>>
 
+    suspend fun createGeotaging(
+        plantId: RequestBody?,
+        blockId: RequestBody?,
+        latitude: RequestBody?,
+        longitude: RequestBody?,
+        altitude: RequestBody?,
+        userImage: MultipartBody.Part?,
+        photoBase64: RequestBody?
+    ): Result<Unit>
+
     suspend fun getAllGeotaging(
         block:String? = null,
         createdBy:String? = null,
@@ -71,18 +81,13 @@ interface  ApplicationRepository{
         pageItem:Int? = null,
     ): ItemAllBlocksResponse
 
-    suspend fun createGeotaging(
-        plantId: RequestBody?,
-        blockId: RequestBody?,
-        latitude: RequestBody?,
-        longitude: RequestBody?,
-        altitude: RequestBody?,
-        userImage: MultipartBody.Part?
-    ):Flow<ResultWrapper<List<ItemAllGeotaging>>>
-
     suspend fun exportFile(type: String?, block: String?, geoatagId : Int?): Response<ResponseBody>
 
     fun getAllGeotagingOffline(): Flow<ResultWrapper<List<ItemAllGeotagingOffline>>>
+
+    suspend fun insertAllGeotagsOffline(geotagsOffline: ItemAllGeotagingOffline)
+
+    suspend fun deleteGeotaggingById(geotaggingId: Int)
 
 }
 
@@ -126,6 +131,21 @@ class ApplicationRepositoryImpl(
             emit(ResultWrapper.Error(e as? Exception ?: Exception(assetWrapper.getString(R.string.text_unknown_error))))
         }
     }
+
+    override suspend fun createGeotaging(
+        plantId: RequestBody?,
+        blockId: RequestBody?,
+        latitude: RequestBody?,
+        longitude: RequestBody?,
+        altitude: RequestBody?,
+        userImage: MultipartBody.Part?,
+        photoBase64: RequestBody?
+    ): Result<Unit> {
+        return appDataSource.createGeotaging(
+            plantId, blockId, latitude, longitude, altitude, userImage, photoBase64
+        )
+    }
+
     override suspend fun getAllGeotaging(
         block:String?,
         createdBy:String?,
@@ -170,36 +190,6 @@ class ApplicationRepositoryImpl(
 
     }
 
-    override suspend fun createGeotaging(
-        plantId: RequestBody?,
-        blockId: RequestBody?,
-        latitude: RequestBody?,
-        longitude: RequestBody?,
-        altitude: RequestBody?,
-        userImage: MultipartBody.Part?
-    ): Flow<ResultWrapper<List<ItemAllGeotaging>>> {
-        return proceedFlow {
-            appDataSource.createGeotaging(
-                plantId,
-                blockId,
-                latitude,
-                longitude,
-                altitude,
-                userImage
-            ).data.items.toAllGeotagingList()
-        }.map{
-            if (it.payload?.isEmpty() == true) {
-                ResultWrapper.Empty(it.payload)
-            } else {
-                it
-            }
-        }.catch {
-            emit(ResultWrapper.Error(Exception(it)))
-        }.onStart {
-            emit(ResultWrapper.Loading())
-            delay(3000)
-        }
-    }
 
     override suspend fun exportFile(type: String?, block: String?, geoatagId: Int?):  Response<ResponseBody> {
         return appDataSource.exportFile(type, block, geoatagId)
@@ -222,5 +212,12 @@ class ApplicationRepositoryImpl(
         }
     }
 
+    override suspend fun insertAllGeotagsOffline(geotagsOffline: ItemAllGeotagingOffline) {
+        return geotagsOfflineDao.insertAllGeotagsOffline(geotagsOffline)
+    }
+
+    override suspend fun deleteGeotaggingById(geotaggingId: Int) {
+        return geotagsOfflineDao.deleteGeotaggingById(geotaggingId)
+    }
 
 }

@@ -24,6 +24,7 @@ interface ApplicationDataSource {
         limitItem:Int? = null,
         pageItem:Int? = null,
     ): ResponseAllGeotagingItem
+
     suspend fun getAllPlants(
         limitItem:Int? = null,
         pageItem:Int? = null,
@@ -39,8 +40,9 @@ interface ApplicationDataSource {
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
-        userImage: MultipartBody.Part?
-    ) : ResponseAllGeotagingItem
+        userImage: MultipartBody.Part?,
+        photoBase64: RequestBody?
+    ): Result<Unit>
 
     suspend fun exportFile(type: String?, block: String?, geoatagId : Int?): Response<ResponseBody>
 
@@ -82,9 +84,21 @@ class ApplicationDataSourceImpl(private val service: ApplicationService) : Appli
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
-        userImage: MultipartBody.Part?
-    ): ResponseAllGeotagingItem {
-        return service.createGeotaging(plantId, blockId, latitude, longitude, altitude, userImage)
+        userImage: MultipartBody.Part?,
+        photoBase64: RequestBody?
+    ): Result<Unit> {
+        return try {
+            val response = service.createGeotaging(
+                plantId, blockId, latitude, longitude, altitude, userImage, photoBase64
+            )
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Error: ${response.code()} ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override suspend fun exportFile(type: String?, block: String?, geoatagId : Int?): Response<ResponseBody> {

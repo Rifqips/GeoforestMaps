@@ -7,8 +7,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.util.Base64
+import android.util.Log
 import id.application.geoforestmaps.R
 import okhttp3.ResponseBody
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -19,6 +22,8 @@ import java.util.Locale
 
 object Constant {
     val IMAGE_FORMAT = "image/*"
+    private const val IMAGE_QUALITY = 100
+
 
     fun createFile(application: Application): File {
         val timeStamp: String =
@@ -90,6 +95,22 @@ object Constant {
     fun generateFileName(baseName: String, extension: String): String {
         val timestamp = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
         return "$baseName$timestamp$extension"
+    }
+
+
+    /**
+     * Convert image to base64 format by
+     * @param photoPath
+     */
+    fun convertImageToBase64(file: File): String {
+        return try {
+            val byteArray = file.readBytes()
+            Base64.encodeToString(byteArray, Base64.DEFAULT)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e("IMAGE-BASE64", "convertImageToBase64: ", e.cause)
+            ""
+        }
     }
 
 

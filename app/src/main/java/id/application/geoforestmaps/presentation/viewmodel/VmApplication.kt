@@ -14,6 +14,7 @@ import androidx.paging.liveData
 import id.application.core.data.datasource.AppPreferenceDataSource
 import id.application.core.domain.model.blocks.ItemAllBlocks
 import id.application.core.domain.model.geotags.ItemAllGeotaging
+import id.application.core.domain.model.geotags.ItemAllGeotagingOffline
 import id.application.core.domain.model.login.UserLoginRequest
 import id.application.core.domain.model.login.UserLoginResponse
 import id.application.core.domain.model.plants.ItemAllPlants
@@ -230,30 +231,29 @@ class VmApplication(
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> get() = _error
 
+    private val _state = MutableLiveData<Result<Unit>>()
+    val state: LiveData<Result<Unit>> get() = _state
+
     fun createGeotaging(
         plantId: RequestBody?,
         blockId: RequestBody?,
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
-        userImage: MultipartBody.Part?
+        userImage: MultipartBody.Part?,
+        photoBase64: RequestBody?
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _isLoading.postValue(true) // Set loading to true
-            try {
-                repo.createGeotaging(
-                    plantId,
-                    blockId,
-                    latitude,
-                    longitude,
-                    altitude,
-                    userImage
-                )
-                _isLoading.postValue(false) // Set loading to false when done
-            } catch (e: Exception) {
-                _isLoading.postValue(false) // Set loading to false in case of error
-                _error.postValue(e.message) // Post error message
-            }
+        viewModelScope.launch {
+            val result = repo.createGeotaging(
+                plantId, blockId, latitude, longitude, altitude, userImage, photoBase64
+            )
+            _state.value = result
+        }
+    }
+
+    fun createGeotaggingOflline(item : ItemAllGeotagingOffline){
+        viewModelScope.launch {
+            repo.insertAllGeotagsOffline(item)
         }
     }
 
