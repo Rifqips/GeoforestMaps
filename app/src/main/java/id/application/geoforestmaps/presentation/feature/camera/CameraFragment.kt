@@ -44,7 +44,6 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import coil.load
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -57,10 +56,8 @@ import id.application.geoforestmaps.databinding.FragmentCameraBinding
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant
 import id.application.geoforestmaps.utils.Constant.IMAGE_FORMAT
+import id.application.geoforestmaps.utils.Constant.convertImageToBase64
 import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
-import io.github.muddz.styleabletoast.StyleableToast
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -191,13 +188,6 @@ class CameraFragment :
         viewModel.isUserName.observe(viewLifecycleOwner){
             userName = it
         }
-        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            if (isLoading) {
-                binding.pbLoadingCamera.visibility = View.VISIBLE
-            } else {
-                binding.pbLoadingCamera.visibility = View.GONE
-            }
-        }
 
         viewModel.error.observe(viewLifecycleOwner) { errorMessage ->
             errorMessage?.let {
@@ -207,7 +197,7 @@ class CameraFragment :
         viewModel.state.observe(viewLifecycleOwner) { result ->
             result.fold(
                 onSuccess = {
-                    Toast.makeText(context, "Geotagging created successfully", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Berhasil upload photo", Toast.LENGTH_SHORT).show()
                     showDialogConfirmSaveData()
                 },
                 onFailure = { exception ->
@@ -722,8 +712,7 @@ class CameraFragment :
                     )
 
                     // Convert image file to Base64
-                    val base64String = Constant.convertImageToBase64(imageFile)
-                    val base64RequestBody = base64String.toRequestBody("multipart/form-data".toMediaTypeOrNull())
+                    val dataUriBase64 = convertImageToBase64(imageFile)
 
                     if (isNetworkAvailable(requireContext())) {
                         viewModel.createGeotaging(
@@ -733,29 +722,30 @@ class CameraFragment :
                             longitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
                             altitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
                             imageMultipart,
-                            "/".toRequestBody("multipart/form-data".toMediaTypeOrNull()),
                         )
                     } else {
                         val itemOffline = ItemAllGeotagingOffline(
                             plant = selectedPlantType,
+                            plantId = idPlant,
                             block = blokName,
+                            blockId = idBlock,
                             latitude = latitude.toString(),
                             longitude = longitude.toString(),
                             altitude = altitude.toString(),
-                            base64 = base64String
+                            base64 = dataUriBase64
                         )
                         viewModel.createGeotaggingOflline(itemOffline)
                         showDialogConfirmSaveData()
                     }
                     Log.d("check-post", "$idPlant $idBlock $latitude $longitude $altitude $imageMultipart")
-                    Log.d("check-post", "$base64RequestBody")
+                    Log.d("check-post", "$dataUriBase64")
                 } else {
                     Toast.makeText(requireContext(), "File tidak dapat diakses", Toast.LENGTH_SHORT).show()
                 }
             }
 
             layoutCheckData.topBar.ivBack.setOnClickListener {
-                stateLayout(false)
+                findNavController().navigateUp()
             }
         }
     }

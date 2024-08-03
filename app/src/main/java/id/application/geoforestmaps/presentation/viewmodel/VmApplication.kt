@@ -44,6 +44,12 @@ class VmApplication(
     private val _loginResult = MutableLiveData<ResultWrapper<UserLoginResponse>>()
     val loginResult: LiveData<ResultWrapper<UserLoginResponse>> = _loginResult
 
+    private val _error = MutableLiveData<String>()
+    val error: LiveData<String> get() = _error
+
+    private val _state = MutableLiveData<Result<Unit>>()
+    val state: LiveData<Result<Unit>> get() = _state
+
     private val _geotagingLocalResult = MutableLiveData<PagingData<ItemAllGeotaging>>()
     val geotagingLocalResult: LiveData<PagingData<ItemAllGeotaging>> = _geotagingLocalResult
 
@@ -228,14 +234,7 @@ class VmApplication(
             }
         }
     }
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> get() = _isLoading
 
-    private val _error = MutableLiveData<String>()
-    val error: LiveData<String> get() = _error
-
-    private val _state = MutableLiveData<Result<Unit>>()
-    val state: LiveData<Result<Unit>> get() = _state
 
     fun createGeotaging(
         plantId: RequestBody?,
@@ -243,8 +242,8 @@ class VmApplication(
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
-        userImage: MultipartBody.Part?,
-        photoBase64: RequestBody?
+        userImage: MultipartBody.Part? = null,
+        photoBase64: RequestBody? = null
     ) {
         viewModelScope.launch {
             val result = repo.createGeotaging(
@@ -259,6 +258,13 @@ class VmApplication(
             repo.insertAllGeotagsOffline(item)
         }
     }
+    fun deleteGeotaggingById(geotaggingId: Int){
+        viewModelScope.launch {
+            repo.deleteGeotaggingById(geotaggingId)
+        }
+    }
+
+
 
     fun eksports(
         type: String?,

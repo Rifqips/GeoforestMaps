@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Base64
-import android.util.Log
 import id.application.geoforestmaps.R
 import okhttp3.ResponseBody
 import java.io.ByteArrayOutputStream
@@ -98,19 +97,64 @@ object Constant {
     }
 
 
+
     /**
      * Convert image to base64 format by
      * @param photoPath
      */
     fun convertImageToBase64(file: File): String {
         return try {
-            val byteArray = file.readBytes()
-            Base64.encodeToString(byteArray, Base64.DEFAULT)
+            val base64Image = resizeAndCompressImage(file)
+            "data:image/jpeg;base64,$base64Image"
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e("IMAGE-BASE64", "convertImageToBase64: ", e.cause)
             ""
         }
+    }
+
+
+    private fun resizeAndCompressImage(file: File, maxFileSizeKB: Int = 1024): String {
+        val options = BitmapFactory.Options().apply {
+            inJustDecodeBounds = true
+            BitmapFactory.decodeFile(file.absolutePath, this)
+        }
+
+        val photoW = options.outWidth
+        val photoH = options.outHeight
+
+        val targetW = 800
+        val targetH = 800
+
+        val inSampleSize = calculateInSampleSize(photoW, photoH, targetW, targetH)
+
+        options.inSampleSize = inSampleSize
+        options.inJustDecodeBounds = false
+
+        val bitmap = BitmapFactory.decodeFile(file.absolutePath, options)
+
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        var quality = 100
+        do {
+            byteArrayOutputStream.reset()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream)
+            quality -= 10
+        } while (byteArrayOutputStream.toByteArray().size > maxFileSizeKB * 1024 && quality > 0)
+
+        val byteArray = byteArrayOutputStream.toByteArray()
+        return Base64.encodeToString(byteArray, Base64.DEFAULT)
+    }
+
+    private fun calculateInSampleSize(photoW: Int, photoH: Int, reqW: Int, reqH: Int): Int {
+        var inSampleSize = 1
+        if (photoH > reqH || photoW > reqW) {
+            val halfHeight = photoH / 2
+            val halfWidth = photoW / 2
+
+            while (halfHeight / inSampleSize >= reqH && halfWidth / inSampleSize >= reqW) {
+                inSampleSize *= 2
+            }
+        }
+        return inSampleSize
     }
 
 

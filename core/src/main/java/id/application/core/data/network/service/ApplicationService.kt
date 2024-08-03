@@ -53,8 +53,8 @@ interface ApplicationService {
         @Part("latitude") latitude: RequestBody?,
         @Part("longitude") longitude: RequestBody?,
         @Part("altitude") altitude: RequestBody?,
-        @Part userImage: MultipartBody.Part?,
-        @Part("base64") photoBase64: RequestBody?
+        @Part userImage: MultipartBody.Part? = null,
+        @Part("base64") photoBase64: RequestBody? = null
     ) : Response<ResponseBody>
 
     @GET("v1/plants")

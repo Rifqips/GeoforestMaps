@@ -4,9 +4,6 @@ package id.application.core.domain.model.geotags
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.google.gson.annotations.SerializedName
-import id.application.core.data.network.model.geotags.AllGeotaging
-import retrofit2.http.Part
 
 @Entity(tableName = "all_geotaging_offline")
 data class ItemAllGeotagingOffline(
@@ -17,8 +14,14 @@ data class ItemAllGeotagingOffline(
     @ColumnInfo(name = "plant_name")
     val plant: String,
 
+    @ColumnInfo(name = "plant_id")
+    val plantId: String,
+
     @ColumnInfo(name = "block_name")
     val block: String,
+
+    @ColumnInfo(name = "block_id")
+    val blockId: String,
 
     @ColumnInfo(name = "latitude")
     val latitude: String,

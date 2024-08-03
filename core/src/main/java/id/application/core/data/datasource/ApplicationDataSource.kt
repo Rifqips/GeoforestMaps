@@ -14,6 +14,7 @@ import okhttp3.ResponseBody
 import retrofit2.Response
 
 interface ApplicationDataSource {
+
     suspend fun userLogin(userLoginRequest: RequestLoginItem): ResponseLoginItem
     suspend fun userLogout(): Response<ResponseLogoutItem>
     suspend fun userProfile(): ResponseProfileItem
@@ -40,8 +41,8 @@ interface ApplicationDataSource {
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
-        userImage: MultipartBody.Part?,
-        photoBase64: RequestBody?
+        userImage: MultipartBody.Part? = null,
+        photoBase64: RequestBody? = null
     ): Result<Unit>
 
     suspend fun exportFile(type: String?, block: String?, geoatagId : Int?): Response<ResponseBody>

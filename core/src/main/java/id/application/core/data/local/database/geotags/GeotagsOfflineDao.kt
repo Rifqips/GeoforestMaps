@@ -19,8 +19,4 @@ interface GeotagsOfflineDao {
     @Query("DELETE FROM all_geotaging_offline WHERE id = :geotaggingId")
     suspend fun deleteGeotaggingById(geotaggingId: Int)
 
-    @Query("DELETE FROM all_geotaging_offline")
-    suspend fun deleteAllGeotagsOffline()
-
-
 }

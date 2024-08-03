@@ -14,7 +14,6 @@ import id.application.core.domain.model.blocks.toAllBlockResponse
 import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.core.domain.model.geotags.ItemAllGeotagingOffline
 import id.application.core.domain.model.geotags.ItemAllGeotagingResponse
-import id.application.core.domain.model.geotags.toAllGeotagingList
 import id.application.core.domain.model.geotags.toAllGeotagingResponse
 import id.application.core.domain.model.login.UserLoginRequest
 import id.application.core.domain.model.login.UserLoginResponse
@@ -35,7 +34,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.toList
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -55,8 +53,8 @@ interface  ApplicationRepository{
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
-        userImage: MultipartBody.Part?,
-        photoBase64: RequestBody?
+        userImage: MultipartBody.Part? = null,
+        photoBase64: RequestBody? = null
     ): Result<Unit>
 
     suspend fun getAllGeotaging(
@@ -214,23 +212,6 @@ class ApplicationRepositoryImpl(
             delay(3000)
         }
     }
-
-//    override fun getAllGeotagingOffline(): Flow<ResultWrapper<List<ItemAllGeotagingOffline>>> {
-//        return proceedFlow {
-//            geotagsOfflineDao.getAllGeotagsOffline().toList()
-//        }.map{
-//            if (it.payload?.isEmpty() == true) {
-//                ResultWrapper.Empty(it.payload)
-//            } else {
-//                it
-//            }
-//        }.catch {
-//            emit(ResultWrapper.Error(Exception(it)))
-//        }.onStart {
-//            emit(ResultWrapper.Loading())
-//            delay(3000)
-//        }
-//    }
 
     override suspend fun insertAllGeotagsOffline(geotagsOffline: ItemAllGeotagingOffline) {
         return geotagsOfflineDao.insertAllGeotagsOffline(geotagsOffline)

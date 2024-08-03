@@ -12,8 +12,6 @@ import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentGeotaggingLocationBinding
 import id.application.geoforestmaps.presentation.adapter.blocks.AdapterBlockLocal
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
-import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
-import io.github.muddz.styleabletoast.StyleableToast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class GeotaggingLocationFragment :

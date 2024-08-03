@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import id.application.core.domain.model.geotags.ItemAllGeotagingOffline
+import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.ItemHistoryDataBinding
 import id.application.geoforestmaps.presentation.adapter.history.HistoryListAdapter.ViewHolder
 import java.time.Instant
@@ -52,7 +53,7 @@ class AdapterGeotagingOffline(
                 val timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
                 val formattedDate = localDateTime.format(localFormatter)
                 val formattedTime = localDateTime.format(timeFormatter)
-
+                ivItemHistory.load(R.drawable.img_red_tree)
                 tvTitleItemHistory.text = item.plant
                 tvDescItemHistory.text = item.block
                 tvTimeItemHistory.text = formattedTime

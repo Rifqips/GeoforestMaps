@@ -1,28 +1,33 @@
 package id.application.geoforestmaps.presentation.feature.history
 
+import android.annotation.SuppressLint
 import android.view.View
+import android.widget.Toast
 import androidx.core.view.isGone
-import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
-import id.application.core.domain.model.History
+import id.application.core.domain.model.geotags.ItemAllGeotagingOffline
 import id.application.core.utils.BaseFragment
 import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentHistoryBinding
 import id.application.geoforestmaps.presentation.adapter.history.AdapterGeotagingLocal
 import id.application.geoforestmaps.presentation.adapter.history.AdapterGeotagingOffline
-import id.application.geoforestmaps.presentation.adapter.history.HistoryListAdapter
-import id.application.geoforestmaps.presentation.feature.history.HistoryData.listDataHistory
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
+import id.application.geoforestmaps.utils.NetworkCallback
 import io.github.muddz.styleabletoast.StyleableToast
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class HistoryFragment :
-    BaseFragment<FragmentHistoryBinding, VmApplication>(FragmentHistoryBinding::inflate) {
+    BaseFragment<FragmentHistoryBinding, VmApplication>(FragmentHistoryBinding::inflate),
+    NetworkCallback {
 
-    private val adapterHistory = HistoryListAdapter()
     override val viewModel: VmApplication by viewModel()
 
     private val adapterPagingLocalGeotagging: AdapterGeotagingLocal by lazy {
@@ -34,23 +39,22 @@ class HistoryFragment :
 
     override fun initView() {
         rvOffline()
-//        rvListHistory()
         setUpPaging()
-        if (isNetworkAvailable(requireContext())) {
-            binding.layoutNoSignal.root.isGone = true
-        } else {
-            binding.layoutNoSignal.root.isGone = true
+        if (!isNetworkAvailable(requireContext())) {
             binding.pbLoading.isGone = true
             StyleableToast.makeText(
                 requireContext(),
                 getString(R.string.text_no_internet_connection),
                 R.style.failedtoast
             ).show()
+            binding.cvSycnGeotagging.visibility = View.GONE
         }
-
     }
 
-    override fun initListener() {}
+    override fun initListener() {
+        with(binding){
+        }
+    }
 
     private fun setUpPaging() {
         if (view != null) {
@@ -82,20 +86,15 @@ class HistoryFragment :
         }
     }
 
-    private fun rvOffline(){
-        // geotaging offline
+    @SuppressLint("SetTextI18n")
+    private fun rvOffline() {
         if (view != null) {
-            viewModel.geotagingListOffline
-            viewModel.geotagingListOffline.observe(viewLifecycleOwner){ result ->
-                result.proceedWhen (
-                    doOnLoading = {
-                        binding.rvHistoryData.visibility = View.GONE
-                        binding.pbLoadingOffline.visibility = View.VISIBLE
-                        binding.cvDataSynchronization.visibility = View.VISIBLE
-                    },
+            viewModel.geotagingListOffline.observe(viewLifecycleOwner) { result ->
+                result.proceedWhen(
                     doOnSuccess = {
                         binding.rvHistoryData.visibility = View.VISIBLE
-                        binding.pbLoadingOffline.visibility = View.GONE
+                        binding.tvTotalSentOffline.visibility = View.VISIBLE
+                        binding.tvAlreadySent.visibility = View.VISIBLE
                         binding.cvDataSynchronization.visibility = View.VISIBLE
                         binding.rvHistoryData.apply {
                             layoutManager = LinearLayoutManager(requireContext()).apply {
@@ -103,74 +102,74 @@ class HistoryFragment :
                             }
                             adapter = adapterGeotaggingOffline
                         }
-                        result.payload?.let {
-                            adapterGeotaggingOffline.setData(it)
+                        result.payload?.let { geotaggingList ->
+                            adapterGeotaggingOffline.setData(geotaggingList)
+                            binding.cvSycnGeotagging.setOnClickListener {
+                                syncGeotaggingWithDelay(geotaggingList)
+                            }
                         }
                     },
                     doOnEmpty = {
                         binding.rvHistoryData.visibility = View.GONE
                         binding.cvDataSynchronization.visibility = View.GONE
-                        binding.pbLoadingOffline.visibility = View.GONE
+                        binding.tvTotalSentOffline.visibility = View.GONE
+                        binding.tvAlreadySent.visibility = View.GONE
                     }
                 )
             }
         }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun syncGeotaggingWithDelay(geotaggingList: List<ItemAllGeotagingOffline>) {
+        val totalData = geotaggingList.size
+        lifecycleScope.launch {
+            geotaggingList.forEachIndexed { index, geotagging ->
+                delay(3000)
+                binding.tvTotalSentOffline.text = "Mengirim data : ${index+1} dari $totalData"
+                sycnGeotagging(
+                    id = geotagging.id,
+                    plantId = geotagging.plantId,
+                    blockId = geotagging.blockId,
+                    latitude = geotagging.latitude,
+                    longtitude = geotagging.longitude,
+                    altitude = geotagging.altitude,
+                    base64 = geotagging.base64
+                )
+            }
+        }
+    }
+
+    private fun sycnGeotagging(id : Int, plantId : String, blockId : String, latitude : String,
+                               longtitude : String, altitude : String, base64 : String){
+        viewModel.createGeotaging(
+            plantId.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            blockId.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            latitude.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            longtitude.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            altitude.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+            photoBase64 = base64.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+        )
+        viewModel.state.observe(viewLifecycleOwner) { result ->
+            result.fold(
+                onSuccess = {
+                    viewModel.deleteGeotaggingById(id)
+                },
+                onFailure = { exception ->
+                    Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
 
     }
-//    private fun rvListHistory() {
-//        binding.rvHistoryData.adapter = adapterHistory
-//        binding.rvHistoryData.layoutManager =
-//            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-//        adapterHistory.setData(listDataHistory)
-//    }
 
-}
-
-
-object HistoryData {
-
-    private var images = intArrayOf(
-        R.drawable.img_red_tree,
-        R.drawable.img_red_tree,
-        R.drawable.img_red_tree
-    )
-
-    private var titles = arrayOf(
-        "Blok X",
-        "Blok Y",
-        "Blok Z"
-    )
-
-    private var descriptions = arrayOf(
-        "Karet",
-        "Kayu",
-        "Daun"
-    )
-
-    private var times = arrayOf(
-        "12:13 PM",
-        "11:00 PM",
-        "01:00 AM"
-    )
-
-    private var dates = arrayOf(
-        "12 Mei 2024",
-        "12 Juli 2024",
-        "13 Juli 2024"
-    )
-
-    val listDataHistory: ArrayList<History>
-        get() {
-            val listHistory = arrayListOf<History>()
-            for (position in titles.indices) {
-                val dataHistory = History()
-                dataHistory.image = images[position]
-                dataHistory.title = titles[position]
-                dataHistory.description = descriptions[position]
-                dataHistory.time = times[position]
-                dataHistory.date = dates[position]
-                listHistory.add(dataHistory)
-            }
-            return listHistory
+    override fun onNetworkAvailable() {
+        if (isAdded && view != null) {
+            binding.cvSycnGeotagging.visibility = View.VISIBLE
+        }else{
+            binding.cvSycnGeotagging.visibility = View.GONE
         }
+    }
 }
+
+
