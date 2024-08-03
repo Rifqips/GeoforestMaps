@@ -14,11 +14,11 @@ data class ItemAllGeotagingOffline(
     @ColumnInfo(name = "id")
     val id: Int = 0,
 
-    @ColumnInfo(name = "plant_id")
-    val plantId: Int,
+    @ColumnInfo(name = "plant_name")
+    val plant: String,
 
-    @ColumnInfo(name = "block_id")
-    val blockId: Int,
+    @ColumnInfo(name = "block_name")
+    val block: String,
 
     @ColumnInfo(name = "latitude")
     val latitude: String,
@@ -30,5 +30,8 @@ data class ItemAllGeotagingOffline(
     val altitude: String,
 
     @ColumnInfo(name = "base64")
-    val base64: String
+    val base64: String,
+
+    @ColumnInfo(name = "created_at")
+    val createdAt: Long = System.currentTimeMillis()
 )

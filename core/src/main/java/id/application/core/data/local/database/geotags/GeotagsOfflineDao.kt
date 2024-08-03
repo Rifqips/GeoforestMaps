@@ -13,8 +13,8 @@ interface GeotagsOfflineDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllGeotagsOffline(geotagsOffline: ItemAllGeotagingOffline)
 
-    @Query("SELECT * FROM all_geotaging_offline")
-    fun getAllGeotagsOffline(): Flow<ItemAllGeotagingOffline>
+    @Query("SELECT * FROM all_geotaging_offline ORDER BY created_at DESC")
+    fun getAllGeotagsOffline(): Flow<List<ItemAllGeotagingOffline>>
 
     @Query("DELETE FROM all_geotaging_offline WHERE id = :geotaggingId")
     suspend fun deleteGeotaggingById(geotaggingId: Int)

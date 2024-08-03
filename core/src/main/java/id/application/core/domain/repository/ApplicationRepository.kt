@@ -27,6 +27,7 @@ import id.application.core.domain.paging.BlockPagingMediator
 import id.application.core.domain.paging.GeotagingPagingMediator
 import id.application.core.utils.AssetWrapperApp
 import id.application.core.utils.ResultWrapper
+import id.application.core.utils.proceed
 import id.application.core.utils.proceedFlow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -196,8 +197,10 @@ class ApplicationRepositoryImpl(
     }
 
     override fun getAllGeotagingOffline(): Flow<ResultWrapper<List<ItemAllGeotagingOffline>>> {
-        return proceedFlow {
-            geotagsOfflineDao.getAllGeotagsOffline().toList()
+        return geotagsOfflineDao.getAllGeotagsOffline().map {
+            proceed {
+                it.toList()
+            }
         }.map{
             if (it.payload?.isEmpty() == true) {
                 ResultWrapper.Empty(it.payload)
@@ -211,6 +214,23 @@ class ApplicationRepositoryImpl(
             delay(3000)
         }
     }
+
+//    override fun getAllGeotagingOffline(): Flow<ResultWrapper<List<ItemAllGeotagingOffline>>> {
+//        return proceedFlow {
+//            geotagsOfflineDao.getAllGeotagsOffline().toList()
+//        }.map{
+//            if (it.payload?.isEmpty() == true) {
+//                ResultWrapper.Empty(it.payload)
+//            } else {
+//                it
+//            }
+//        }.catch {
+//            emit(ResultWrapper.Error(Exception(it)))
+//        }.onStart {
+//            emit(ResultWrapper.Loading())
+//            delay(3000)
+//        }
+//    }
 
     override suspend fun insertAllGeotagsOffline(geotagsOffline: ItemAllGeotagingOffline) {
         return geotagsOfflineDao.insertAllGeotagsOffline(geotagsOffline)

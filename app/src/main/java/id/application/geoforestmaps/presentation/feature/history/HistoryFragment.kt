@@ -2,13 +2,16 @@ package id.application.geoforestmaps.presentation.feature.history
 
 import android.view.View
 import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import id.application.core.domain.model.History
 import id.application.core.utils.BaseFragment
+import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentHistoryBinding
 import id.application.geoforestmaps.presentation.adapter.history.AdapterGeotagingLocal
+import id.application.geoforestmaps.presentation.adapter.history.AdapterGeotagingOffline
 import id.application.geoforestmaps.presentation.adapter.history.HistoryListAdapter
 import id.application.geoforestmaps.presentation.feature.history.HistoryData.listDataHistory
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
@@ -25,9 +28,13 @@ class HistoryFragment :
     private val adapterPagingLocalGeotagging: AdapterGeotagingLocal by lazy {
         AdapterGeotagingLocal {}
     }
+    private val adapterGeotaggingOffline: AdapterGeotagingOffline by lazy {
+        AdapterGeotagingOffline {}
+    }
 
     override fun initView() {
-        rvListHistory()
+        rvOffline()
+//        rvListHistory()
         setUpPaging()
         if (isNetworkAvailable(requireContext())) {
             binding.layoutNoSignal.root.isGone = true
@@ -54,6 +61,7 @@ class HistoryFragment :
                 }
             }
         }
+
         adapterPagingLocalGeotagging.addLoadStateListener { loadState ->
             with(binding) {
                 if (loadState.refresh is LoadState.Loading) {
@@ -74,12 +82,47 @@ class HistoryFragment :
         }
     }
 
-    private fun rvListHistory() {
-        binding.rvHistoryData.adapter = adapterHistory
-        binding.rvHistoryData.layoutManager =
-            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        adapterHistory.setData(listDataHistory)
+    private fun rvOffline(){
+        // geotaging offline
+        if (view != null) {
+            viewModel.geotagingListOffline
+            viewModel.geotagingListOffline.observe(viewLifecycleOwner){ result ->
+                result.proceedWhen (
+                    doOnLoading = {
+                        binding.rvHistoryData.visibility = View.GONE
+                        binding.pbLoadingOffline.visibility = View.VISIBLE
+                        binding.cvDataSynchronization.visibility = View.VISIBLE
+                    },
+                    doOnSuccess = {
+                        binding.rvHistoryData.visibility = View.VISIBLE
+                        binding.pbLoadingOffline.visibility = View.GONE
+                        binding.cvDataSynchronization.visibility = View.VISIBLE
+                        binding.rvHistoryData.apply {
+                            layoutManager = LinearLayoutManager(requireContext()).apply {
+                                isSmoothScrollbarEnabled = true
+                            }
+                            adapter = adapterGeotaggingOffline
+                        }
+                        result.payload?.let {
+                            adapterGeotaggingOffline.setData(it)
+                        }
+                    },
+                    doOnEmpty = {
+                        binding.rvHistoryData.visibility = View.GONE
+                        binding.cvDataSynchronization.visibility = View.GONE
+                        binding.pbLoadingOffline.visibility = View.GONE
+                    }
+                )
+            }
+        }
+
     }
+//    private fun rvListHistory() {
+//        binding.rvHistoryData.adapter = adapterHistory
+//        binding.rvHistoryData.layoutManager =
+//            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+//        adapterHistory.setData(listDataHistory)
+//    }
 
 }
 

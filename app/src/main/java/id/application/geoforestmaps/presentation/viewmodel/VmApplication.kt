@@ -5,6 +5,7 @@ import android.os.Environment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -80,6 +81,8 @@ class VmApplication(
 
     private val _downloadStatus = MutableLiveData<String>()
     val downloadStatus: LiveData<String> get() = _downloadStatus
+
+    val geotagingListOffline = repo.getAllGeotagingOffline().asLiveData(Dispatchers.IO)
 
     fun userLogin(request: UserLoginRequest) {
         viewModelScope.launch(Dispatchers.IO) {

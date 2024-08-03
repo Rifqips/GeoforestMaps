@@ -31,18 +31,22 @@ class GeotaggingLocationFragment :
         with(binding){
             topBar.ivTitle.text = "Ambil Data"
         }
-        if (isNetworkAvailable(requireContext())) {
-            setUpPaging()
-            binding.layoutNoSignal.root.isGone = true
-        } else {
-            binding.layoutNoSignal.root.isGone = false
-            binding.pbLoading.isGone = true
-            StyleableToast.makeText(
-                requireContext(),
-                getString(R.string.text_no_internet_connection),
-                R.style.failedtoast
-            ).show()
-        }
+        setUpPaging()
+        binding.layoutNoSignal.root.isGone = true
+        binding.pbLoading.isGone = true
+//        if (isNetworkAvailable(requireContext())) {
+//            setUpPaging()
+//            binding.layoutNoSignal.root.isGone = true
+//        } else {
+////            binding.layoutNoSignal.root.isGone = false
+//            binding.layoutNoSignal.root.isGone = true
+//            binding.pbLoading.isGone = true
+//            StyleableToast.makeText(
+//                requireContext(),
+//                getString(R.string.text_no_internet_connection),
+//                R.style.failedtoast
+//            ).show()
+//        }
     }
 
     override fun initListener() {

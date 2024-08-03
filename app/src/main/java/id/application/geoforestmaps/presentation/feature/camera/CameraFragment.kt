@@ -386,7 +386,9 @@ class CameraFragment :
                 addressText = "Lokasi tidak tersedia"
             }
         } catch (e: IOException) {
-            addressText = "Gagal mendapatkan alamat"
+//            addressText = "Gagal mendapatkan alamat"
+            addressText = "Latitude\t: 0.0\nLongitude\t: 0.0\nAltitude\t: 0" +
+                    "\nBlock\t: $blokName\nPlant\t: $selectedPlantType\nUser\t: $userName\nDate Time\t: $dateTime"
         }
 
         val textBounds = Rect()
@@ -550,13 +552,14 @@ class CameraFragment :
                 latitude = it.latitude
                 longitude = it.longitude
                 altitude = it.altitude.toInt()
-                layoutCheckDataItem(savedUri, latitude, longitude, altitude)
-
+                // layoutCheckDataItem nya pindah ke bawah
             } ?: run {
                 addressText = "Lokasi tidak tersedia"
             }
         } catch (e: IOException) {
-            addressText = "Gagal mendapatkan alamat"
+//            addressText = "Gagal mendapatkan alamat"
+            addressText = "Latitude\t: 0.0\nLongitude\t: 0.0\nAltitude\t: 0" +
+                    "\nBlock\t: $blokName\nPlant\t: $selectedPlantType\nUser\t: $userName\nDate Time\t: $dateTime"
         }
 
         // Mengukur lebar dan tinggi teks
@@ -626,6 +629,9 @@ class CameraFragment :
             scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
             outputStream.close()
         }
+
+        // pindah ke sini layoutCheckDataItem nya
+        layoutCheckDataItem(savedUri, latitude, longitude, altitude)
 
     }
 
@@ -731,14 +737,15 @@ class CameraFragment :
                         )
                     } else {
                         val itemOffline = ItemAllGeotagingOffline(
-                            plantId = idPlant.toInt(),
-                            blockId = idBlock.toInt(),
+                            plant = selectedPlantType,
+                            block = blokName,
                             latitude = latitude.toString(),
                             longitude = longitude.toString(),
                             altitude = altitude.toString(),
                             base64 = base64String
                         )
                         viewModel.createGeotaggingOflline(itemOffline)
+                        showDialogConfirmSaveData()
                     }
                     Log.d("check-post", "$idPlant $idBlock $latitude $longitude $altitude $imageMultipart")
                     Log.d("check-post", "$base64RequestBody")
