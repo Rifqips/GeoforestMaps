@@ -727,7 +727,7 @@ class CameraFragment :
                             longitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
                             altitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
                             imageMultipart,
-                            base64RequestBody
+                            "/".toRequestBody("multipart/form-data".toMediaTypeOrNull()),
                         )
                     } else {
                         val itemOffline = ItemAllGeotagingOffline(
