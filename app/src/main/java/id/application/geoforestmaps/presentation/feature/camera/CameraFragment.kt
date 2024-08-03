@@ -57,6 +57,7 @@ import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant
 import id.application.geoforestmaps.utils.Constant.IMAGE_FORMAT
 import id.application.geoforestmaps.utils.Constant.convertImageToBase64
+import id.application.geoforestmaps.utils.Constant.formatAltitude
 import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -535,7 +536,7 @@ class CameraFragment :
                 addressText = if (addresses.isNullOrEmpty()) {
                     "Alamat tidak tersedia"
                 } else {
-                    "Latitude\t: ${it.latitude}\nLongitude\t: ${it.longitude}\nAltitude\t: ${it.altitude}" +
+                    "Latitude\t: ${it.latitude}\nLongitude\t: ${it.longitude}\nAltitude\t: ${formatAltitude(it.altitude)}" +
                             "\nBlock\t: $blokName\nPlant\t: $selectedPlantType\nUser\t: $userName\nDate Time\t: $dateTime "
                 }
                 // inisialisasi request data for create geotaging
@@ -737,8 +738,6 @@ class CameraFragment :
                         viewModel.createGeotaggingOflline(itemOffline)
                         showDialogConfirmSaveData()
                     }
-                    Log.d("check-post", "$idPlant $idBlock $latitude $longitude $altitude $imageMultipart")
-                    Log.d("check-post", "$dataUriBase64")
                 } else {
                     Toast.makeText(requireContext(), "File tidak dapat diakses", Toast.LENGTH_SHORT).show()
                 }

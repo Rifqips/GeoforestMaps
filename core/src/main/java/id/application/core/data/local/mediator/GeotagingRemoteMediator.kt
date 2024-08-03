@@ -18,7 +18,8 @@ class GeotagingRemoteMediator(
 ) : RemoteMediator<Int, ItemAllGeotaging>() {
 
     override suspend fun initialize(): InitializeAction {
-        return InitializeAction.LAUNCH_INITIAL_REFRESH
+        // Jangan selalu lakukan refresh awal, gunakan action default
+        return InitializeAction.SKIP_INITIAL_REFRESH
     }
 
     override suspend fun load(
@@ -27,11 +28,12 @@ class GeotagingRemoteMediator(
     ): MediatorResult {
         val page = when (loadType) {
             LoadType.REFRESH -> {
-                val remoteKeys = getRemoteKeyClosestToCurrentPosition(state)
-                remoteKeys?.nextKey?.minus(1) ?: INITIAL_PAGE_INDEX
+                // Halaman pertama saat refresh
+                INITIAL_PAGE_INDEX
             }
 
             LoadType.PREPEND -> {
+                // Halaman sebelumnya
                 val remoteKeys = getRemoteKeyForFirstItem(state)
                 val prevKey = remoteKeys?.prevKey ?: return MediatorResult.Success(
                     endOfPaginationReached = remoteKeys != null
@@ -40,6 +42,7 @@ class GeotagingRemoteMediator(
             }
 
             LoadType.APPEND -> {
+                // Halaman berikutnya
                 val remoteKeys = getRemoteKeyForLastItem(state)
                 val nextKey = remoteKeys?.nextKey ?: return MediatorResult.Success(
                     endOfPaginationReached = remoteKeys != null
@@ -47,47 +50,53 @@ class GeotagingRemoteMediator(
                 nextKey
             }
         }
+
         return try {
             val responseData = apiEndPoint.getAllGeotaging(pageItem = page, createdBy = "user", sort = "created_at:desc")
             val endOfPaginationReached = responseData.data.items.isEmpty()
+
             database.withTransaction {
                 if (loadType == LoadType.REFRESH){
                     database.geotagsDao().deleteAllGeotags()
                 }
-                val prevKey = if (page == 1) null else page -1
+
+                val prevKey = if (page == INITIAL_PAGE_INDEX) null else page - 1
                 val nextKey = if (endOfPaginationReached) null else page + 1
+
                 val keys = responseData.data.items.map {
-                    RemoteKeys(id = it.id.toString(), prevKey = prevKey, nextKey=nextKey)
+                    RemoteKeys(id = it.id.toString(), prevKey = prevKey, nextKey = nextKey)
                 }
                 database.geotagsDao().insertAllKeyGeotags(keys)
                 database.geotagsDao().insertAllGeotags(responseData.data.items.toAllGeotagingList())
             }
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
-        }catch (exception: Exception){
+        } catch (exception: Exception) {
             MediatorResult.Error(exception)
         }
     }
 
     private suspend fun getRemoteKeyForFirstItem(state: PagingState<Int, ItemAllGeotaging>): RemoteKeys? {
-        return state.pages.firstOrNull { it.data.isNotEmpty()}?.data?.firstOrNull()?.let { data ->
-            database.geotagsDao().getRemoteKeysIdGeotags(data.id.toString())
-        }
+        return state.pages
+            .firstOrNull { it.data.isNotEmpty() }
+            ?.data
+            ?.firstOrNull()
+            ?.let { data -> database.geotagsDao().getRemoteKeysIdGeotags(data.id.toString()) }
     }
 
     private suspend fun getRemoteKeyForLastItem(state: PagingState<Int, ItemAllGeotaging>): RemoteKeys? {
-        return state.pages.lastOrNull { it.data.isNotEmpty()}?.data?.lastOrNull()?.let { data ->
-            database.geotagsDao().getRemoteKeysIdGeotags(data.id.toString())
-        }
-    }
-    private suspend fun getRemoteKeyClosestToCurrentPosition(state: PagingState<Int, ItemAllGeotaging>): RemoteKeys? {
-        return state.anchorPosition?.let { position ->
-            state.closestItemToPosition(position)?.id?.let { id ->
-                database.geotagsDao().getRemoteKeysIdGeotags(id.toString())
-            }
-        }
+        return state.pages
+            .lastOrNull { it.data.isNotEmpty() }
+            ?.data
+            ?.lastOrNull()
+            ?.let { data -> database.geotagsDao().getRemoteKeysIdGeotags(data.id.toString()) }
     }
 
-    companion object{
+    private suspend fun getRemoteKeyClosestToCurrentPosition(state: PagingState<Int, ItemAllGeotaging>): RemoteKeys? {
+        return state.anchorPosition
+            ?.let { position -> state.closestItemToPosition(position)?.id?.let { id -> database.geotagsDao().getRemoteKeysIdGeotags(id.toString()) } }
+    }
+
+    companion object {
         const val INITIAL_PAGE_INDEX = 1
     }
 }

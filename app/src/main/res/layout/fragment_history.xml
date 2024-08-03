@@ -32,11 +32,9 @@
             android:layout_marginHorizontal="16dp"
             app:cardBackgroundColor="@color/bg_cream"
             app:cardElevation="6dp"
-            android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@+id/tv_title_history"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintStart_toStartOf="parent">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -114,7 +112,7 @@
             android:visibility="gone"
             android:textColor="@color/black"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_title_history" />
+            app:layout_constraintTop_toBottomOf="@id/cv_data_synchronization" />
 
 
         <androidx.recyclerview.widget.RecyclerView

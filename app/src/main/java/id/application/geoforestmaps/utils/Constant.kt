@@ -13,6 +13,7 @@ import okhttp3.ResponseBody
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -71,17 +72,6 @@ object Constant {
                 || networkCapabilities.hasTransport(
             NetworkCapabilities.TRANSPORT_CELLULAR
         ))
-    }
-
-
-    fun saveFile(responseBody: ResponseBody, filePath: String) {
-        val file = File(filePath)
-        if (file.exists()) {
-            file.delete() // Menghapus file yang sudah ada
-        }
-        file.outputStream().use { outputStream ->
-            responseBody.byteStream().copyTo(outputStream)
-        }
     }
 
     fun generateUniqueFileName(fileName: String): String {
@@ -157,5 +147,9 @@ object Constant {
         return inSampleSize
     }
 
+     fun formatAltitude(altitude: Double): String {
+        val decimalFormat = DecimalFormat("#.#") // Format dengan 1 tempat desimal
+        return decimalFormat.format(altitude)
+    }
 
 }
