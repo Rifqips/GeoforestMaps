@@ -47,13 +47,10 @@ class HistoryFragment :
                 getString(R.string.text_no_internet_connection),
                 R.style.failedtoast
             ).show()
-            binding.cvSycnGeotagging.visibility = View.GONE
         }
     }
 
     override fun initListener() {
-        with(binding){
-        }
     }
 
     private fun setUpPaging() {
@@ -68,28 +65,17 @@ class HistoryFragment :
 
         adapterPagingLocalGeotagging.addLoadStateListener { loadState ->
             with(binding) {
-                // Tampilkan indikator loading saat data sedang dimuat
-                pbLoading.visibility = if (loadState.refresh is LoadState.Loading) {
-                    View.VISIBLE
+                if (loadState.refresh is LoadState.Loading) {
+                    pbLoading.visibility = View.VISIBLE
                 } else {
-                    View.GONE
-                }
-
-                // Sembunyikan RecyclerView saat data sedang dimuat
-                rvHistoryAlreadySentData.visibility = if (loadState.refresh is LoadState.NotLoading) {
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
-
-                // Pastikan RecyclerView hanya diatur sekali dan tidak terganggu saat scrolling
-                if (view != null) {
-                    rvHistoryAlreadySentData.apply {
-                        if (adapter == null) {
+                    pbLoading.visibility = View.GONE
+                    if (view != null) {
+                        rvHistoryAlreadySentData.apply {
                             layoutManager = LinearLayoutManager(context).apply {
                                 isSmoothScrollbarEnabled = true
                             }
                             adapter = adapterPagingLocalGeotagging
+
                         }
                     }
                 }
@@ -98,6 +84,7 @@ class HistoryFragment :
 
 
     }
+
 
     @SuppressLint("SetTextI18n")
     private fun rvOffline() {

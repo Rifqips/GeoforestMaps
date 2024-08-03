@@ -26,4 +26,8 @@ interface GeotagsDao {
     @Query("DELETE FROM all_geotaging")
     suspend fun deleteAllGeotags()
 
+    // Tambahkan fungsi ini
+    @Query("DELETE FROM remote_keys")
+    suspend fun deleteAllRemoteKeys()
+
 }

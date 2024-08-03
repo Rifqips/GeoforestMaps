@@ -84,7 +84,6 @@ interface ApplicationService {
             authInterceptor: AuthInterceptor,
         ): ApplicationService {
             val okHttpClient = OkHttpClient.Builder()
-                .addInterceptor(chucker)
                 .addInterceptor(authInterceptor)
                 .connectTimeout(120, TimeUnit.SECONDS)
                 .readTimeout(120, TimeUnit.SECONDS)

@@ -24,7 +24,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-
         <androidx.cardview.widget.CardView
             android:id="@+id/cv_data_synchronization"
             android:layout_width="match_parent"
@@ -32,6 +31,7 @@
             android:layout_marginHorizontal="16dp"
             app:cardBackgroundColor="@color/bg_cream"
             app:cardElevation="6dp"
+            android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@+id/tv_title_history"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">

@@ -172,11 +172,6 @@ class CameraFragment :
                     ) {
                         if (view != null) {
                             selectedPlantType = plantNames[position]
-                            Toast.makeText(
-                                requireContext(),
-                                getString(R.string.selected_item) + " " + selectedPlantType,
-                                Toast.LENGTH_SHORT
-                            ).show()
                             idPlant = (plants.find { it.name == selectedPlantType }?.id ?: 0).toString()
                         }
                     }
