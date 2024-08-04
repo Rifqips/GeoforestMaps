@@ -7,24 +7,21 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import id.application.core.data.local.database.blocks.BlocksDao
-import id.application.core.data.local.database.geotags.GeotagsDao
 import id.application.core.data.local.database.geotags.GeotagsOfflineDao
 import id.application.core.data.local.database.plants.PlantsDao
 import id.application.core.domain.model.blocks.ItemAllBlocks
-import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.core.domain.model.geotags.ItemAllGeotagingOffline
 import id.application.core.domain.model.plants.ItemAllPlants
 import id.application.core.domain.model.remotekeys.RemoteKeys
 
 @Database(
-    entities = [ItemAllBlocks::class, ItemAllGeotaging::class, ItemAllPlants::class, RemoteKeys::class, ItemAllGeotagingOffline::class],
+    entities = [ItemAllBlocks::class, ItemAllPlants::class, RemoteKeys::class, ItemAllGeotagingOffline::class],
     version = 2,
     exportSchema = false
 )
 abstract class ApplicationDatabase : RoomDatabase() {
 
     abstract fun blocksDao(): BlocksDao
-    abstract fun geotagsDao(): GeotagsDao
     abstract fun plantsDao(): PlantsDao
     abstract fun geotagsOfflineDao(): GeotagsOfflineDao
 

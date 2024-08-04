@@ -21,6 +21,7 @@ import id.application.core.domain.model.login.UserLoginResponse
 import id.application.core.domain.model.plants.ItemAllPlants
 import id.application.core.domain.model.plants.ItemAllPlantsResponse
 import id.application.core.domain.paging.GeotagingAllPagingSource
+import id.application.core.domain.paging.GeotagingPagingSource
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.utils.ResultWrapper
 import id.application.core.utils.Utils.saveFile
@@ -206,17 +207,15 @@ class VmApplication(
         }
     }
 
+    val geotaggingList = Pager(PagingConfig(pageSize = 4)) {
+        GeotagingPagingSource(repo)
+    }.liveData.cachedIn(viewModelScope)
+
+
     val geotaggingListAll = Pager(PagingConfig(pageSize = 4)) {
         GeotagingAllPagingSource(repo)
     }.liveData.cachedIn(viewModelScope)
 
-    fun fetchAllGeotagingLocal() {
-        viewModelScope.launch {
-            repo.fetchAllGeotagingLocal().collect {
-                _geotagingLocalResult.postValue(it)
-            }
-        }
-    }
 
     fun fetchAllBlockLocal() {
         viewModelScope.launch {

@@ -9,7 +9,6 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Base64
 import id.application.geoforestmaps.R
-import okhttp3.ResponseBody
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -101,7 +100,6 @@ object Constant {
             ""
         }
     }
-
 
     private fun resizeAndCompressImage(file: File, maxFileSizeKB: Int = 1024): String {
         val options = BitmapFactory.Options().apply {

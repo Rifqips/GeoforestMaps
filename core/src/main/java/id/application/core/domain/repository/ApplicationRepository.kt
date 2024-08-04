@@ -11,7 +11,6 @@ import id.application.core.data.network.model.profile.toProfileResponse
 import id.application.core.domain.model.blocks.ItemAllBlocks
 import id.application.core.domain.model.blocks.ItemAllBlocksResponse
 import id.application.core.domain.model.blocks.toAllBlockResponse
-import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.core.domain.model.geotags.ItemAllGeotagingOffline
 import id.application.core.domain.model.geotags.ItemAllGeotagingResponse
 import id.application.core.domain.model.geotags.toAllGeotagingResponse
@@ -23,7 +22,6 @@ import id.application.core.domain.model.plants.ItemAllPlantsResponse
 import id.application.core.domain.model.plants.toAllPlantsResponse
 import id.application.core.domain.model.profile.UserProfileResponse
 import id.application.core.domain.paging.BlockPagingMediator
-import id.application.core.domain.paging.GeotagingPagingMediator
 import id.application.core.utils.AssetWrapperApp
 import id.application.core.utils.ResultWrapper
 import id.application.core.utils.proceed
@@ -64,7 +62,6 @@ interface  ApplicationRepository{
         pageItem:Int? = null,
     ): ItemAllGeotagingResponse
 
-    suspend fun fetchAllGeotagingLocal(): Flow<PagingData<ItemAllGeotaging>>
     suspend fun fetchAllBlockLocal(): Flow<PagingData<ItemAllBlocks>>
 
     suspend fun getAllPlants(
@@ -94,7 +91,6 @@ class ApplicationRepositoryImpl(
     private val appDataSource: ApplicationDataSource,
     private val appPreferenceDataSource: AppPreferenceDataSource,
     private val assetWrapper : AssetWrapperApp,
-    private val pagingGeotaging : GeotagingPagingMediator,
     private val pagingBlock : BlockPagingMediator,
     private val plantsDao: PlantsDao,
     private val geotagsOfflineDao : GeotagsOfflineDao
@@ -154,9 +150,6 @@ class ApplicationRepositoryImpl(
         return appDataSource.getAllGeotaging(block, createdBy,limitItem, pageItem).toAllGeotagingResponse()
     }
 
-    override suspend fun fetchAllGeotagingLocal(): Flow<PagingData<ItemAllGeotaging>> {
-        return pagingGeotaging.fetchGeotags()
-    }
 
     override suspend fun fetchAllBlockLocal(): Flow<PagingData<ItemAllBlocks>> {
         return pagingBlock.fetchBlocks()

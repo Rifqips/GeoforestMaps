@@ -12,7 +12,7 @@ import id.application.core.utils.BaseFragment
 import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentHistoryBinding
-import id.application.geoforestmaps.presentation.adapter.history.AdapterGeotagingLocal
+import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
 import id.application.geoforestmaps.presentation.adapter.history.AdapterGeotagingOffline
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
@@ -30,17 +30,22 @@ class HistoryFragment :
 
     override val viewModel: VmApplication by viewModel()
 
-    private val adapterPagingLocalGeotagging: AdapterGeotagingLocal by lazy {
-        AdapterGeotagingLocal {}
+    private val adapterPagingGeotagging: DatabaseListAdapterItem by lazy {
+        DatabaseListAdapterItem{}
     }
+
     private val adapterGeotaggingOffline: AdapterGeotagingOffline by lazy {
         AdapterGeotagingOffline {}
     }
 
     override fun initView() {
         rvOffline()
-        setUpPaging()
-        if (!isNetworkAvailable(requireContext())) {
+        if (isNetworkAvailable(requireContext())) {
+            loadPagingGeotaging(adapter = adapterPagingGeotagging)
+            setUpPaging()
+            binding.layoutNoSignal.root.isGone = true
+        } else {
+            binding.layoutNoSignal.root.isGone = false
             binding.pbLoading.isGone = true
             StyleableToast.makeText(
                 requireContext(),
@@ -50,39 +55,53 @@ class HistoryFragment :
         }
     }
 
-    override fun initListener() {
+    override fun initListener() {}
+
+    private fun loadPagingGeotaging(
+        adapter: DatabaseListAdapterItem,
+    ) {
+        viewModel.loadPagingGeotagging(
+            adapter,
+        )
     }
 
-    private fun setUpPaging() {
-        if (view != null) {
-            viewModel.fetchAllGeotagingLocal()
+    private fun setUpPaging(){
+        if (view != null){
             parentFragment?.viewLifecycleOwner?.let {
-                viewModel.geotagingLocalResult.observe(viewLifecycleOwner) {
-                    adapterPagingLocalGeotagging.submitData(viewLifecycleOwner.lifecycle, it)
+                viewModel.geotaggingList.observe(it) { pagingData ->
+                    adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
             }
         }
+        binding.rvHistoryAlreadySentData.apply {
+            adapter = adapterPagingGeotagging
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        }
+        adapterPagingGeotagging.addLoadStateListener { loadState ->
+            with(binding){
 
-        adapterPagingLocalGeotagging.addLoadStateListener { loadState ->
-            with(binding) {
-                if (loadState.refresh is LoadState.Loading) {
-                    pbLoading.visibility = View.VISIBLE
-                } else {
-                    pbLoading.visibility = View.GONE
-                    if (view != null) {
-                        rvHistoryAlreadySentData.apply {
-                            layoutManager = LinearLayoutManager(context).apply {
-                                isSmoothScrollbarEnabled = true
+                when (loadState.refresh) {
+                    is LoadState.Loading -> {
+                        pbLoading.visibility = View.VISIBLE
+                    }
+                    is LoadState.NotLoading -> {
+                        pbLoading.visibility = View.GONE
+                        if (view != null){
+                            rvHistoryAlreadySentData.apply {
+                                layoutManager = LinearLayoutManager(context).apply {
+                                    isSmoothScrollbarEnabled = true
+                                }
+                                adapter = adapterPagingGeotagging
                             }
-                            adapter = adapterPagingLocalGeotagging
-
                         }
+                    }
+
+                    is LoadState.Error -> {
+                        pbLoading.visibility = View.GONE
                     }
                 }
             }
         }
-
-
     }
 
 

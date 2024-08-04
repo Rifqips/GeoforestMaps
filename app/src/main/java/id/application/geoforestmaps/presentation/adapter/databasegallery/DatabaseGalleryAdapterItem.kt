@@ -1,6 +1,7 @@
 package id.application.geoforestmaps.presentation.adapter.databasegallery
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
@@ -54,6 +55,8 @@ class DatabaseGalleryAdapterItem(
         fun bindLinear(item: ItemAllGeotaging) {
             with(binding) {
                 ivGallery.load(item.photo)
+                Log.d("check-photo", item.photo)
+
                 tvTitleBlock.text = item.plant
                 tvDescriptionBlock.text = item.block
                 ivDownload.setOnClickListener {

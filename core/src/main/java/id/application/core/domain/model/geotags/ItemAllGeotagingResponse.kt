@@ -2,10 +2,6 @@ package id.application.core.domain.model.geotags
 
 
 import androidx.annotation.Keep
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-import com.google.gson.annotations.SerializedName
 import id.application.core.data.network.model.geotags.AllGeotaging
 import id.application.core.data.network.model.geotags.DataAllGeotaging
 import id.application.core.data.network.model.geotags.ResponseAllGeotagingItem
@@ -26,33 +22,18 @@ data class ItemDataAllGeotaging(
     val totalPages: Int
 )
 
-@Entity(tableName = "all_geotaging")
 data class ItemAllGeotaging(
-    @field:PrimaryKey
-    @field:ColumnInfo(name = "id")
     val id: Int,
-    @field:ColumnInfo(name = "altitude")
     val altitude: Double,
-    @field:ColumnInfo(name = "block")
     val block: String,
-    @field:ColumnInfo(name = "created_at")
     val createdAt: String,
-    @field:ColumnInfo(name = "latitude")
     val latitude: Double,
-    @field:ColumnInfo(name = "longitude")
     val longitude: Double,
-    @field:ColumnInfo(name = "photo")
     val photo: String,
-    @field:ColumnInfo(name = "plant")
     val plant: String,
-    @field:ColumnInfo(name = "updated_at")
     val updatedAt: String,
-    @field:ColumnInfo(name = "user_id")
-    @SerializedName("user_id")
     val userId: Int
 )
-
-
 
 fun ResponseAllGeotagingItem.toAllGeotagingResponse() = ItemAllGeotagingResponse(
     code = this.code,
