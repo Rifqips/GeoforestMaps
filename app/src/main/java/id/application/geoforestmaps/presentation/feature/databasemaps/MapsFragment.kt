@@ -27,6 +27,7 @@ import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
 import id.application.geoforestmaps.utils.NetworkCallback
 import id.application.geoforestmaps.utils.NetworkChangeReceiver
 import io.github.muddz.styleabletoast.StyleableToast
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.getKoin
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -61,23 +62,24 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         getKoin().get<NetworkChangeReceiver> { parametersOf(refreshDataCallback) }
     }
 
-
     var blockName: String? = ""
 
     private val PERMISSIONS_REQUEST_CODE = 1
     lateinit var controller: IMapController
-    lateinit var mMyLocationOverlay: MyLocationNewOverlay
 
     @SuppressLint("SetTextI18n")
     override fun initView() {
         requireActivity().registerReceiver(networkChangeReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
-        with(binding){
+        with(binding) {
             topbar.ivTitle.text = "Map"
         }
         if (isNetworkAvailable(requireContext())) {
-            binding.layoutNoSignal.root.isGone = true
             setUpPaging()
-            initVm()
+            binding.layoutNoSignal.root.isGone = true
+            lifecycleScope.launch {
+                delay(2000)
+                initVm()
+            }
             onBackPressed()
             configMap()
             checkPermissions()
@@ -122,30 +124,13 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         // Initialize the map controller
         controller = binding.map.controller
 
-        // Set the map to display Indonesia
-        val indonesiaCenter = GeoPoint(-5.0, 120.0)
-        controller.setCenter(indonesiaCenter)
-        controller.setZoom(5.0)
 
-        // Setup MyLocationOverlay
-        mMyLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(requireActivity()), binding.map)
-        mMyLocationOverlay.enableMyLocation()
-        mMyLocationOverlay.enableFollowLocation()
-        mMyLocationOverlay.isDrawAccuracyEnabled = true
-        mMyLocationOverlay.runOnFirstFix {
-            lifecycleScope.launch {
-                controller.setCenter(mMyLocationOverlay.myLocation)
-                controller.animateTo(mMyLocationOverlay.myLocation)
-            }
-        }
-
-        binding.map.overlays.add(mMyLocationOverlay)
     }
 
-    private fun loadPagingGeotagingAdapter(adapter: DatabaseListAdapterItem, blockName : String) {
+    private fun loadPagingGeotagingAdapter(adapter: DatabaseListAdapterItem, blockName: String) {
         viewModel.loadPagingGeotagging(
             adapter,
-            blockName,
+            blockName
         )
     }
 
@@ -190,20 +175,35 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
             }
         }
     }
-
     private fun addMarkersFromPagingData(items: List<ItemAllGeotaging>) {
-        binding.map.overlays.clear() // Clear existing markers if needed
-        items.forEach { item ->
-            addMarkersToMap(item.latitude, item.longitude)
+        // Clear existing markers if needed
+        binding.map.overlays.clear()
+
+        if (items.isNotEmpty()) {
+            // Ambil elemen pertama dari daftar items
+            val firstItem = items.first()
+            val firstPoint = GeoPoint(firstItem.latitude, firstItem.longitude)
+
+            // Set pusat peta dan zoom
+            controller.setCenter(firstPoint)
+            controller.setZoom(20.0)
+
+            // Tambahkan marker untuk setiap item
+            items.forEach { item ->
+                addMarkersToMap(item.latitude, item.longitude)
+                Log.d("check-lokasi", "lat ${item.latitude} lon ${item.longitude}")
+            }
+        } else {
+            Log.d("check-lokasi", "No items available to set center.")
         }
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     private fun addMarkersToMap(lat: Double, lon: Double) {
         val marker = Marker(binding.map)
         marker.position = GeoPoint(lat, lon)
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
         marker.icon = resources.getDrawable(R.drawable.ic_marker_purple, null)
-//        marker.icon
         binding.map.overlays.add(marker)
         binding.map.invalidate()
     }
@@ -283,8 +283,8 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     }
 
     override fun onScroll(event: ScrollEvent?): Boolean {
-        Log.e("TAG", "onCreate:la ${event?.source?.getMapCenter()?.latitude}")
-        Log.e("TAG", "onCreate:lo ${event?.source?.getMapCenter()?.longitude}")
+        Log.e("TAG", "onScroll: la ${event?.source?.getMapCenter()?.latitude}")
+        Log.e("TAG", "onScroll: lo ${event?.source?.getMapCenter()?.longitude}")
         return true
     }
 
@@ -297,6 +297,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     override fun onGpsStatusChanged(event: Int) {
         TODO("Not yet implemented")
     }
+
     private fun onBackPressed() {
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
@@ -309,7 +310,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         )
     }
 
-    private fun clearTrafficPaging(){
+    private fun clearTrafficPaging() {
         viewModel.geotaggingListAll.removeObservers(viewLifecycleOwner)
         binding.rvGeotaging.adapter = null
     }
@@ -324,4 +325,6 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         binding.pbLoading.isGone = true
         binding.layoutNoSignal.root.isGone = true
     }
+
 }
+
