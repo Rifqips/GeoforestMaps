@@ -16,6 +16,7 @@ import androidx.core.view.isGone
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
+import androidx.paging.map
 import androidx.recyclerview.widget.LinearLayoutManager
 import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.core.utils.BaseFragment
@@ -138,7 +139,9 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         if (view != null) {
             parentFragment?.viewLifecycleOwner?.let {
                 viewModel.geotaggingListAll.observe(it) { pagingData ->
+
                     adapterPagingGeotagging.submitData(lifecycle, pagingData)
+
                 }
             }
             adapterPagingGeotagging.addLoadStateListener { loadState ->
@@ -161,15 +164,8 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
                                 adapter = adapterPagingGeotagging
                             }
                         }
-                    }
-                }
-                // Update markers after the data is loaded
-                lifecycleScope.launch {
-                    adapterPagingGeotagging.loadStateFlow.collect { loadState ->
-                        if (loadState.refresh is LoadState.NotLoading) {
-                            val items = adapterPagingGeotagging.snapshot().items
-                            addMarkersFromPagingData(items)
-                        }
+                        val items = adapterPagingGeotagging.snapshot().items
+                        addMarkersFromPagingData(items)
                     }
                 }
             }
@@ -187,6 +183,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
             // Set pusat peta dan zoom
             controller.setCenter(firstPoint)
             controller.setZoom(20.0)
+            Log.d("check-lokasi", "Setting center to lat ${firstItem.latitude} lon ${firstItem.longitude}")
 
             // Tambahkan marker untuk setiap item
             items.forEach { item ->
@@ -206,30 +203,6 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         marker.icon = resources.getDrawable(R.drawable.ic_marker_purple, null)
         binding.map.overlays.add(marker)
         binding.map.invalidate()
-    }
-
-    private fun setupOfflineTileProvider(): OfflineTileProvider? {
-        val basePath = File("/sdcard/osmdroid/")
-        val archiveFile = File(basePath, "your-offline-map-file.zip")
-        return if (archiveFile.exists()) {
-            try {
-                val receiver = SimpleRegisterReceiver(requireContext())
-                val fileProvider = OfflineTileProvider(receiver, arrayOf(archiveFile))
-                val tileSource = TileSourceFactory.MAPNIK
-                binding.map.setTileSource(tileSource)
-                fileProvider
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-        } else {
-            null
-        }
-    }
-
-    private fun setupOnlineTileProvider() {
-        val tileSource = TileSourceFactory.MAPNIK
-        binding.map.setTileSource(tileSource)
     }
 
     private fun checkPermissions() {
