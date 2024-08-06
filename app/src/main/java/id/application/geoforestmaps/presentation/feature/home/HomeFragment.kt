@@ -103,7 +103,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, VmApplication>(FragmentHo
 
     override fun onResume() {
         super.onResume()
-        (activity as? MainActivity)?.setLayoutLimits(false)
         firebaseAnalytics = FirebaseAnalytics.getInstance(requireContext())
         firebaseAnalytics.logEvent(
             "home_page",
@@ -112,8 +111,5 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, VmApplication>(FragmentHo
 
     override fun onPause() {
         super.onPause()
-        (activity as? MainActivity)?.setLayoutLimits(true)
     }
-
-
 }

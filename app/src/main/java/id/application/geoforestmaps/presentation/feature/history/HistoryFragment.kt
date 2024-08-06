@@ -111,15 +111,15 @@ class HistoryFragment :
             with(binding) {
                 when (loadState.refresh) {
                     is LoadState.Loading -> {
-                        pbLoading.visibility = View.VISIBLE
+//                        pbLoading.visibility = View.VISIBLE
                     }
 
                     is LoadState.NotLoading -> {
-                        pbLoading.visibility = View.GONE
+//                        pbLoading.visibility = View.GONE
                     }
 
                     is LoadState.Error -> {
-                        pbLoading.visibility = View.GONE
+//                        pbLoading.visibility = View.GONE
                     }
                 }
             }
