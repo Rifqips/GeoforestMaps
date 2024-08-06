@@ -81,7 +81,6 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
 
     private val PERMISSIONS_REQUEST_CODE = 1
     lateinit var controller: IMapController
-    lateinit var mMyLocationOverlay: MyLocationNewOverlay
 
     @SuppressLint("SetTextI18n")
     override fun initView() {
@@ -122,6 +121,10 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
             this.blockName = blockName
             loadPagingGeotagingAdapter(adapterPagingGeotagging, blockName)
         }
+        viewModel.geotagingListResult.observe(viewLifecycleOwner){
+            addMarkersFromPagingData(it)
+
+        }
     }
 
     private fun configMap() {
@@ -133,28 +136,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
 
         binding.map.setTileSource(TileSourceFactory.MAPNIK)
         binding.map.setMultiTouchControls(true)
-
-        // Initialize the map controller
         controller = binding.map.controller
-
-        // Set the map to display Indonesia
-        val indonesiaCenter = GeoPoint(-5.0, 120.0)
-        controller.setCenter(indonesiaCenter)
-        controller.setZoom(5.0)
-
-        // Setup MyLocationOverlay
-        mMyLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(requireActivity()), binding.map)
-        mMyLocationOverlay.enableMyLocation()
-        mMyLocationOverlay.enableFollowLocation()
-        mMyLocationOverlay.isDrawAccuracyEnabled = true
-        mMyLocationOverlay.runOnFirstFix {
-            lifecycleScope.launch {
-                controller.setCenter(mMyLocationOverlay.myLocation)
-                controller.animateTo(mMyLocationOverlay.myLocation)
-            }
-        }
-
-        binding.map.overlays.add(mMyLocationOverlay)
     }
 
     private fun loadPagingGeotagingAdapter(adapter: DatabaseListAdapterItem, blockName : String) {
@@ -193,21 +175,15 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
                         }
                     }
                 }
-                // Update markers after the data is loaded
-                lifecycleScope.launch {
-                    adapterPagingGeotagging.loadStateFlow.collect { loadState ->
-                        if (loadState.refresh is LoadState.NotLoading) {
-                            val items = adapterPagingGeotagging.snapshot().items
-                            addMarkersFromPagingData(items)
-                        }
-                    }
-                }
             }
         }
     }
 
     private fun addMarkersFromPagingData(items: List<ItemAllGeotaging>) {
-        binding.map.overlays.clear() // Clear existing markers if needed
+        val firstIndex = items.first()
+        val setCenterMaps = GeoPoint(firstIndex.latitude, firstIndex.longitude)
+        controller.setCenter(setCenterMaps)
+        controller.setZoom(20.0)
         items.forEach { item ->
             addMarkersToMap(item.latitude, item.longitude)
         }
@@ -218,33 +194,8 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
         marker.position = GeoPoint(lat, lon)
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
         marker.icon = resources.getDrawable(R.drawable.ic_marker_purple, null)
-//        marker.icon
         binding.map.overlays.add(marker)
         binding.map.invalidate()
-    }
-
-    private fun setupOfflineTileProvider(): OfflineTileProvider? {
-        val basePath = File("/sdcard/osmdroid/")
-        val archiveFile = File(basePath, "your-offline-map-file.zip")
-        return if (archiveFile.exists()) {
-            try {
-                val receiver = SimpleRegisterReceiver(requireContext())
-                val fileProvider = OfflineTileProvider(receiver, arrayOf(archiveFile))
-                val tileSource = TileSourceFactory.MAPNIK
-                binding.map.setTileSource(tileSource)
-                fileProvider
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-        } else {
-            null
-        }
-    }
-
-    private fun setupOnlineTileProvider() {
-        val tileSource = TileSourceFactory.MAPNIK
-        binding.map.setTileSource(tileSource)
     }
 
     private fun checkPermissions() {

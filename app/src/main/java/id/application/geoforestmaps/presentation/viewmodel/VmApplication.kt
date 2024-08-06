@@ -50,8 +50,8 @@ class VmApplication(
     private val _state = MutableLiveData<Result<Unit>>()
     val state: LiveData<Result<Unit>> get() = _state
 
-    private val _geotagingLocalResult = MutableLiveData<PagingData<ItemAllGeotaging>>()
-    val geotagingLocalResult: LiveData<PagingData<ItemAllGeotaging>> = _geotagingLocalResult
+    private val _geotagingListResult = MutableLiveData<List<ItemAllGeotaging>>()
+    val geotagingListResult: LiveData<List<ItemAllGeotaging>> = _geotagingListResult
 
     private val _blockLocalResult = MutableLiveData<PagingData<ItemAllBlocks>>()
     val blockLocalResult: LiveData<PagingData<ItemAllBlocks>> = _blockLocalResult
@@ -176,6 +176,8 @@ class VmApplication(
                 postsResponse.let {
                     val store = it.items
                     adapter.submitData(PagingData.from(store))
+                    _geotagingListResult.postValue(it.items)
+
                 }
                 _loadingPagingResults.postValue(false)
             }
