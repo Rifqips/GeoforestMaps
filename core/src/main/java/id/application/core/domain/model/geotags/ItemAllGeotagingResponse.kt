@@ -22,21 +22,18 @@ data class ItemDataAllGeotaging(
     val totalPages: Int
 )
 
-@Keep
 data class ItemAllGeotaging(
+    val id: Int,
     val altitude: Double,
     val block: String,
     val createdAt: String,
-    val id: Int,
     val latitude: Double,
     val longitude: Double,
     val photo: String,
     val plant: String,
     val updatedAt: String,
-    val userId: Int
+    val user: String
 )
-
-
 
 fun ResponseAllGeotagingItem.toAllGeotagingResponse() = ItemAllGeotagingResponse(
     code = this.code,
@@ -62,7 +59,7 @@ fun AllGeotaging.toAllGeotaging() = ItemAllGeotaging(
     photo = this.photo,
     plant = this.plant,
     updatedAt = this.updatedAt,
-    userId = this.userId
+    user = this.user
 )
 
 fun List<AllGeotaging>.toAllGeotagingList(): List<ItemAllGeotaging> {

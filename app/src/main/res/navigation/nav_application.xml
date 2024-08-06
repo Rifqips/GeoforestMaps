@@ -51,7 +51,9 @@
             app:destination="@id/mapsFragment" />
         <action
             android:id="@+id/action_homeFragment_to_databaseOptionFragment"
-            app:destination="@id/databaseOptionFragment" />
+            app:destination="@id/databaseOptionFragment"
+            app:launchSingleTop="false"
+            app:popUpToInclusive="false" />
         <action
             android:id="@+id/action_homeFragment_to_geotaggingLocationFragment"
             app:destination="@id/geotaggingLocationFragment" />
@@ -72,11 +74,7 @@
         android:id="@+id/mapsFragment"
         android:name="id.application.geoforestmaps.presentation.feature.databasemaps.MapsFragment"
         android:label="fragment_maps"
-        tools:layout="@layout/fragment_maps" >
-        <action
-            android:id="@+id/action_mapsFragment_to_homeFragment"
-            app:destination="@id/homeFragment" />
-    </fragment>
+        tools:layout="@layout/fragment_maps" />
     <fragment
         android:id="@+id/databaseOptionFragment"
         android:name="id.application.geoforestmaps.presentation.feature.databaseoption.DatabaseOptionFragment"
@@ -105,18 +103,10 @@
         android:id="@+id/databaseGalleryFragment"
         android:name="id.application.geoforestmaps.presentation.feature.databasegallery.DatabaseGalleryFragment"
         android:label="fragment_database_gallery"
-        tools:layout="@layout/fragment_database_gallery" >
-        <action
-            android:id="@+id/action_databaseGalleryFragment_to_homeFragment"
-            app:destination="@id/homeFragment" />
-    </fragment>
+        tools:layout="@layout/fragment_database_gallery" />
     <fragment
         android:id="@+id/databaseListFragment"
         android:name="id.application.geoforestmaps.presentation.feature.databaselist.DatabaseListFragment"
         android:label="fragment_database_list"
-        tools:layout="@layout/fragment_database_list" >
-        <action
-            android:id="@+id/action_databaseListFragment_to_homeFragment"
-            app:destination="@id/homeFragment" />
-    </fragment>
+        tools:layout="@layout/fragment_database_list" />
 </navigation>

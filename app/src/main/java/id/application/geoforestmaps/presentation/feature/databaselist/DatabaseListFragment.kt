@@ -2,15 +2,22 @@ package id.application.geoforestmaps.presentation.feature.databaselist
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.IntentFilter
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.ConnectivityManager
+import android.os.Build
 import android.os.Environment
-import android.util.Log
 import android.view.View
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.RequiresApi
+import androidx.core.view.isGone
+import androidx.core.view.size
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import id.application.core.utils.BaseFragment
@@ -19,41 +26,102 @@ import id.application.geoforestmaps.databinding.DialogSaveDatabaseBinding
 import id.application.geoforestmaps.databinding.FragmentDatabaseListBinding
 import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import id.application.geoforestmaps.utils.Constant.formatDateTime
 import id.application.geoforestmaps.utils.Constant.generateFileName
+import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
+import id.application.geoforestmaps.utils.Constant.showDialogDetail
+import id.application.geoforestmaps.utils.NetworkCallback
+import id.application.geoforestmaps.utils.NetworkChangeReceiver
+import io.github.muddz.styleabletoast.StyleableToast
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.getKoin
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 import java.io.File
 
+@RequiresApi(Build.VERSION_CODES.O)
 class DatabaseListFragment :
-    BaseFragment<FragmentDatabaseListBinding, VmApplication>(FragmentDatabaseListBinding::inflate) {
+    BaseFragment<FragmentDatabaseListBinding, VmApplication>(FragmentDatabaseListBinding::inflate),
+    NetworkCallback {
 
     override val viewModel: VmApplication by viewModel()
 
     private val adapterPagingGeotagging: DatabaseListAdapterItem by lazy {
-        DatabaseListAdapterItem {}
+        DatabaseListAdapterItem {
+            val (formattedDate, formattedTime) = formatDateTime(it.createdAt)
+            showDialogDetail(
+                layoutInflater = layoutInflater,
+                context = requireContext(),
+                gallery = it.photo,
+                itemDescription = it.block,
+                itemTitle = it.plant,
+                createdBy = "Dibuat oleh : ${it.user}",
+                tvDateTime = formattedDate,
+                tvTimeItem = formattedTime
+            )
+        }
     }
     private var activeDialog: AlertDialog? = null
 
     var blockName: String? = ""
 
+    private val networkChangeReceiver: NetworkChangeReceiver by lazy {
+        val refreshDataCallback = {
+            if (isAdded && view != null) {
+                refreshDataList()
+            }
+        }
+        getKoin().get<NetworkChangeReceiver> { parametersOf(refreshDataCallback) }
+    }
+
     override fun initView() {
-        onBackPressed()
-        with(binding){
+        requireActivity().registerReceiver(
+            networkChangeReceiver,
+            IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+        )
+        with(binding) {
             topbar.ivTitle.text = "List"
             topbar.ivDownlaod.load(R.drawable.ic_download)
         }
-        blockName = arguments?.getString("blockName")
-        loadPagingGeotagingAdapter(adapterPagingGeotagging)
-        setUpPaging()
+        if (isNetworkAvailable(requireContext())) {
+            setUpPaging()
+            binding.layoutNoSignal.root.isGone = true
+            lifecycleScope.launch {
+                delay(2000)
+                initVm()
+            }
+            onBackPressed()
+        } else {
+            binding.pbLoading.isGone = true
+            binding.layoutNoSignal.root.isGone = false
+            StyleableToast.makeText(
+                requireContext(),
+                getString(R.string.text_no_internet_connection),
+                R.style.failedtoast
+            ).show()
+        }
+
     }
 
+
     override fun initListener() {
-        with(binding){
+        with(binding) {
             topbar.ivBack.setOnClickListener {
-                findNavController().navigate(R.id.action_databaseListFragment_to_homeFragment)
+                findNavController().popBackStack()
+                clearTrafficPaging()
             }
             topbar.ivDownlaod.setOnClickListener {
                 exportFile()
             }
+        }
+    }
+
+    private fun initVm() {
+        viewModel.getBlockName()
+        viewModel.isBlockName.observe(viewLifecycleOwner) { blockName ->
+            this.blockName = blockName
+            loadPagingGeotagingAdapter(adapterPagingGeotagging, blockName)
         }
     }
 
@@ -80,7 +148,7 @@ class DatabaseListFragment :
         }
         val fileName = generateFileName("geotaging-$blockName", ".xlsx")
         val file = File(downloadDir, fileName)
-        viewModel.eksports(type = "list", block = blockName,null, file.name, requireContext())
+        viewModel.eksports(type = "list", block = blockName, null, file.name, requireContext())
     }
 
 
@@ -103,11 +171,12 @@ class DatabaseListFragment :
 
         binding.dialogTitle.text = text
         with(binding) {
-            when(text){
-                "Download berhasil!"->{
+            when (text) {
+                "Download berhasil!" -> {
                     ivSuccess.load(R.drawable.ic_success)
                 }
-                "Download gagal!"->{
+
+                "Download gagal!" -> {
                     ivSuccess.load(R.drawable.ic_download_failed)
                 }
             }
@@ -117,6 +186,7 @@ class DatabaseListFragment :
                     ivSuccess.visibility = View.GONE
                     ivClose.visibility = View.GONE
                 }
+
                 false -> {
                     pBar.visibility = View.GONE
                     ivSuccess.visibility = View.VISIBLE
@@ -133,66 +203,89 @@ class DatabaseListFragment :
         }
     }
 
-    private fun loadPagingGeotagingAdapter(adapter: DatabaseListAdapterItem) {
-        if (blockName != null) {
-            viewModel.loadPagingGeotagging(
-                adapter,
-                blockName,
-            )
-        }
+    private fun loadPagingGeotagingAdapter(adapter: DatabaseListAdapterItem, blockName: String) {
+        viewModel.loadPagingGeotagging(
+            adapter,
+            blockName,
+        )
     }
 
     private fun setUpPaging() {
-        if (view != null) {
-            parentFragment?.viewLifecycleOwner?.let {
-                viewModel.geotaggingListAll.observe(it) { pagingData ->
-                    adapterPagingGeotagging.submitData(lifecycle, pagingData)
+        view?.let { _ ->
+            parentFragment?.viewLifecycleOwner?.let { lifecycleOwner ->
+                viewModel.geotaggingList.observe(lifecycleOwner) { pagingData ->
                 }
             }
-            if (binding.rvDatabaseList.adapter == null) {
-                binding.rvDatabaseList.adapter = adapterPagingGeotagging
+            binding.rvDatabaseList.apply {
+                adapter = adapterPagingGeotagging
+                layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
             }
 
             adapterPagingGeotagging.addLoadStateListener { loadState ->
                 with(binding) {
-                    if (loadState.refresh is LoadState.Loading) {
-                        pbLoading.visibility = View.VISIBLE
-                        topbar.ivDownlaod.visibility = View.GONE
+                    when (loadState.refresh) {
+                        is LoadState.Loading -> {
+                            pbLoading.visibility = View.VISIBLE
+                            topbar.ivDownlaod.visibility = View.GONE
+                        }
+
+                        is LoadState.NotLoading -> {
+                            pbLoading.visibility = View.GONE
+                            topbar.ivDownlaod.visibility = View.VISIBLE
+                        }
+
+                        is LoadState.Error -> {
+                            pbLoading.visibility = View.GONE
+                            topbar.ivDownlaod.visibility = View.VISIBLE
+                        }
+                    }
+                }
+            }
+        }
+        viewModel.loadingPagingResults.observe(viewLifecycleOwner) { onLoadPaging ->
+            when (onLoadPaging) {
+                true -> {}
+                false -> {
+                    if (adapterPagingGeotagging.itemCount == 0 && binding.rvDatabaseList.size == 0) {
+                        binding.tvValidatingData.visibility = View.VISIBLE
+                        binding.tvValidatingData.text = "Belum ada data"
                     } else {
-                        pbLoading.visibility = View.GONE
-                        topbar.ivDownlaod.visibility = View.VISIBLE
-                        val isEmpty = (loadState.refresh is LoadState.NotLoading &&
-                                adapterPagingGeotagging.itemCount == 0)
-
-                        if (isEmpty) {
-                            tvValidatingData.visibility = View.VISIBLE
-                            tvValidatingData.text = "Belum ada data"
-                        }
-
-                        rvDatabaseList.apply {
-                            layoutManager = LinearLayoutManager(
-                                context,
-                                LinearLayoutManager.VERTICAL,
-                                false
-                            ).apply {
-                                isSmoothScrollbarEnabled = true
-                            }
-                        }
+                        binding.tvValidatingData.visibility = View.GONE
                     }
                 }
             }
         }
     }
 
+    private fun clearTrafficPaging() {
+        viewModel.geotaggingList.removeObservers(viewLifecycleOwner)
+        adapterPagingGeotagging.submitData(lifecycle, PagingData.empty())
+        binding.rvDatabaseList.adapter = null
+    }
 
     private fun onBackPressed() {
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    findNavController().navigate(R.id.action_databaseListFragment_to_homeFragment)
+                    clearTrafficPaging()
+                    findNavController().popBackStack()
                 }
             }
         )
     }
+
+    override fun onNetworkAvailable() {
+        if (isAdded && view != null) {
+            refreshDataList()
+        }
+    }
+
+    fun refreshDataList() {
+        setUpPaging()
+        initVm()
+        binding.pbLoading.isGone = true
+        binding.layoutNoSignal.root.isGone = true
+    }
+
 }

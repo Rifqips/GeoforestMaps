@@ -48,15 +48,18 @@ import androidx.navigation.fragment.findNavController
 import coil.load
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import id.application.core.domain.model.geotags.ItemAllGeotagingOffline
 import id.application.core.utils.BaseFragment
-import id.application.core.utils.proceedWhen
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.DialogConfirmCustomBinding
 import id.application.geoforestmaps.databinding.FragmentCameraBinding
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant
 import id.application.geoforestmaps.utils.Constant.IMAGE_FORMAT
-import io.github.muddz.styleabletoast.StyleableToast
+import id.application.geoforestmaps.utils.Constant.compressAndSaveImage
+import id.application.geoforestmaps.utils.Constant.convertImageToBase64
+import id.application.geoforestmaps.utils.Constant.formatAltitude
+import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -65,6 +68,8 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class CameraFragment :
@@ -79,13 +84,15 @@ class CameraFragment :
     private var selectedPlantType = ""
     private var blokName = ""
     private var plantTypes = mutableListOf<String>()
-    private var idPlant = 0
-    private var idBlock: Int? = 0
+    private var idPlant = ""
+    private var idBlock = ""
     private var addressText = ""
     private var latitude = 0.0
     private var longitude = 0.0
     private var altitude = 0
     private var savedUri: Uri = Uri.EMPTY
+    private var userName = ""
+    private var dateTime = ""
 
     override fun initView() {
         onBackPressed()
@@ -94,7 +101,7 @@ class CameraFragment :
 
         // inisialisasi blok_name
         blokName = title.toString()
-        idBlock = arguments?.getInt("ID_BLOCK")
+        idBlock = arguments?.getInt("ID_BLOCK").toString()
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         checkPermissions()
@@ -127,91 +134,52 @@ class CameraFragment :
         }
     }
 
-    private fun loadingState(state: Boolean) {
-        with(binding) {
-            when (state) {
-                true -> {
-                    binding.pbLoadingCamera.isGone = false
-                    binding.llPlantsType.isGone = true
-                    binding.containerBottom.isGone = true
+    private fun initViewModel() {
+        viewModel.fetchPlants()
+        viewModel.getPlant()
+        viewModel.plantsLiveData.observe(viewLifecycleOwner) { plants ->
+            val plantNames = plants.map { it.name }
+            val adapter = ArrayAdapter(requireContext(), R.layout.item_spinner, plantNames)
+            adapter.setDropDownViewResource(R.layout.item_dropdown_spinner)
+            with(binding) {
+                spinnerPlantTypes.adapter = adapter
+                spinnerPlantTypes.dropDownVerticalOffset = 146
+                spinnerPlantTypes.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                    override fun onItemSelected(
+                        parent: AdapterView<*>,
+                        view: View?,
+                        position: Int,
+                        id: Long
+                    ) {
+                        if (view != null) {
+                            selectedPlantType = plantNames[position]
+                            idPlant = (plants.find { it.name == selectedPlantType }?.id ?: 0).toString()
+                        }
+                    }
 
-                }
-
-                false -> {
-                    binding.pbLoadingCamera.isGone = true
-                    binding.llPlantsType.isGone = false
-                    binding.containerBottom.isGone = false
-
+                    override fun onNothingSelected(parent: AdapterView<*>) {}
                 }
             }
         }
-    }
-
-    private fun initViewModel() {
-        viewModel.getPlant()
-        viewModel.plantsResult.observe(viewLifecycleOwner) { result ->
-            result.proceedWhen(
-                doOnLoading = {
-                    loadingState(true)
-                },
-                doOnSuccess = {
-                    loadingState(false)
-                    val data = it.payload?.data?.items
-                    data?.let { items ->
-                        plantTypes.clear()
-                        plantTypes.addAll(items.map { item -> item.name })
-                        val adapter =
-                            ArrayAdapter(requireContext(), R.layout.item_spinner, plantTypes)
-                        adapter.setDropDownViewResource(R.layout.item_dropdown_spinner)
-                        with(binding) {
-                            spinnerPlantTypes.adapter = adapter
-                            spinnerPlantTypes.dropDownVerticalOffset = 146
-                            spinnerPlantTypes.onItemSelectedListener =
-                                object : AdapterView.OnItemSelectedListener {
-                                    override fun onItemSelected(
-                                        parent: AdapterView<*>,
-                                        view: View?,
-                                        position: Int,
-                                        id: Long
-                                    ) {
-                                        if (view != null) {
-                                            selectedPlantType = plantTypes[position]
-
-                                            Toast.makeText(
-                                                requireContext(),
-                                                getString(R.string.selected_item) + " " + plantTypes[position],
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-
-                                            // get id plant selected
-                                            items.forEach { item ->
-                                                if (item.name == selectedPlantType) {
-                                                    idPlant = item.id
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    override fun onNothingSelected(parent: AdapterView<*>) {}
-                                }
-                        }
-                    }
-                }
-            )
+        viewModel.getUserName()
+        viewModel.isUserName.observe(viewLifecycleOwner){
+            userName = it
         }
-        viewModel.geotagingCreateResult.observe(viewLifecycleOwner){ result ->
-            result.proceedWhen(
-                doOnLoading = {
-                    binding.pbLoadingCamera.isGone = false
+
+        viewModel.error.observe(viewLifecycleOwner) { errorMessage ->
+            errorMessage?.let {
+                Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            }
+        }
+        viewModel.state.observe(viewLifecycleOwner) { result ->
+            result.fold(
+                onSuccess = {
+                    Toast.makeText(context, "Berhasil upload photo", Toast.LENGTH_SHORT).show()
+                    showDialogConfirmSaveData()
                 },
-                doOnSuccess = {
-                    binding.pbLoadingCamera.isGone = true
-                    StyleableToast.makeText(
-                        requireContext(),
-                        getString(R.string.sukses_membuat_geotaging),
-                        R.style.successtoast
-                    ).show()
-                },
+                onFailure = { exception ->
+                    Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                }
             )
         }
     }
@@ -245,7 +213,6 @@ class CameraFragment :
                 startCamera()
                 getCurrentLocation()
             } else {
-                // Permission denied
                 Toast.makeText(requireContext(), "Permissions not granted", Toast.LENGTH_SHORT)
                     .show()
             }
@@ -305,7 +272,6 @@ class CameraFragment :
                     imageCapture,
                     imageAnalysis
                 )
-                Log.d("CameraFragment", "Camera started")
             } catch (e: Exception) {
                 Log.e("CameraFragment", "Error starting camera: ${e.message}", e)
             }
@@ -333,6 +299,10 @@ class CameraFragment :
             if (result.resultCode == Activity.RESULT_OK) {
                 val selectedImg: Uri? = result.data?.data
                 selectedImg?.let {
+                    // inisialisasi datetime
+                    val dateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale("id", "ID"))
+                    dateTime = dateFormat.format(Date())
+
                     // add location to image and intent result to checkdata layout
                     addLocationToImageFromGallery(it)
                 }
@@ -373,7 +343,8 @@ class CameraFragment :
                 addressText = if (addresses.isNullOrEmpty()) {
                     "Alamat tidak tersedia"
                 } else {
-                    addresses[0].getAddressLine(0) + " | Longitude: ${it.longitude} | Latitude: ${it.latitude}"
+                    "Latitude\t: ${it.latitude}\nLongitude\t: ${it.longitude}\nAltitude\t: ${it.altitude}" +
+                            "\nBlock\t: $blokName\nPlant\t: $selectedPlantType\nUser\t: $userName\nDate Time\t: $dateTime"
                 }
                 latitude = it.latitude
                 longitude = it.longitude
@@ -382,7 +353,9 @@ class CameraFragment :
                 addressText = "Lokasi tidak tersedia"
             }
         } catch (e: IOException) {
-            addressText = "Gagal mendapatkan alamat"
+//            addressText = "Gagal mendapatkan alamat"
+            addressText = "Latitude\t: 0.0\nLongitude\t: 0.0\nAltitude\t: 0" +
+                    "\nBlock\t: $blokName\nPlant\t: $selectedPlantType\nUser\t: $userName\nDate Time\t: $dateTime"
         }
 
         val textBounds = Rect()
@@ -453,12 +426,16 @@ class CameraFragment :
         layoutCheckDataItem(Uri.fromFile(newFile), latitude, longitude, altitude)
     }
 
-
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
         getCurrentLocation()
         val photoFile = Constant.createFile(requireActivity().application)
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+        // inisialisasi datetime
+        val dateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale("id", "ID"))
+        dateTime = dateFormat.format(Date())
+
         imageCapture.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(requireContext()),
@@ -470,8 +447,9 @@ class CameraFragment :
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     savedUri = output.savedUri ?: Uri.fromFile(photoFile)
                     correctImageOrientation(photoFile)
-                    saveImageToGallery(savedUri)
-                    addLocationToImageFromCamera(savedUri)
+                    compressAndSaveImage(photoFile)
+                    saveImageToGallery(Uri.fromFile(photoFile))
+                    addLocationToImageFromCamera(Uri.fromFile(photoFile))
                 }
             }
         )
@@ -534,19 +512,21 @@ class CameraFragment :
                 addressText = if (addresses.isNullOrEmpty()) {
                     "Alamat tidak tersedia"
                 } else {
-                    addresses[0].getAddressLine(0) + " | Longitude: ${it.longitude} | Latitude: ${it.latitude}"
+                    "Latitude\t: ${it.latitude}\nLongitude\t: ${it.longitude}\nAltitude\t: ${formatAltitude(it.altitude)}" +
+                            "\nBlock\t: $blokName\nPlant\t: $selectedPlantType\nUser\t: $userName\nDate Time\t: $dateTime "
                 }
                 // inisialisasi request data for create geotaging
                 latitude = it.latitude
                 longitude = it.longitude
                 altitude = it.altitude.toInt()
-                layoutCheckDataItem(savedUri, latitude, longitude, altitude)
-
+                // layoutCheckDataItem nya pindah ke bawah
             } ?: run {
                 addressText = "Lokasi tidak tersedia"
             }
         } catch (e: IOException) {
-            addressText = "Gagal mendapatkan alamat"
+//            addressText = "Gagal mendapatkan alamat"
+            addressText = "Latitude\t: 0.0\nLongitude\t: 0.0\nAltitude\t: 0" +
+                    "\nBlock\t: $blokName\nPlant\t: $selectedPlantType\nUser\t: $userName\nDate Time\t: $dateTime"
         }
 
         // Mengukur lebar dan tinggi teks
@@ -613,16 +593,18 @@ class CameraFragment :
         }
 
         resolver.openOutputStream(imageUri)?.let { outputStream ->
-            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 10, outputStream)
             outputStream.close()
         }
+        // pindah ke sini layoutCheckDataItem nya
+        layoutCheckDataItem(savedUri, latitude, longitude, altitude)
 
     }
 
     private fun saveImageToGallery(savedUri: Uri) {
         val resolver = requireContext().contentResolver
         val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}")
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}.jpg")
             put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
             put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
         }
@@ -634,12 +616,12 @@ class CameraFragment :
                 val inputStream = requireContext().contentResolver.openInputStream(savedUri)
                 inputStream?.use { input ->
                     input.copyTo(outputStream)
-
                 }
             }
             addLocationToImageFromCamera(imageUri)
         }
     }
+
 
     private fun stateLayout(stateLayout: Boolean) {
         val layoutCheck = binding.layoutCheckData.root
@@ -696,6 +678,7 @@ class CameraFragment :
                     }
                     else -> null
                 }
+
                 if (imageFile != null) {
                     val imageRequestBody = imageFile.asRequestBody("multipart/form-data".toMediaTypeOrNull())
                     val imageMultipart: MultipartBody.Part = MultipartBody.Part.createFormData(
@@ -703,22 +686,41 @@ class CameraFragment :
                         imageFile.name,
                         imageRequestBody
                     )
-                    viewModel.createGeotaging(
-                        idPlant.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-                        idBlock.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-                        latitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-                        longitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-                        altitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
-                        imageMultipart
-                    )
+
+                    // Convert image file to Base64
+                    val dataUriBase64 = convertImageToBase64(imageFile)
+
+                    if (isNetworkAvailable(requireContext())) {
+                        viewModel.createGeotaging(
+                            idPlant.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                            idBlock.toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                            latitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                            longitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                            altitude.toString().toRequestBody("multipart/form-data".toMediaTypeOrNull()),
+                            imageMultipart,
+                        )
+                    } else {
+                        val itemOffline = ItemAllGeotagingOffline(
+                            plant = selectedPlantType,
+                            plantId = idPlant,
+                            user = userName,
+                            block = blokName,
+                            blockId = idBlock,
+                            latitude = latitude.toString(),
+                            longitude = longitude.toString(),
+                            altitude = altitude.toString(),
+                            base64 = dataUriBase64
+                        )
+                        viewModel.createGeotaggingOflline(itemOffline)
+                        showDialogConfirmSaveData()
+                    }
                 } else {
                     Toast.makeText(requireContext(), "File tidak dapat diakses", Toast.LENGTH_SHORT).show()
                 }
-                showDialogConfirmSaveData()
             }
-            layoutCheckData.topBar.ivBack.setOnClickListener {
-                stateLayout(false)
 
+            layoutCheckData.topBar.ivBack.setOnClickListener {
+                findNavController().navigateUp()
             }
         }
     }
@@ -739,12 +741,12 @@ class CameraFragment :
             tvDialogDesc.text = "Input data sudah berhasil disimpan"
             tvDialogSubDesc.text = "Ambil Foto Lagi ?"
             btnYes.setOnClickListener {
-                navigateToHome()
+                findNavController().navigateUp()
                 dialog.dismiss()
             }
 
             btnNo.setOnClickListener {
-                findNavController().navigateUp()
+                navigateToHome()
                 dialog.dismiss()
             }
             root.setOnTouchListener { _, _ ->

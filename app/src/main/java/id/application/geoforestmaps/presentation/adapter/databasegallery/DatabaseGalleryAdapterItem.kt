@@ -1,6 +1,7 @@
 package id.application.geoforestmaps.presentation.adapter.databasegallery
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
@@ -9,11 +10,6 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.geoforestmaps.databinding.ItemDatabaseGalleryBinding
-import id.application.geoforestmaps.databinding.ItemHistoryDataBinding
-import id.application.geoforestmaps.utils.Constant.formatDate
-import id.application.geoforestmaps.utils.Constant.formatTime
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 class DatabaseGalleryAdapterItem(
     private val onClickLister : (ItemAllGeotaging) -> Unit,
@@ -59,6 +55,8 @@ class DatabaseGalleryAdapterItem(
         fun bindLinear(item: ItemAllGeotaging) {
             with(binding) {
                 ivGallery.load(item.photo)
+                Log.d("check-photo", item.photo)
+
                 tvTitleBlock.text = item.plant
                 tvDescriptionBlock.text = item.block
                 ivDownload.setOnClickListener {

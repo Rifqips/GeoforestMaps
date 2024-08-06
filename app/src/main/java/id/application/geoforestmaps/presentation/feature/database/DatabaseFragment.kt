@@ -1,16 +1,14 @@
 package id.application.geoforestmaps.presentation.feature.database
 
-import android.os.Bundle
 import android.view.View
 import androidx.core.view.isGone
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
-import id.application.core.domain.model.blocks.ItemAllBlocks
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentDatabaseBinding
-import id.application.geoforestmaps.presentation.adapter.blocks.DatabaseAdapterItem
+import id.application.geoforestmaps.presentation.adapter.blocks.AdapterBlockLocal
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
 import io.github.muddz.styleabletoast.StyleableToast
@@ -21,19 +19,19 @@ class DatabaseFragment :
 
     override val viewModel: VmApplication by viewModel()
 
-    private val adapterPagingDatabase: DatabaseAdapterItem by lazy {
-        DatabaseAdapterItem{
-            navigateToDatabaseOption(it)
+    private val adapterPagingLocalBlock: AdapterBlockLocal by lazy {
+        AdapterBlockLocal {
+            viewModel.saveBlockName({
+                navigateToDatabaseOption()
+            }, it.name)
         }
     }
 
     override fun initView() {
+        setUpPaging()
         if (isNetworkAvailable(requireContext())) {
-            loadPagingBlocks(adapter = adapterPagingDatabase)
-            setUpPaging()
             binding.layoutNoSignal.root.isGone = true
         } else {
-            binding.layoutNoSignal.root.isGone = false
             binding.pbLoading.isGone = true
             StyleableToast.makeText(
                 requireContext(),
@@ -41,39 +39,32 @@ class DatabaseFragment :
                 R.style.failedtoast
             ).show()
         }
-
     }
 
     override fun initListener() {}
 
-    private fun loadPagingBlocks(
-        adapter: DatabaseAdapterItem,
-    ) {
-        viewModel.loadPagingBlocks(
-            adapter,
-        )
-    }
-
-    private fun setUpPaging(){
-        if (view != null){
+    private fun setUpPaging() {
+        if (view != null) {
+            viewModel.fetchAllBlockLocal()
             parentFragment?.viewLifecycleOwner?.let {
-                viewModel.blockList.observe(it) { pagingData ->
-                    adapterPagingDatabase.submitData(lifecycle, pagingData)
+                viewModel.blockLocalResult.observe(viewLifecycleOwner) {
+                    adapterPagingLocalBlock.submitData(viewLifecycleOwner.lifecycle, it)
                 }
             }
         }
-        adapterPagingDatabase.addLoadStateListener { loadState ->
-            with(binding){
+        adapterPagingLocalBlock.addLoadStateListener { loadState ->
+            with(binding) {
                 if (loadState.refresh is LoadState.Loading) {
                     pbLoading.visibility = View.VISIBLE
                 } else {
                     pbLoading.visibility = View.GONE
-                    if (view != null){
+                    if (view != null) {
                         rvBlokData.apply {
                             layoutManager = LinearLayoutManager(context).apply {
                                 isSmoothScrollbarEnabled = true
                             }
-                            adapter = adapterPagingDatabase
+                            adapter = adapterPagingLocalBlock
+
                         }
                     }
                 }
@@ -81,13 +72,10 @@ class DatabaseFragment :
         }
     }
 
-    private fun navigateToDatabaseOption(itemAllBlocks : ItemAllBlocks){
-        val bundle = Bundle()
-        bundle.putString("title", itemAllBlocks.name)
-        bundle.putString("blockId", itemAllBlocks.id.toString())
+    private fun navigateToDatabaseOption(){
         val navController =
             activity?.supportFragmentManager
                 ?.findFragmentById(R.id.container_navigation)?.findNavController()
-        navController?.navigate(R.id.action_homeFragment_to_databaseOptionFragment, bundle)
+        navController?.navigate(R.id.action_homeFragment_to_databaseOptionFragment)
     }
 }

@@ -1,6 +1,9 @@
 package id.application.core.domain.model.blocks
 
 import androidx.annotation.Keep
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import id.application.core.data.network.model.blocks.AllBlocks
 import id.application.core.data.network.model.blocks.DataAllBlocks
 import id.application.core.data.network.model.blocks.ResponseAllBlocksItem
@@ -21,12 +24,17 @@ data class ItemDataAllBlocks(
     val totalPages: Int
 )
 
-@Keep
+@Entity(tableName = "all_blocks")
 data class ItemAllBlocks(
-    val createdAt: String?,
+    @field:PrimaryKey
+    @field:ColumnInfo(name = "id")
     val id: Int,
-    val name: String?,
-    val updatedAt: String?
+    @field:ColumnInfo(name = "created_at")
+    val createdAt: String,
+    @field:ColumnInfo(name = "name")
+    val name: String,
+    @field:ColumnInfo(name = "updated_at")
+    val updatedAt: String
 )
 
 

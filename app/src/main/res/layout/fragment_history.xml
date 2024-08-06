@@ -9,8 +9,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingBottom="50dp">
+        android:layout_height="match_parent">
 
         <TextView
             android:id="@+id/tv_title_history"
@@ -28,18 +27,19 @@
         <androidx.cardview.widget.CardView
             android:id="@+id/cv_data_synchronization"
             android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="16dp"
             app:cardBackgroundColor="@color/bg_cream"
             app:cardElevation="6dp"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@+id/tv_title_history"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_title_history">
+            app:layout_constraintStart_toStartOf="parent">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content"
+                android:padding="20dp">
 
                 <TextView
                     android:id="@+id/tv_title_card"
@@ -55,8 +55,10 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <androidx.cardview.widget.CardView
+                    android:id="@+id/cv_sycn_geotagging"
                     android:layout_width="170dp"
                     android:layout_height="36dp"
+                    android:layout_marginTop="10dp"
                     app:cardBackgroundColor="@color/bg_blue"
                     app:cardCornerRadius="4dp"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -99,23 +101,38 @@
 
         </androidx.cardview.widget.CardView>
 
+        <TextView
+            android:id="@+id/tv_total_sent_offline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/poppins_medium"
+            android:text="Belum Terkirim "
+            android:visibility="gone"
+            android:textColor="@color/black"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cv_data_synchronization" />
+
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_history_data"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="10dp"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/cv_data_synchronization" />
+            app:layout_constraintTop_toBottomOf="@id/tv_total_sent_offline" />
 
         <TextView
             android:id="@+id/tv_already_sent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
             android:fontFamily="@font/poppins_medium"
             android:text="Sudah Terkirim"
+            android:visibility="gone"
             android:textColor="@color/black"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/rv_history_data" />
@@ -134,22 +151,25 @@
             android:id="@+id/pb_loading"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="@+id/rv_history_already_sent_data"
-            app:layout_constraintBottom_toBottomOf="@+id/rv_history_already_sent_data"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/tv_already_sent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
-
+            app:layout_constraintBottom_toBottomOf="@id/rv_history_already_sent_data"/>
 
         <include
             android:id="@+id/layout_no_signal"
             layout="@layout/layout_no_signal"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
-            app:layout_constraintTop_toTopOf="@+id/rv_history_already_sent_data"
-            app:layout_constraintBottom_toBottomOf="@+id/rv_history_already_sent_data"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@+id/rv_history_data"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 
 </androidx.core.widget.NestedScrollView>

@@ -1,6 +1,6 @@
 package id.application.geoforestmaps.presentation.feature.databaseoption
 
-import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import id.application.core.domain.model.DatabaseOption
@@ -16,46 +16,56 @@ class DatabaseOptionFragment :
     BaseFragment<FragmentDatabaseOptionBinding, VmApplication>(FragmentDatabaseOptionBinding::inflate) {
 
     private val adapter = DatabaseOptionAdapter(
-        { list -> navigateToFragment(R.id.action_databaseOptionFragment_to_databaseListFragment) },
-        { gallery -> navigateToFragment(R.id.action_databaseOptionFragment_to_databaseGalleryFragment) },
-        { map -> navigateToFragment(R.id.action_databaseOptionFragment_to_mapsFragment) }
+        { _ -> navigateToFragment(R.id.action_databaseOptionFragment_to_databaseListFragment) },
+        { _ -> navigateToFragment(R.id.action_databaseOptionFragment_to_databaseGalleryFragment) },
+        { _ -> navigateToFragment(R.id.action_databaseOptionFragment_to_mapsFragment) }
     )
 
     override val viewModel: VmApplication by viewModel()
-    private var blockId = ""
-    private var blockName = ""
 
     override fun initView() {
-        val title = arguments?.getString("title")
-        if (title != null) {
-            this.blockName = title
-        }
-        val block: String? = arguments?.getString("blockId")
-        if (block != null) {
-            this.blockId = block
-        }
-
+        initVm()
+        onBackPressed()
         with(binding){
-            topbar.ivTitle.text = title
             rvDatabaseOption.adapter = adapter
             rvDatabaseOption.layoutManager = LinearLayoutManager(requireContext())
             adapter.setData(listDataDatabaseOption)
         }
     }
 
+    private fun initVm() {
+        viewModel.getBlockName()
+        viewModel.isBlockName.observe(viewLifecycleOwner) { blockName ->
+            binding.topbar.ivTitle.text = blockName
+
+        }
+    }
+
     override fun initListener() {
         with(binding){
             topbar.ivBack.setOnClickListener {
-                findNavController().navigateUp()
+                viewModel.deleteBlockName {
+                    findNavController().navigateUp()
+                }
             }
         }
     }
+
     private fun navigateToFragment(actionId: Int) {
-        val bundle = Bundle().apply {
-            putString("blockName", blockName)
-            putString("blockId", blockId)
-        }
-        findNavController().navigate(actionId, bundle)
+        findNavController().navigate(actionId)
+    }
+
+    private fun onBackPressed() {
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    viewModel.deleteBlockName {
+                        findNavController().navigateUp()
+                    }
+                }
+            }
+        )
     }
 }
 

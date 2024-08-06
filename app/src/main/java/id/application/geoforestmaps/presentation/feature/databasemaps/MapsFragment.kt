@@ -2,35 +2,39 @@ package id.application.geoforestmaps.presentation.feature.databasemaps
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.content.Context
+import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.graphics.Color
-import android.graphics.Rect
-import android.graphics.drawable.ColorDrawable
 import android.location.GpsStatus
-import android.os.Environment
+import android.net.ConnectivityManager
+import android.os.Build
 import android.util.Log
 import android.view.View
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Observer
+import androidx.core.view.isGone
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
-import coil.load
 import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.core.utils.BaseFragment
 import id.application.geoforestmaps.R
-import id.application.geoforestmaps.databinding.DialogSaveDatabaseBinding
 import id.application.geoforestmaps.databinding.FragmentMapsBinding
 import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
-import id.application.geoforestmaps.utils.Constant.generateFileName
+import id.application.geoforestmaps.utils.Constant.formatDateTime
+import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
+import id.application.geoforestmaps.utils.Constant.showDialogDetail
+import id.application.geoforestmaps.utils.NetworkCallback
+import id.application.geoforestmaps.utils.NetworkChangeReceiver
+import io.github.muddz.styleabletoast.StyleableToast
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.getKoin
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 import org.osmdroid.api.IMapController
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapListener
@@ -40,61 +44,86 @@ import org.osmdroid.tileprovider.modules.OfflineTileProvider
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.tileprovider.util.SimpleRegisterReceiver
 import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
+@RequiresApi(Build.VERSION_CODES.O)
 class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMapsBinding::inflate),
-    MapListener, GpsStatus.Listener  {
+    MapListener, GpsStatus.Listener, NetworkCallback {
 
     override val viewModel: VmApplication by viewModel()
 
     private val adapterPagingGeotagging: DatabaseListAdapterItem by lazy {
         DatabaseListAdapterItem {
-            addMarkersToMap(it.latitude, it.longitude)
+            val (formattedDate, formattedTime) = formatDateTime(it.createdAt)
+            showDialogDetail(
+                layoutInflater = layoutInflater,
+                context = requireContext(),
+                gallery = it.photo,
+                itemDescription = it.block,
+                itemTitle = it.plant,
+                createdBy = "Dibuat oleh : ${it.user}",
+                tvDateTime = formattedDate,
+                tvTimeItem = formattedTime
+            )
         }
     }
 
-    var block: String? = ""
+    private val networkChangeReceiver: NetworkChangeReceiver by lazy {
+        val refreshDataCallback = { refreshData() }
+        getKoin().get<NetworkChangeReceiver> { parametersOf(refreshDataCallback) }
+    }
+
+
     var blockName: String? = ""
 
     private val PERMISSIONS_REQUEST_CODE = 1
-    private var activeDialog: AlertDialog? = null
-
-    lateinit var mMap: MapView
     lateinit var controller: IMapController
-    lateinit var mMyLocationOverlay: MyLocationNewOverlay
 
     @SuppressLint("SetTextI18n")
     override fun initView() {
-        configMap()
-        onBackPressed()
+        requireActivity().registerReceiver(networkChangeReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
         with(binding){
             topbar.ivTitle.text = "Map"
-            topbar.ivDownlaod.load(R.drawable.ic_download)
         }
-        block = arguments?.getString("blockId")
-        blockName = arguments?.getString("blockName")
-        checkPermissions()
-
-        // Load data dan setup adapter
-        loadPagingGeotagingAdapter(adapterPagingGeotagging)
-        setUpPaging()
+        if (isNetworkAvailable(requireContext())) {
+            binding.layoutNoSignal.root.isGone = true
+            setUpPaging()
+            initVm()
+            onBackPressed()
+            configMap()
+            checkPermissions()
+        } else {
+            binding.pbLoading.isGone = true
+            binding.layoutNoSignal.root.isGone = false
+            StyleableToast.makeText(
+                requireContext(),
+                getString(R.string.text_no_internet_connection),
+                R.style.failedtoast
+            ).show()
+        }
     }
 
     override fun initListener() {
         with(binding) {
             topbar.ivBack.setOnClickListener {
-                findNavController().navigate(R.id.action_mapsFragment_to_homeFragment)
+                findNavController().popBackStack()
+                clearTrafficPaging()
             }
-            topbar.ivDownlaod.setOnClickListener {
-                exportFile()
-            }
+        }
+    }
+
+    private fun initVm() {
+        viewModel.getBlockName()
+        viewModel.isBlockName.observe(viewLifecycleOwner) { blockName ->
+            this.blockName = blockName
+            loadPagingGeotagingAdapter(adapterPagingGeotagging, blockName)
+        }
+        viewModel.geotagingListResult.observe(viewLifecycleOwner){
+            addMarkersFromPagingData(it)
+
         }
     }
 
@@ -105,121 +134,22 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
             requireContext().getSharedPreferences("osmdroid", Context.MODE_PRIVATE)
         )
 
-        mMap = binding.map
-        mMap.setTileSource(TileSourceFactory.MAPNIK)
-        mMap.setMultiTouchControls(true)
-
-        // Initialize the map controller
-        controller = mMap.controller
-
-        // Set the map to display Indonesia
-        val indonesiaCenter = GeoPoint(-5.0, 120.0)
-        controller.setCenter(indonesiaCenter)
-        controller.setZoom(5.0)
-
-        // Setup MyLocationOverlay
-        mMyLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(requireActivity()), mMap)
-        mMyLocationOverlay.enableMyLocation()
-        mMyLocationOverlay.enableFollowLocation()
-        mMyLocationOverlay.isDrawAccuracyEnabled = true
-        mMyLocationOverlay.runOnFirstFix {
-            lifecycleScope.launch {
-                controller.setCenter(mMyLocationOverlay.myLocation)
-                controller.animateTo(mMyLocationOverlay.myLocation)
-            }
-        }
-
-        mMap.overlays.add(mMyLocationOverlay)
+        binding.map.setTileSource(TileSourceFactory.MAPNIK)
+        binding.map.setMultiTouchControls(true)
+        controller = binding.map.controller
     }
 
-
-    private fun exportFile() {
-        viewModel.downloadStatus.observe(viewLifecycleOwner, Observer { status ->
-            when (status) {
-                "Mendownload File..." -> {
-                    showDialogConfirmSaveData(true, status)
-                }
-
-                "Download berhasil!" -> {
-                    showDialogConfirmSaveData(false, status)
-                }
-
-                "Download gagal!" -> {
-                    showDialogConfirmSaveData(false, status)
-                }
-            }
-        })
-        val downloadDir =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        if (!downloadDir.exists()) {
-            downloadDir.mkdirs()
-        }
-        val fileName = generateFileName("geotaging-$blockName", ".xlsx")
-        val file = File(downloadDir, fileName)
-        viewModel.eksports(type = "list", block = block, null, file.name, requireContext())
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private fun showDialogConfirmSaveData(state: Boolean, text: String) {
-        activeDialog?.let { dialog ->
-            if (dialog.isShowing) {
-                dialog.dismiss()
-            }
-        }
-        val binding: DialogSaveDatabaseBinding = DialogSaveDatabaseBinding.inflate(layoutInflater)
-        val dialog = AlertDialog.Builder(requireContext(), 0).create()
-        dialog.apply {
-            setView(binding.root)
-            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            setCanceledOnTouchOutside(false)
-        }.show()
-        activeDialog = dialog
-
-        binding.dialogTitle.text = text
-        with(binding) {
-            when(text){
-                "Download berhasil!"->{
-                    ivSuccess.load(R.drawable.ic_success)
-                }
-                "Download gagal!"->{
-                    ivSuccess.load(R.drawable.ic_download_failed)
-                }
-            }
-            when (state) {
-                true -> {
-                    pBar.visibility = View.VISIBLE
-                    ivSuccess.visibility = View.GONE
-                    ivClose.visibility = View.GONE
-                }
-                false -> {
-                    pBar.visibility = View.GONE
-                    ivSuccess.visibility = View.VISIBLE
-                    ivClose.visibility = View.VISIBLE
-                }
-            }
-            ivClose.setOnClickListener {
-                dialog.dismiss()
-                activeDialog = null
-            }
-        }
-        binding.root.setOnTouchListener { _, _ ->
-            true
-        }
-    }
-
-    private fun loadPagingGeotagingAdapter(adapter: DatabaseListAdapterItem) {
-        if (blockName != null) {
-            viewModel.loadPagingGeotagging(
-                adapter,
-                blockName,
-            )
-        }
+    private fun loadPagingGeotagingAdapter(adapter: DatabaseListAdapterItem, blockName : String) {
+        viewModel.loadPagingGeotagging(
+            adapter,
+            blockName,
+        )
     }
 
     private fun setUpPaging() {
         if (view != null) {
             parentFragment?.viewLifecycleOwner?.let {
-                viewModel.geotaggingListAll.observe(it) { pagingData ->
+                viewModel.geotaggingList.observe(it) { pagingData ->
                     adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
             }
@@ -245,58 +175,27 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
                         }
                     }
                 }
-                // Update markers after the data is loaded
-                lifecycleScope.launch {
-                    adapterPagingGeotagging.loadStateFlow.collect { loadState ->
-                        if (loadState.refresh is LoadState.NotLoading) {
-                            val items = adapterPagingGeotagging.snapshot().items
-                            addMarkersFromPagingData(items)
-                        }
-                    }
-                }
             }
         }
     }
 
     private fun addMarkersFromPagingData(items: List<ItemAllGeotaging>) {
-        mMap.overlays.clear() // Clear existing markers if needed
+        val firstIndex = items.first()
+        val setCenterMaps = GeoPoint(firstIndex.latitude, firstIndex.longitude)
+        controller.setCenter(setCenterMaps)
+        controller.setZoom(20.0)
         items.forEach { item ->
             addMarkersToMap(item.latitude, item.longitude)
         }
     }
 
     private fun addMarkersToMap(lat: Double, lon: Double) {
-        val marker = Marker(mMap)
+        val marker = Marker(binding.map)
         marker.position = GeoPoint(lat, lon)
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-//        marker.icon = resources.getDrawable(R.drawable.ic_marker, null)
-        marker.icon
-        mMap.overlays.add(marker)
-        mMap.invalidate()
-    }
-
-    private fun setupOfflineTileProvider(): OfflineTileProvider? {
-        val basePath = File("/sdcard/osmdroid/")
-        val archiveFile = File(basePath, "your-offline-map-file.zip")
-        return if (archiveFile.exists()) {
-            try {
-                val receiver = SimpleRegisterReceiver(requireContext())
-                val fileProvider = OfflineTileProvider(receiver, arrayOf(archiveFile))
-                val tileSource = TileSourceFactory.MAPNIK
-                mMap.setTileSource(tileSource)
-                fileProvider
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-        } else {
-            null
-        }
-    }
-
-    private fun setupOnlineTileProvider() {
-        val tileSource = TileSourceFactory.MAPNIK
-        mMap.setTileSource(tileSource)
+        marker.icon = resources.getDrawable(R.drawable.ic_marker_purple, null)
+        binding.map.overlays.add(marker)
+        binding.map.invalidate()
     }
 
     private fun checkPermissions() {
@@ -320,17 +219,18 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
 
     override fun onResume() {
         super.onResume()
-        mMap.onResume()
+        binding.map.onResume()
     }
 
     override fun onPause() {
         super.onPause()
-        mMap.onPause()
+        binding.map.onPause()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        mMap.onDetach() // Membersihkan sumber daya MapView
+        binding.map.onDetach()
+        requireActivity().unregisterReceiver(networkChangeReceiver)
     }
 
     override fun onRequestPermissionsResult(
@@ -363,15 +263,31 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     override fun onGpsStatusChanged(event: Int) {
         TODO("Not yet implemented")
     }
-
     private fun onBackPressed() {
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    findNavController().navigate(R.id.action_mapsFragment_to_homeFragment)
+                    findNavController().popBackStack()
+                    clearTrafficPaging()
                 }
             }
         )
+    }
+
+    private fun clearTrafficPaging(){
+        viewModel.geotaggingList.removeObservers(viewLifecycleOwner)
+        binding.rvGeotaging.adapter = null
+    }
+
+    override fun onNetworkAvailable() {
+        refreshData()
+    }
+
+    fun refreshData() {
+        setUpPaging()
+        initVm()
+        binding.pbLoading.isGone = true
+        binding.layoutNoSignal.root.isGone = true
     }
 }

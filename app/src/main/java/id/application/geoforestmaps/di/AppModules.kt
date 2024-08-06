@@ -10,15 +10,21 @@ import id.application.core.data.datasource.ApplicationDataSource
 import id.application.core.data.datasource.ApplicationDataSourceImpl
 import id.application.core.data.datasource.FirebaseDataSource
 import id.application.core.data.datasource.FirebaseDataSourceImpl
+import id.application.core.data.local.database.ApplicationDatabase
 import id.application.core.data.local.datastore.PreferenceDataStoreHelper
 import id.application.core.data.local.datastore.PreferenceDataStoreHelperImpl
 import id.application.core.data.local.datastore.appDataSource
 import id.application.core.data.network.interceptor.AuthInterceptor
 import id.application.core.data.network.service.ApplicationService
+import id.application.core.domain.paging.BlockPagingMediator
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.domain.repository.ApplicationRepositoryImpl
 import id.application.core.utils.AssetWrapperApp
+import id.application.geoforestmaps.presentation.feature.databasegallery.DatabaseGalleryFragment
+import id.application.geoforestmaps.presentation.feature.databaselist.DatabaseListFragment
+import id.application.geoforestmaps.presentation.feature.databasemaps.MapsFragment
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import id.application.geoforestmaps.utils.NetworkChangeReceiver
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.module.Module
@@ -34,7 +40,7 @@ object AppModules {
         single { AssetWrapperApp(androidContext()) }
     }
 
-    private val firebaseModule = module{
+    private val firebaseModule = module {
         single { Firebase.analytics }
         single { Firebase.crashlytics }
         single<FirebaseDataSource> { FirebaseDataSourceImpl(get()) }
@@ -42,27 +48,50 @@ object AppModules {
 
     private val localModule = module {
         single { androidContext().appDataSource }
+        single { ApplicationDatabase.getInstance(get()) }
         single<PreferenceDataStoreHelper> { PreferenceDataStoreHelperImpl(get()) }
+        single { get<ApplicationDatabase>().blocksDao() }
+        single { get<ApplicationDatabase>().plantsDao() }
+        single { get<ApplicationDatabase>().geotagsOfflineDao() }
+
     }
 
-    private val networkModule = module{
+    private val networkModule = module {
         single { ChuckerInterceptor(androidContext()) }
-        single { AuthInterceptor(get(),get()) }
-        single { ApplicationService.invoke(get()) }
+        single { AuthInterceptor(get(), get()) }
+        single { ApplicationService.invoke(get(), get()) }
     }
 
     private val dataSourceModule = module {
         single<AppPreferenceDataSource> { AppPreferenceDataSourceImpl(get()) }
         single<ApplicationDataSource> { ApplicationDataSourceImpl(get()) }
-
     }
 
     private val repositoryModule = module {
-        single<ApplicationRepository> { ApplicationRepositoryImpl(get(), get(), get())  }
-
+        single<ApplicationRepository> {
+            ApplicationRepositoryImpl(
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+            )
+        }
     }
 
     private val pagingSource = module {
+        single { BlockPagingMediator(get(), get()) }
+    }
+
+    private val callbackModule = module {
+        factory { (fragment: MapsFragment) -> fragment::refreshData }
+        factory { (fragment: DatabaseGalleryFragment) -> fragment::refreshDataGallery }
+        factory { (fragment: DatabaseListFragment) -> fragment::refreshDataList }
+    }
+
+    private val receiverModule = module {
+        factory { (onNetworkAvailable: () -> Unit) -> NetworkChangeReceiver(onNetworkAvailable) }
     }
 
     val modules: List<Module> = listOf(
@@ -74,7 +103,8 @@ object AppModules {
         repositoryModule,
         utilsModule,
         pagingSource,
-        firebaseModule
+        firebaseModule,
+        receiverModule,
+        callbackModule
     )
-
 }

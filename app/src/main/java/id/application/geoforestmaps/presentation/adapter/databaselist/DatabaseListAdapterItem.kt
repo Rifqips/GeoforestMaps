@@ -1,16 +1,21 @@
 package id.application.geoforestmaps.presentation.adapter.databaselist
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import coil.ImageLoader
 import coil.load
 import id.application.core.domain.model.geotags.ItemAllGeotaging
+import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.ItemHistoryDataBinding
 import id.application.geoforestmaps.utils.Constant.formatDate
+import id.application.geoforestmaps.utils.Constant.formatDateTime
 import id.application.geoforestmaps.utils.Constant.formatTime
+import okhttp3.OkHttpClient
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -55,16 +60,26 @@ class DatabaseListAdapterItem(
         @SuppressLint("SetTextI18n", "NewApi")
         fun bindLinear(item: ItemAllGeotaging) {
             with(binding) {
-                ivItemHistory.load(item.photo)  // Ensure `item.photo` is a valid URL or resource ID
-                val dateString = item.createdAt
-                val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
-                val dateTime = ZonedDateTime.parse(dateString, formatter)
-                val formattedDate = dateTime.formatDate()
-                val formattedTime = dateTime.formatTime()
+                val client = OkHttpClient.Builder()
+                    .addInterceptor { chain ->
+                        val request = chain.request()
+                        val response = chain.proceed(request)
+                        response
+                    }
+                    .build()
+                val imageLoader = ImageLoader.Builder(itemView.context)
+                    .okHttpClient(client)
+                    .build()
+                ivItemHistory.load(item.photo, imageLoader) {
+                    placeholder(R.drawable.ic_img_loading) // Gambar sementara saat loading
+                    error(R.drawable.ic_img_failed) // Gambar saat gagal memuat
+                    crossfade(true)
+                }
+                val (formattedDate, formattedTime) = formatDateTime(item.createdAt)
                 tvTitleItemHistory.text = item.plant
                 tvDescItemHistory.text = item.block
-                tvTimeItemHistory.text = formattedTime.toString()
-                tvDateItemHistory.text = formattedDate.toString()
+                tvTimeItemHistory.text = formattedTime
+                tvDateItemHistory.text = formattedDate
             }
             binding.root.setOnClickListener {
                 onClickListener(item)

@@ -48,13 +48,14 @@ interface ApplicationService {
     @Multipart
     @POST("v1/geotags")
     suspend fun createGeotaging(
-        @Part("plant") plant: RequestBody?,
-        @Part("block") block: RequestBody?,
+        @Part("plant_id") plantId: RequestBody?,
+        @Part("block_id") blockId: RequestBody?,
         @Part("latitude") latitude: RequestBody?,
         @Part("longitude") longitude: RequestBody?,
         @Part("altitude") altitude: RequestBody?,
-        @Part userImage: MultipartBody.Part?
-    ): ResponseAllGeotagingItem
+        @Part userImage: MultipartBody.Part? = null,
+        @Part("base64") photoBase64: RequestBody? = null
+    ) : Response<ResponseBody>
 
     @GET("v1/plants")
     suspend fun getAllPlants(

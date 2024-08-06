@@ -14,6 +14,7 @@ import okhttp3.ResponseBody
 import retrofit2.Response
 
 interface ApplicationDataSource {
+
     suspend fun userLogin(userLoginRequest: RequestLoginItem): ResponseLoginItem
     suspend fun userLogout(): Response<ResponseLogoutItem>
     suspend fun userProfile(): ResponseProfileItem
@@ -24,6 +25,8 @@ interface ApplicationDataSource {
         limitItem:Int? = null,
         pageItem:Int? = null,
     ): ResponseAllGeotagingItem
+
+
     suspend fun getAllPlants(
         limitItem:Int? = null,
         pageItem:Int? = null,
@@ -34,13 +37,14 @@ interface ApplicationDataSource {
     ): ResponseAllBlocksItem
 
     suspend fun createGeotaging(
-        plant: RequestBody?,
-        block: RequestBody?,
+        plantId: RequestBody?,
+        blockId: RequestBody?,
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
-        userImage: MultipartBody.Part?
-    ) : ResponseAllGeotagingItem
+        userImage: MultipartBody.Part? = null,
+        photoBase64: RequestBody? = null
+    ): Result<Unit>
 
     suspend fun exportFile(type: String?, block: String?, geoatagId : Int?): Response<ResponseBody>
 
@@ -68,6 +72,7 @@ class ApplicationDataSourceImpl(private val service: ApplicationService) : Appli
         return service.getAllGeotaging("created_at:desc",block,createdBy,limitItem, pageItem)
     }
 
+
     override suspend fun getAllPlants(limitItem: Int?, pageItem: Int?): ResponseAllPlantsItem {
         return service.getAllPlants(limitItem, pageItem)
     }
@@ -77,14 +82,26 @@ class ApplicationDataSourceImpl(private val service: ApplicationService) : Appli
     }
 
     override suspend fun createGeotaging(
-        plant: RequestBody?,
-        block: RequestBody?,
+        plantId: RequestBody?,
+        blockId: RequestBody?,
         latitude: RequestBody?,
         longitude: RequestBody?,
         altitude: RequestBody?,
-        userImage: MultipartBody.Part?
-    ): ResponseAllGeotagingItem {
-        return service.createGeotaging( plant, block, latitude, longitude, altitude, userImage)
+        userImage: MultipartBody.Part?,
+        photoBase64: RequestBody?
+    ): Result<Unit> {
+        return try {
+            val response = service.createGeotaging(
+                plantId, blockId, latitude, longitude, altitude, userImage, photoBase64
+            )
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Error: ${response.code()} ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override suspend fun exportFile(type: String?, block: String?, geoatagId : Int?): Response<ResponseBody> {

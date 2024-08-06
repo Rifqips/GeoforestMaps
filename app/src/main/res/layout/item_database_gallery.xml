@@ -5,22 +5,23 @@
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
     android:elevation="4dp"
-    app:cardCornerRadius="5dp"
+    app:cardCornerRadius="10dp"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/cons_gallery"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:paddingBottom="10dp">
         
         <ImageView
             android:id="@+id/iv_download"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:translationZ="10dp"
-            android:padding="5dp"
+            android:padding="10dp"
             android:src="@drawable/ic_download_white"
-            android:background="@color/primary_green"
+            android:background="@drawable/rounded_bottom_left_green"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
@@ -39,7 +40,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Blok A"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:layout_marginStart="5dp"
             app:layout_constraintStart_toStartOf="parent"
             android:fontFamily="@font/poppins_semibold"
@@ -51,7 +52,7 @@
             android:layout_height="wrap_content"
             android:text="Jenis Tanaman"
             android:layout_marginStart="5dp"
-            android:textSize="16sp"
+            android:textSize="12sp"
             app:layout_constraintStart_toStartOf="parent"
             android:fontFamily="@font/poppins"
             app:layout_constraintTop_toBottomOf="@+id/tv_title_block"/>
