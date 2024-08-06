@@ -14,6 +14,9 @@ data class ItemAllGeotagingOffline(
     @ColumnInfo(name = "plant_name")
     val plant: String,
 
+    @ColumnInfo(name = "user")
+    val user: String,
+
     @ColumnInfo(name = "plant_id")
     val plantId: String,
 

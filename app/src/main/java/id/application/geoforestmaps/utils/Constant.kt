@@ -1,14 +1,26 @@
 package id.application.geoforestmaps.utils
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Build
 import android.util.Base64
+import android.util.Log
+import android.view.LayoutInflater
+import androidx.annotation.RequiresApi
+import coil.ImageLoader
+import coil.load
 import id.application.geoforestmaps.R
+import id.application.geoforestmaps.databinding.DialogConfirmCustomBinding
+import id.application.geoforestmaps.databinding.DialogListDetailBinding
+import okhttp3.OkHttpClient
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -18,11 +30,10 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
+import java.util.zip.Inflater
 
 object Constant {
     val IMAGE_FORMAT = "image/*"
-    private const val IMAGE_QUALITY = 100
-
 
     fun createFile(application: Application): File {
         val timeStamp: String =
@@ -33,22 +44,51 @@ object Constant {
         val outputDirectory =
             if (mediaDir != null && mediaDir.exists()) mediaDir else application.filesDir
         val imageFile = File(outputDirectory, "$timeStamp.jpg")
-        compressAndSaveImage(imageFile)
 
         return imageFile
     }
 
     fun compressAndSaveImage(file: File) {
-        val options = BitmapFactory.Options().apply {
-            inSampleSize = 80
-        }
-        val bitmap = BitmapFactory.decodeFile(file.path, options)
+        val bitmap = BitmapFactory.decodeFile(file.path)
+        val maxFileSize = 100 * 1024 // 100 KB
+        var quality = 100
+        var compressedFileSize: Int
+
         bitmap?.let {
-            val fos = FileOutputStream(file)
-            it.compress(Bitmap.CompressFormat.JPEG, 80, fos)
-            fos.close()
+            var tempFile = File(file.parent, "temp_${file.name}")
+            var outputStream: FileOutputStream?
+
+            do {
+                outputStream = FileOutputStream(tempFile)
+                it.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+                outputStream.close()
+
+                compressedFileSize = tempFile.length().toInt()
+                quality -= 5
+
+                if (quality < 0) quality = 0
+
+            } while (compressedFileSize > maxFileSize && quality > 0)
+
+            if (compressedFileSize > maxFileSize) {
+                val ratio = maxFileSize.toFloat() / compressedFileSize
+                val finalWidth = (it.width * ratio).toInt()
+                val finalHeight = (it.height * ratio).toInt()
+                val finalBitmap = Bitmap.createScaledBitmap(it, finalWidth, finalHeight, true)
+
+                FileOutputStream(tempFile).use { out ->
+                    finalBitmap.compress(Bitmap.CompressFormat.JPEG, quality, out)
+                }
+            }
+
+            if (tempFile.exists()) {
+                file.delete() // Delete the original file
+                tempFile.renameTo(file) // Rename the compressed file to the original file name
+            }
         }
     }
+
+
 
     @SuppressLint("NewApi")
     fun ZonedDateTime.formatDate(): String {
@@ -150,4 +190,54 @@ object Constant {
         return decimalFormat.format(altitude)
     }
 
+
+    @SuppressLint("ClickableViewAccessibility")
+    fun showDialogDetail(
+        layoutInflater: LayoutInflater,
+        context: Context,
+        itemTitle: String,
+        itemDescription: String,
+        gallery: String,
+        createdBy: String,
+        tvDateTime: String,
+        tvTimeItem: String
+    ) {
+        val binding: DialogListDetailBinding = DialogListDetailBinding.inflate(layoutInflater)
+        val dialog = AlertDialog.Builder(context, 0).create()
+
+        dialog.apply {
+            setView(binding.root)
+            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        }.show()
+
+        with(binding) {
+            val client = OkHttpClient.Builder()
+                .addInterceptor { chain ->
+                    val request = chain.request()
+                    val response = chain.proceed(request)
+                    response
+                }
+                .build()
+            val imageLoader = ImageLoader.Builder(context)
+                .okHttpClient(client)
+                .build()
+            ivGallery.load(gallery, imageLoader) {
+                placeholder(R.drawable.ic_img_loading) // Gambar sementara saat loading
+                error(R.drawable.ic_img_failed) // Gambar saat gagal memuat
+                crossfade(true)
+            }
+            // Set text fields
+            tvTitleItemHistory.text = itemTitle
+            tvDescItemHistory.text = itemDescription
+            tvCreatedBy.text = createdBy
+            tvDateItemHistory.text = tvDateTime
+            tvTimeItemHistory.text = tvTimeItem
+        }
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun formatDateTime(dateString: String): Pair<String, String> {
+        val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+        val dateTime = ZonedDateTime.parse(dateString, formatter)
+        return Pair(dateTime.formatDate(), dateTime.formatTime())
+    }
 }

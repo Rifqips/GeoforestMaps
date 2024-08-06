@@ -13,6 +13,7 @@ import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.ItemHistoryDataBinding
 import id.application.geoforestmaps.utils.Constant.formatDate
+import id.application.geoforestmaps.utils.Constant.formatDateTime
 import id.application.geoforestmaps.utils.Constant.formatTime
 import okhttp3.OkHttpClient
 import java.time.ZonedDateTime
@@ -63,12 +64,9 @@ class DatabaseListAdapterItem(
                     .addInterceptor { chain ->
                         val request = chain.request()
                         val response = chain.proceed(request)
-                        Log.d("OkHttp", "Request URL: ${request.url}")
-                        Log.d("OkHttp", "Response Code: ${response.code}")
                         response
                     }
                     .build()
-
                 val imageLoader = ImageLoader.Builder(itemView.context)
                     .okHttpClient(client)
                     .build()
@@ -77,16 +75,11 @@ class DatabaseListAdapterItem(
                     error(R.drawable.ic_img_failed) // Gambar saat gagal memuat
                     crossfade(true)
                 }
-
-                val dateString = item.createdAt
-                val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
-                val dateTime = ZonedDateTime.parse(dateString, formatter)
-                val formattedDate = dateTime.formatDate()
-                val formattedTime = dateTime.formatTime()
+                val (formattedDate, formattedTime) = formatDateTime(item.createdAt)
                 tvTitleItemHistory.text = item.plant
                 tvDescItemHistory.text = item.block
-                tvTimeItemHistory.text = formattedTime.toString()
-                tvDateItemHistory.text = formattedDate.toString()
+                tvTimeItemHistory.text = formattedTime
+                tvDateItemHistory.text = formattedDate
             }
             binding.root.setOnClickListener {
                 onClickListener(item)

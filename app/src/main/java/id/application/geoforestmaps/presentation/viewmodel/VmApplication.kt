@@ -20,7 +20,6 @@ import id.application.core.domain.model.login.UserLoginRequest
 import id.application.core.domain.model.login.UserLoginResponse
 import id.application.core.domain.model.plants.ItemAllPlants
 import id.application.core.domain.model.plants.ItemAllPlantsResponse
-import id.application.core.domain.paging.GeotagingAllPagingSource
 import id.application.core.domain.paging.GeotagingPagingSource
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.utils.ResultWrapper
@@ -51,8 +50,8 @@ class VmApplication(
     private val _state = MutableLiveData<Result<Unit>>()
     val state: LiveData<Result<Unit>> get() = _state
 
-    private val _geotagingLocalResult = MutableLiveData<PagingData<ItemAllGeotaging>>()
-    val geotagingLocalResult: LiveData<PagingData<ItemAllGeotaging>> = _geotagingLocalResult
+    private val _geotagingListResult = MutableLiveData<List<ItemAllGeotaging>>()
+    val geotagingListResult: LiveData<List<ItemAllGeotaging>> = _geotagingListResult
 
     private val _blockLocalResult = MutableLiveData<PagingData<ItemAllBlocks>>()
     val blockLocalResult: LiveData<PagingData<ItemAllBlocks>> = _blockLocalResult
@@ -160,6 +159,7 @@ class VmApplication(
     fun loadPagingGeotagging(
         adapter: DatabaseListAdapterItem,
         block: String? = null,
+        createdBy: String? = null,
         limitItem: Int? = null,
         pageItem: Int? = null
     ) {
@@ -167,6 +167,7 @@ class VmApplication(
         viewModelScope.launch(Dispatchers.IO) {
             val response = repo.getAllGeotaging(
                 block = block,
+                createdBy = createdBy,
                 limitItem = limitItem,
                 pageItem = pageItem
             )
@@ -175,11 +176,17 @@ class VmApplication(
                 postsResponse.let {
                     val store = it.items
                     adapter.submitData(PagingData.from(store))
+                    _geotagingListResult.postValue(it.items)
+
                 }
                 _loadingPagingResults.postValue(false)
             }
         }
     }
+
+    val geotaggingList = Pager(PagingConfig(pageSize = 1)) {
+        GeotagingPagingSource(repo)
+    }.liveData.cachedIn(viewModelScope)
 
     fun loadPagingGeotaggingGallery(
         adapter: DatabaseGalleryAdapterItem,
@@ -206,16 +213,6 @@ class VmApplication(
             }
         }
     }
-
-    val geotaggingList = Pager(PagingConfig(pageSize = 4)) {
-        GeotagingPagingSource(repo)
-    }.liveData.cachedIn(viewModelScope)
-
-
-    val geotaggingListAll = Pager(PagingConfig(pageSize = 4)) {
-        GeotagingAllPagingSource(repo)
-    }.liveData.cachedIn(viewModelScope)
-
 
     fun fetchAllBlockLocal() {
         viewModelScope.launch {
