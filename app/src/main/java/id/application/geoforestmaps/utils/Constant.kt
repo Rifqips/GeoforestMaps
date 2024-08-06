@@ -34,8 +34,6 @@ import java.util.zip.Inflater
 
 object Constant {
     val IMAGE_FORMAT = "image/*"
-    private const val IMAGE_QUALITY = 100
-
 
     fun createFile(application: Application): File {
         val timeStamp: String =
@@ -46,22 +44,51 @@ object Constant {
         val outputDirectory =
             if (mediaDir != null && mediaDir.exists()) mediaDir else application.filesDir
         val imageFile = File(outputDirectory, "$timeStamp.jpg")
-        compressAndSaveImage(imageFile)
 
         return imageFile
     }
 
     fun compressAndSaveImage(file: File) {
-        val options = BitmapFactory.Options().apply {
-            inSampleSize = 80
-        }
-        val bitmap = BitmapFactory.decodeFile(file.path, options)
+        val bitmap = BitmapFactory.decodeFile(file.path)
+        val maxFileSize = 100 * 1024 // 100 KB
+        var quality = 100
+        var compressedFileSize: Int
+
         bitmap?.let {
-            val fos = FileOutputStream(file)
-            it.compress(Bitmap.CompressFormat.JPEG, 80, fos)
-            fos.close()
+            var tempFile = File(file.parent, "temp_${file.name}")
+            var outputStream: FileOutputStream?
+
+            do {
+                outputStream = FileOutputStream(tempFile)
+                it.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+                outputStream.close()
+
+                compressedFileSize = tempFile.length().toInt()
+                quality -= 5
+
+                if (quality < 0) quality = 0
+
+            } while (compressedFileSize > maxFileSize && quality > 0)
+
+            if (compressedFileSize > maxFileSize) {
+                val ratio = maxFileSize.toFloat() / compressedFileSize
+                val finalWidth = (it.width * ratio).toInt()
+                val finalHeight = (it.height * ratio).toInt()
+                val finalBitmap = Bitmap.createScaledBitmap(it, finalWidth, finalHeight, true)
+
+                FileOutputStream(tempFile).use { out ->
+                    finalBitmap.compress(Bitmap.CompressFormat.JPEG, quality, out)
+                }
+            }
+
+            if (tempFile.exists()) {
+                file.delete() // Delete the original file
+                tempFile.renameTo(file) // Rename the compressed file to the original file name
+            }
         }
     }
+
+
 
     @SuppressLint("NewApi")
     fun ZonedDateTime.formatDate(): String {
@@ -168,6 +195,8 @@ object Constant {
     fun showDialogDetail(
         layoutInflater: LayoutInflater,
         context: Context,
+        itemTitle: String,
+        itemDescription: String,
         gallery: String,
         createdBy: String,
         tvDateTime: String,
@@ -198,6 +227,8 @@ object Constant {
                 crossfade(true)
             }
             // Set text fields
+            tvTitleItemHistory.text = itemTitle
+            tvDescItemHistory.text = itemDescription
             tvCreatedBy.text = createdBy
             tvDateItemHistory.text = tvDateTime
             tvTimeItemHistory.text = tvTimeItem

@@ -56,6 +56,7 @@ import id.application.geoforestmaps.databinding.FragmentCameraBinding
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
 import id.application.geoforestmaps.utils.Constant
 import id.application.geoforestmaps.utils.Constant.IMAGE_FORMAT
+import id.application.geoforestmaps.utils.Constant.compressAndSaveImage
 import id.application.geoforestmaps.utils.Constant.convertImageToBase64
 import id.application.geoforestmaps.utils.Constant.formatAltitude
 import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
@@ -130,26 +131,6 @@ class CameraFragment :
             startCamera()
         } catch (e: Exception) {
             TODO("Not yet implemented")
-        }
-    }
-
-    private fun loadingState(state: Boolean) {
-        with(binding) {
-            when (state) {
-                true -> {
-                    binding.pbLoadingCamera.isGone = false
-                    binding.llPlantsType.isGone = true
-                    binding.containerBottom.isGone = true
-
-                }
-
-                false -> {
-                    binding.pbLoadingCamera.isGone = true
-                    binding.llPlantsType.isGone = false
-                    binding.containerBottom.isGone = false
-
-                }
-            }
         }
     }
 
@@ -445,7 +426,6 @@ class CameraFragment :
         layoutCheckDataItem(Uri.fromFile(newFile), latitude, longitude, altitude)
     }
 
-
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
         getCurrentLocation()
@@ -467,8 +447,9 @@ class CameraFragment :
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     savedUri = output.savedUri ?: Uri.fromFile(photoFile)
                     correctImageOrientation(photoFile)
-                    saveImageToGallery(savedUri)
-                    addLocationToImageFromCamera(savedUri)
+                    compressAndSaveImage(photoFile)
+                    saveImageToGallery(Uri.fromFile(photoFile))
+                    addLocationToImageFromCamera(Uri.fromFile(photoFile))
                 }
             }
         )
@@ -612,10 +593,9 @@ class CameraFragment :
         }
 
         resolver.openOutputStream(imageUri)?.let { outputStream ->
-            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 10, outputStream)
             outputStream.close()
         }
-
         // pindah ke sini layoutCheckDataItem nya
         layoutCheckDataItem(savedUri, latitude, longitude, altitude)
 
@@ -624,7 +604,7 @@ class CameraFragment :
     private fun saveImageToGallery(savedUri: Uri) {
         val resolver = requireContext().contentResolver
         val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}")
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}.jpg")
             put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
             put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
         }
@@ -636,12 +616,12 @@ class CameraFragment :
                 val inputStream = requireContext().contentResolver.openInputStream(savedUri)
                 inputStream?.use { input ->
                     input.copyTo(outputStream)
-
                 }
             }
             addLocationToImageFromCamera(imageUri)
         }
     }
+
 
     private fun stateLayout(stateLayout: Boolean) {
         val layoutCheck = binding.layoutCheckData.root

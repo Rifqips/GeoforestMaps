@@ -27,13 +27,6 @@ interface ApplicationDataSource {
     ): ResponseAllGeotagingItem
 
 
-    suspend fun getAllGeotagingUser(
-        block:String? = null,
-        createdBy:String? = null,
-        limitItem:Int? = null,
-        pageItem:Int? = null,
-    ): ResponseAllGeotagingItem
-
     suspend fun getAllPlants(
         limitItem:Int? = null,
         pageItem:Int? = null,
@@ -79,15 +72,6 @@ class ApplicationDataSourceImpl(private val service: ApplicationService) : Appli
         return service.getAllGeotaging("created_at:desc",block,createdBy,limitItem, pageItem)
     }
 
-    override suspend fun getAllGeotagingUser(
-        block: String?,
-        createdBy: String?,
-        limitItem: Int?,
-        pageItem: Int?
-    ): ResponseAllGeotagingItem {
-        return service.getAllGeotaging("created_at:desc",block,"user",limitItem, pageItem)
-
-    }
 
     override suspend fun getAllPlants(limitItem: Int?, pageItem: Int?): ResponseAllPlantsItem {
         return service.getAllPlants(limitItem, pageItem)

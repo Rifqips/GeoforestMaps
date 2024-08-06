@@ -6,9 +6,11 @@ import android.content.IntentFilter
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
+import android.os.Build
 import android.os.Environment
 import android.view.View
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.RequiresApi
 import androidx.core.view.isGone
 import androidx.core.view.size
 import androidx.lifecycle.Observer
@@ -24,8 +26,10 @@ import id.application.geoforestmaps.databinding.DialogSaveDatabaseBinding
 import id.application.geoforestmaps.databinding.FragmentDatabaseListBinding
 import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import id.application.geoforestmaps.utils.Constant.formatDateTime
 import id.application.geoforestmaps.utils.Constant.generateFileName
 import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
+import id.application.geoforestmaps.utils.Constant.showDialogDetail
 import id.application.geoforestmaps.utils.NetworkCallback
 import id.application.geoforestmaps.utils.NetworkChangeReceiver
 import io.github.muddz.styleabletoast.StyleableToast
@@ -36,6 +40,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import java.io.File
 
+@RequiresApi(Build.VERSION_CODES.O)
 class DatabaseListFragment :
     BaseFragment<FragmentDatabaseListBinding, VmApplication>(FragmentDatabaseListBinding::inflate),
     NetworkCallback {
@@ -43,7 +48,19 @@ class DatabaseListFragment :
     override val viewModel: VmApplication by viewModel()
 
     private val adapterPagingGeotagging: DatabaseListAdapterItem by lazy {
-        DatabaseListAdapterItem {}
+        DatabaseListAdapterItem {
+            val (formattedDate, formattedTime) = formatDateTime(it.createdAt)
+            showDialogDetail(
+                layoutInflater = layoutInflater,
+                context = requireContext(),
+                gallery = it.photo,
+                itemDescription = it.block,
+                itemTitle = it.plant,
+                createdBy = "Dibuat oleh : ${it.user}",
+                tvDateTime = formattedDate,
+                tvTimeItem = formattedTime
+            )
+        }
     }
     private var activeDialog: AlertDialog? = null
 
@@ -196,7 +213,7 @@ class DatabaseListFragment :
     private fun setUpPaging() {
         view?.let { _ ->
             parentFragment?.viewLifecycleOwner?.let { lifecycleOwner ->
-                viewModel.geotaggingListAll.observe(lifecycleOwner) { pagingData ->
+                viewModel.geotaggingList.observe(lifecycleOwner) { pagingData ->
                 }
             }
             binding.rvDatabaseList.apply {
@@ -241,7 +258,7 @@ class DatabaseListFragment :
     }
 
     private fun clearTrafficPaging() {
-        viewModel.geotaggingListAll.removeObservers(viewLifecycleOwner)
+        viewModel.geotaggingList.removeObservers(viewLifecycleOwner)
         adapterPagingGeotagging.submitData(lifecycle, PagingData.empty())
         binding.rvDatabaseList.adapter = null
     }

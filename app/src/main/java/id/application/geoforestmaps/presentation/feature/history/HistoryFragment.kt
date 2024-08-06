@@ -49,6 +49,8 @@ class HistoryFragment :
                 layoutInflater = layoutInflater,
                 context = requireContext(),
                 gallery = it.photo,
+                itemDescription = it.block,
+                itemTitle = it.plant,
                 createdBy = "Dibuat oleh : ${it.user}",
                 tvDateTime = formattedDate,
                 tvTimeItem = formattedTime
@@ -63,6 +65,8 @@ class HistoryFragment :
                 layoutInflater = layoutInflater,
                 context = requireContext(),
                 gallery = resources.getString(R.drawable.ic_img_loading),
+                itemDescription = it.block,
+                itemTitle = it.plant,
                 createdBy = "Dibuat oleh : ${it.user}",
                 tvDateTime = formattedDate,
                 tvTimeItem = formattedTime
@@ -77,7 +81,6 @@ class HistoryFragment :
             setup()
         } else {
             binding.layoutNoSignal.root.isGone = false
-            binding.pbLoading.isGone = true
             StyleableToast.makeText(
                 requireContext(),
                 getString(R.string.text_no_internet_connection),
@@ -94,7 +97,7 @@ class HistoryFragment :
     }
 
     private fun loadPagingGeotaging(adapter: DatabaseListAdapterItem) {
-        viewModel.loadPagingGeotaggingUser(adapter)
+        viewModel.loadPagingGeotagging(adapter, createdBy = "user")
     }
     private fun setUpPaging() {
         viewModel.geotaggingList.observe(viewLifecycleOwner) { pagingData ->
@@ -106,12 +109,18 @@ class HistoryFragment :
         }
         adapterPagingGeotagging.addLoadStateListener { loadState ->
             with(binding) {
-                pbLoading.visibility = when (loadState.refresh) {
-                    is LoadState.Loading -> View.VISIBLE
-                    else -> View.GONE
-                }
-                if (loadState.refresh is LoadState.Error) {
-                    // Tangani error jika perlu
+                when (loadState.refresh) {
+                    is LoadState.Loading -> {
+                        pbLoading.visibility = View.VISIBLE
+                    }
+
+                    is LoadState.NotLoading -> {
+                        pbLoading.visibility = View.GONE
+                    }
+
+                    is LoadState.Error -> {
+                        pbLoading.visibility = View.GONE
+                    }
                 }
             }
         }

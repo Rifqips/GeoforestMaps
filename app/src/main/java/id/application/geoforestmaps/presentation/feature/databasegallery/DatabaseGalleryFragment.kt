@@ -6,9 +6,11 @@ import android.content.IntentFilter
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
+import android.os.Build
 import android.os.Environment
 import android.view.View
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.RequiresApi
 import androidx.core.view.isGone
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
@@ -23,8 +25,10 @@ import id.application.geoforestmaps.databinding.DialogSaveDatabaseBinding
 import id.application.geoforestmaps.databinding.FragmentDatabaseGalleryBinding
 import id.application.geoforestmaps.presentation.adapter.databasegallery.DatabaseGalleryAdapterItem
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import id.application.geoforestmaps.utils.Constant.formatDateTime
 import id.application.geoforestmaps.utils.Constant.generateFileName
 import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
+import id.application.geoforestmaps.utils.Constant.showDialogDetail
 import id.application.geoforestmaps.utils.NetworkCallback
 import id.application.geoforestmaps.utils.NetworkChangeReceiver
 import io.github.muddz.styleabletoast.StyleableToast
@@ -35,6 +39,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import java.io.File
 
+@RequiresApi(Build.VERSION_CODES.O)
 class DatabaseGalleryFragment :
     BaseFragment<FragmentDatabaseGalleryBinding, VmApplication>(FragmentDatabaseGalleryBinding::inflate),
     NetworkCallback {
@@ -43,7 +48,19 @@ class DatabaseGalleryFragment :
 
     private val adapterPagingGeotagging: DatabaseGalleryAdapterItem by lazy {
         DatabaseGalleryAdapterItem(
-            { _ -> },
+            {
+                val (formattedDate, formattedTime) = formatDateTime(it.createdAt)
+                showDialogDetail(
+                    layoutInflater = layoutInflater,
+                    context = requireContext(),
+                    gallery = it.photo,
+                    itemTitle = it.plant,
+                    itemDescription = it.block,
+                    createdBy = "Dibuat oleh : ${it.user}",
+                    tvDateTime = formattedDate,
+                    tvTimeItem = formattedTime
+                )
+            },
             { itemDownload -> exportFileSingle(itemDownload.id) }
         )
     }
@@ -218,7 +235,7 @@ class DatabaseGalleryFragment :
     private fun setUpPaging() {
         view?.let { _ ->
             parentFragment?.viewLifecycleOwner?.let { lifecycleOwner ->
-                viewModel.geotaggingListAll.observe(lifecycleOwner) { pagingData ->
+                viewModel.geotaggingList.observe(lifecycleOwner) { pagingData ->
                     // Submit data to adapter
                     adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
@@ -269,9 +286,8 @@ class DatabaseGalleryFragment :
         }
     }
 
-
     private fun clearTrafficPaging(){
-        viewModel.geotaggingListAll.removeObservers(viewLifecycleOwner)
+        viewModel.geotaggingList.removeObservers(viewLifecycleOwner)
         adapterPagingGeotagging.submitData(lifecycle, PagingData.empty())
         binding.rvDatabaseGallery.adapter = null
     }

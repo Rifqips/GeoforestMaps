@@ -20,7 +20,6 @@ import id.application.core.domain.model.login.UserLoginRequest
 import id.application.core.domain.model.login.UserLoginResponse
 import id.application.core.domain.model.plants.ItemAllPlants
 import id.application.core.domain.model.plants.ItemAllPlantsResponse
-import id.application.core.domain.paging.GeotagingAllPagingSource
 import id.application.core.domain.paging.GeotagingPagingSource
 import id.application.core.domain.repository.ApplicationRepository
 import id.application.core.utils.ResultWrapper
@@ -160,6 +159,7 @@ class VmApplication(
     fun loadPagingGeotagging(
         adapter: DatabaseListAdapterItem,
         block: String? = null,
+        createdBy: String? = null,
         limitItem: Int? = null,
         pageItem: Int? = null
     ) {
@@ -167,31 +167,7 @@ class VmApplication(
         viewModelScope.launch(Dispatchers.IO) {
             val response = repo.getAllGeotaging(
                 block = block,
-                limitItem = limitItem,
-                pageItem = pageItem
-            )
-            if (response.code == 200) {
-                val postsResponse = response.data
-                postsResponse.let {
-                    val store = it.items
-                    adapter.submitData(PagingData.from(store))
-                }
-                _loadingPagingResults.postValue(false)
-            }
-        }
-    }
-
-
-    fun loadPagingGeotaggingUser(
-        adapter: DatabaseListAdapterItem,
-        block: String? = null,
-        limitItem: Int? = null,
-        pageItem: Int? = null
-    ) {
-        _loadingPagingResults.postValue(true)
-        viewModelScope.launch(Dispatchers.IO) {
-            val response = repo.getAllGeotagingUser(
-                block = block,
+                createdBy = createdBy,
                 limitItem = limitItem,
                 pageItem = pageItem
             )
@@ -235,12 +211,6 @@ class VmApplication(
             }
         }
     }
-
-
-    val geotaggingListAll = Pager(PagingConfig(pageSize = 4)) {
-        GeotagingAllPagingSource(repo)
-    }.liveData.cachedIn(viewModelScope)
-
 
     fun fetchAllBlockLocal() {
         viewModelScope.launch {

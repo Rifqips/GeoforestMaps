@@ -7,9 +7,11 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.GpsStatus
 import android.net.ConnectivityManager
+import android.os.Build
 import android.util.Log
 import android.view.View
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
@@ -23,7 +25,9 @@ import id.application.geoforestmaps.R
 import id.application.geoforestmaps.databinding.FragmentMapsBinding
 import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import id.application.geoforestmaps.utils.Constant.formatDateTime
 import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
+import id.application.geoforestmaps.utils.Constant.showDialogDetail
 import id.application.geoforestmaps.utils.NetworkCallback
 import id.application.geoforestmaps.utils.NetworkChangeReceiver
 import io.github.muddz.styleabletoast.StyleableToast
@@ -45,6 +49,7 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.io.File
 
+@RequiresApi(Build.VERSION_CODES.O)
 class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMapsBinding::inflate),
     MapListener, GpsStatus.Listener, NetworkCallback {
 
@@ -52,7 +57,17 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
 
     private val adapterPagingGeotagging: DatabaseListAdapterItem by lazy {
         DatabaseListAdapterItem {
-            addMarkersToMap(it.latitude, it.longitude)
+            val (formattedDate, formattedTime) = formatDateTime(it.createdAt)
+            showDialogDetail(
+                layoutInflater = layoutInflater,
+                context = requireContext(),
+                gallery = it.photo,
+                itemDescription = it.block,
+                itemTitle = it.plant,
+                createdBy = "Dibuat oleh : ${it.user}",
+                tvDateTime = formattedDate,
+                tvTimeItem = formattedTime
+            )
         }
     }
 
@@ -152,7 +167,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     private fun setUpPaging() {
         if (view != null) {
             parentFragment?.viewLifecycleOwner?.let {
-                viewModel.geotaggingListAll.observe(it) { pagingData ->
+                viewModel.geotaggingList.observe(it) { pagingData ->
                     adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
             }
@@ -310,7 +325,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     }
 
     private fun clearTrafficPaging(){
-        viewModel.geotaggingListAll.removeObservers(viewLifecycleOwner)
+        viewModel.geotaggingList.removeObservers(viewLifecycleOwner)
         binding.rvGeotaging.adapter = null
     }
 
