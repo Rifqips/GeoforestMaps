@@ -12,10 +12,11 @@
         <item name="colorSecondaryVariant">@color/secondary_green</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor">@color/primary_green</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
         <!-- Customize the color of the system bars (status bar, navigation bar) -->
         <item name="android:windowLightStatusBar">true</item> <!-- Ensures status bar icons are visible on light background -->
         <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
     </style>
 
     <style name="Base.Theme.GeoforestMaps.EditText">

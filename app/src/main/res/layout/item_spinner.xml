@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:ellipsize="marquee"
+    android:background="@color/white"
     android:fontFamily="@font/poppins"
     android:singleLine="true"
     android:textAlignment="inherit"

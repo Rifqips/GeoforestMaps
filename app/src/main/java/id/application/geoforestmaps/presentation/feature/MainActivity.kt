@@ -1,6 +1,7 @@
 package id.application.geoforestmaps.presentation.feature
 
 import android.os.Bundle
+import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -15,10 +16,11 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-        )
+        window.decorView.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_FULLSCREEN or
+                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                )
 //         val navController = findNavController(R.id.container_navigation)
 //        lifecycleScope.launch {
 //            EventBus.sessionExpired.collect {
@@ -26,16 +28,5 @@ class MainActivity : AppCompatActivity() {
 //            }
 //        }
 
-    }
-
-    fun setLayoutLimits(enabled: Boolean) {
-        if (enabled) {
-            window.setFlags(
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-            )
-        } else {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
-        }
     }
 }
