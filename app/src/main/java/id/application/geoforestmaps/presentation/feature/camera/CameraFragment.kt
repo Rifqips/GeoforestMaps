@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -25,6 +26,7 @@ import android.provider.MediaStore
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import android.util.Base64
 import android.util.DisplayMetrics
 import android.util.Log
 import android.util.Size
@@ -60,6 +62,7 @@ import id.application.geoforestmaps.utils.Constant.compressAndSaveImage
 import id.application.geoforestmaps.utils.Constant.convertImageToBase64
 import id.application.geoforestmaps.utils.Constant.formatAltitude
 import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
+import id.application.geoforestmaps.utils.Constant.resizeAndCompressImage
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -83,7 +86,6 @@ class CameraFragment :
     private var currentLocation: Location? = null
     private var selectedPlantType = ""
     private var blokName = ""
-    private var plantTypes = mutableListOf<String>()
     private var idPlant = ""
     private var idBlock = ""
     private var addressText = ""
@@ -93,6 +95,8 @@ class CameraFragment :
     private var savedUri: Uri = Uri.EMPTY
     private var userName = ""
     private var dateTime = ""
+
+    private val LOCATION_PERMISSION_REQUEST_CODE = 1
 
     override fun initView() {
         onBackPressed()
@@ -204,34 +208,54 @@ class CameraFragment :
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CAMERA_PERMISSION_CODE) {
-            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                startCamera()
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getCurrentLocation()
             } else {
-                Toast.makeText(requireContext(), "Permissions not granted", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(requireContext(), "Permissions not granted", Toast.LENGTH_SHORT).show()
             }
         }
     }
+
 
     private fun getCurrentLocation() {
         try {
             fusedLocationClient.lastLocation
                 .addOnSuccessListener { location: Location? ->
-                    currentLocation = location
-                }.addOnFailureListener {
-                    Toast.makeText(requireContext(), "Gagal mendapatkan lokasi", Toast.LENGTH_SHORT)
-                        .show()
+                    if (location != null) {
+                        // Use the location object here
+                        handleLocation(location)
+                        currentLocation = location
+                    }
+                }
+                .addOnFailureListener {
+                    Toast.makeText(requireContext(), "Gagal mendapatkan lokasi", Toast.LENGTH_SHORT).show()
                 }
         } catch (e: SecurityException) {
-            Toast.makeText(requireContext(), "Izin lokasi tidak diberikan", Toast.LENGTH_SHORT)
-                .show()
+            Toast.makeText(requireContext(), "Izin lokasi tidak diberikan", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun handleLocation(location: Location) {
+        val geocoder = Geocoder(requireContext(), Locale.getDefault())
+        val addresses: List<Address>? = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+        val addressText = if (addresses.isNullOrEmpty()) {
+            "Alamat tidak tersedia"
+        } else {
+            val address = addresses[0]
+            val addressLine = address.getAddressLine(0) ?: "Alamat tidak ditemukan"
+            "Latitude\t: ${location.latitude}\nLongitude\t: ${location.longitude}\nAltitude\t: ${location.altitude}" +
+                    "\nAddress\t: $addressLine\nBlock\t: $blokName\nPlant\t: $selectedPlantType\nUser\t: $userName\nDate Time\t: $dateTime"
+        }
+
+
+        latitude = location.latitude
+        longitude = location.longitude
+        altitude = location.altitude.toInt()
+
+        // Use latitude, longitude, and altitude as needed
     }
 
     private fun startCamera() {
@@ -309,19 +333,21 @@ class CameraFragment :
             }
         }
     }
-
     private fun addLocationToImageFromGallery(imageUri: Uri) {
         val resolver = requireContext().contentResolver
         val inputStream = resolver.openInputStream(imageUri)
-        val bitmap = BitmapFactory.decodeStream(inputStream)
+        val originalBitmap = BitmapFactory.decodeStream(inputStream)
         inputStream?.close()
 
-        if (bitmap == null) {
+        if (originalBitmap == null) {
             Toast.makeText(requireContext(), "Gagal memuat gambar", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val newBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
+        // Handle image rotation based on Exif data
+        val rotatedBitmap = rotateImageIfRequired(originalBitmap, resolver, imageUri)
+
+        val newBitmap = rotatedBitmap.copy(Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(newBitmap)
         val textPaint = TextPaint().apply {
             color = ContextCompat.getColor(requireContext(), R.color.white)
@@ -343,8 +369,8 @@ class CameraFragment :
                 addressText = if (addresses.isNullOrEmpty()) {
                     "Alamat tidak tersedia"
                 } else {
-                    "Latitude\t: ${it.latitude}\nLongitude\t: ${it.longitude}\nAltitude\t: ${it.altitude}" +
-                            "\nBlock\t: $blokName\nPlant\t: $selectedPlantType\nUser\t: $userName\nDate Time\t: $dateTime"
+                    "Latitude\t: ${it.latitude}\nLongitude\t: ${it.longitude}\nAltitude\t: ${formatAltitude(it.altitude)}" +
+                            "\nBlock\t: $blokName\nPlant\t: $selectedPlantType\nUser\t: $userName\nDate Time\t: $dateTime "
                 }
                 latitude = it.latitude
                 longitude = it.longitude
@@ -353,7 +379,6 @@ class CameraFragment :
                 addressText = "Lokasi tidak tersedia"
             }
         } catch (e: IOException) {
-//            addressText = "Gagal mendapatkan alamat"
             addressText = "Latitude\t: 0.0\nLongitude\t: 0.0\nAltitude\t: 0" +
                     "\nBlock\t: $blokName\nPlant\t: $selectedPlantType\nUser\t: $userName\nDate Time\t: $dateTime"
         }
@@ -416,14 +441,55 @@ class CameraFragment :
             scaledCanvas.drawText(addressText, xPos, yPos, textPaint)
         }
 
-        // Save the new bitmap to a file
-        val newFile = File(requireContext().cacheDir, "temp_image.jpg")
-        val outputStream = FileOutputStream(newFile)
-        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-        outputStream.close()
+        // Save the modified bitmap to a temporary file
+        val tempFile = File(requireContext().cacheDir, "temp_image.jpg")
+        FileOutputStream(tempFile).use { outStream ->
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outStream)
+        }
+        val base64Image = resizeAndCompressImage(tempFile, 100)
+        val compressedByteArray = Base64.decode(base64Image, Base64.DEFAULT)
+        val compressedBitmap = BitmapFactory.decodeByteArray(compressedByteArray, 0, compressedByteArray.size)
 
-        // Menggunakan file baru dengan lokasi tambahan
-        layoutCheckDataItem(Uri.fromFile(newFile), latitude, longitude, altitude)
+        val newImageUri = saveBitmapToMediaStore(compressedBitmap)
+        if (newImageUri != null) {
+            layoutCheckDataItem(newImageUri, latitude, longitude, altitude)
+        } else {
+            Toast.makeText(requireContext(), "Gagal menyimpan gambar", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun rotateImageIfRequired(bitmap: Bitmap, resolver: ContentResolver, imageUri: Uri): Bitmap {
+        val exif = ExifInterface(resolver.openInputStream(imageUri)!!)
+        val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+        val matrix = Matrix()
+
+        when (orientation) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+        }
+
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    }
+
+
+    private fun saveBitmapToMediaStore(bitmap: Bitmap): Uri? {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, "image_with_location_${System.currentTimeMillis()}.jpg")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ModifiedImages")
+        }
+
+        val resolver = requireContext().contentResolver
+        val imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+        imageUri?.let { uri ->
+            resolver.openOutputStream(uri)?.use { outputStream ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            }
+        }
+
+        return imageUri
     }
 
     private fun takePhoto() {
@@ -672,7 +738,6 @@ class CameraFragment :
                         val tempFile = File(requireContext().cacheDir, "temp_image.jpg")
                         val outputStream = FileOutputStream(tempFile)
                         inputStream?.copyTo(outputStream)
-                        inputStream?.close()
                         outputStream.close()
                         tempFile
                     }

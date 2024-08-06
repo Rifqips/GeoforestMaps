@@ -141,7 +141,7 @@ object Constant {
         }
     }
 
-    private fun resizeAndCompressImage(file: File, maxFileSizeKB: Int = 1024): String {
+    fun resizeAndCompressImage(file: File, maxFileSizeKB: Int = 1024): String {
         val options = BitmapFactory.Options().apply {
             inJustDecodeBounds = true
             BitmapFactory.decodeFile(file.absolutePath, this)

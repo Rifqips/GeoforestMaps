@@ -166,6 +166,7 @@ class VmApplication(
         _loadingPagingResults.postValue(true)
         viewModelScope.launch(Dispatchers.IO) {
             val response = repo.getAllGeotaging(
+                sort = "created_at:desc",
                 block = block,
                 createdBy = createdBy,
                 limitItem = limitItem,

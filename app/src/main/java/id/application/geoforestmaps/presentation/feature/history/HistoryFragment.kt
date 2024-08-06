@@ -86,9 +86,12 @@ class HistoryFragment :
         rvOffline()
         if (isNetworkAvailable(requireContext())) {
             binding.layoutNoSignal.root.isGone = true
-            setup()
+            binding.cvSycnGeotagging.isGone = false
+            setUpPaging()
+            loadPagingGeotaging(adapterPagingGeotagging)
         } else {
             binding.layoutNoSignal.root.isGone = false
+            binding.cvSycnGeotagging.isGone = true
             StyleableToast.makeText(
                 requireContext(),
                 getString(R.string.text_no_internet_connection),
@@ -98,12 +101,6 @@ class HistoryFragment :
     }
 
     override fun initListener() {}
-
-    private fun setup() {
-        setUpPaging()
-        loadPagingGeotaging(adapterPagingGeotagging)
-    }
-
     private fun loadPagingGeotaging(adapter: DatabaseListAdapterItem) {
         viewModel.loadPagingGeotagging(adapter, createdBy = "user")
     }

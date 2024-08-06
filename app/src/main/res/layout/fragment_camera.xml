@@ -109,7 +109,6 @@
         android:layout_width="match_parent"
         android:id="@+id/layout_check_data"
         layout="@layout/layout_check_data"
-        android:layout_marginTop="30dp"
         android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -12,6 +12,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Response
+import retrofit2.http.Query
 
 interface ApplicationDataSource {
 
@@ -20,6 +21,7 @@ interface ApplicationDataSource {
     suspend fun userProfile(): ResponseProfileItem
 
     suspend fun getAllGeotaging(
+        sort:String? = null,
         block:String? = null,
         createdBy:String? = null,
         limitItem:Int? = null,
@@ -64,12 +66,13 @@ class ApplicationDataSourceImpl(private val service: ApplicationService) : Appli
     }
 
     override suspend fun getAllGeotaging(
+        sort: String?,
         block: String?,
         createdBy: String?,
         limitItem: Int?,
         pageItem: Int?
     ): ResponseAllGeotagingItem {
-        return service.getAllGeotaging("created_at:desc",block,createdBy,limitItem, pageItem)
+        return service.getAllGeotaging(sort,block,createdBy,limitItem, pageItem)
     }
 
 

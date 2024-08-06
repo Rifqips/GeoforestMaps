@@ -56,6 +56,7 @@ interface  ApplicationRepository{
     ): Result<Unit>
 
     suspend fun getAllGeotaging(
+        sort:String? = null,
         block:String? = null,
         createdBy:String? = null,
         limitItem:Int? = null,
@@ -142,12 +143,13 @@ class ApplicationRepositoryImpl(
     }
 
     override suspend fun getAllGeotaging(
+        sort: String?,
         block:String?,
         createdBy:String?,
         limitItem: Int?,
         pageItem: Int?
     ): ItemAllGeotagingResponse {
-        return appDataSource.getAllGeotaging(block, createdBy,limitItem, pageItem).toAllGeotagingResponse()
+        return appDataSource.getAllGeotaging(sort, block, createdBy,limitItem, pageItem).toAllGeotagingResponse()
     }
 
 
