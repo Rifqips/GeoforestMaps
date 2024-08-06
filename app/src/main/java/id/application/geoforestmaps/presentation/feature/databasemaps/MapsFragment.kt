@@ -56,7 +56,7 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
     override val viewModel: VmApplication by viewModel()
 
     private val adapterPagingGeotagging: DatabaseListAdapterItem by lazy {
-        DatabaseListAdapterItem {
+        DatabaseListAdapterItem ({
             val (formattedDate, formattedTime) = formatDateTime(it.createdAt)
             showDialogDetail(
                 layoutInflater = layoutInflater,
@@ -68,7 +68,10 @@ class MapsFragment : BaseFragment<FragmentMapsBinding, VmApplication>(FragmentMa
                 tvDateTime = formattedDate,
                 tvTimeItem = formattedTime
             )
-        }
+        },
+            headerTitle = "",
+            showHeader = false
+        )
     }
 
     private val networkChangeReceiver: NetworkChangeReceiver by lazy {

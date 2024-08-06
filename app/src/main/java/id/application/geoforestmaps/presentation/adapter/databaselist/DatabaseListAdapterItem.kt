@@ -3,7 +3,9 @@ package id.application.geoforestmaps.presentation.adapter.databaselist
 import android.annotation.SuppressLint
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -20,16 +22,20 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class DatabaseListAdapterItem(
-    private val onClickListener: (ItemAllGeotaging) -> Unit
-) : PagingDataAdapter<ItemAllGeotaging, DatabaseListAdapterItem.LinearViewHolder>(DIFF_CALLBACK) {
+    private val onClickListener: (ItemAllGeotaging) -> Unit,
+    private val headerTitle: String,
+    private val showHeader: Boolean // Tambahkan parameter untuk kontrol header
+) : PagingDataAdapter<ItemAllGeotaging, RecyclerView.ViewHolder>(DIFF_CALLBACK) {
 
     companion object {
+        private const val VIEW_TYPE_HEADER = 0
+        private const val VIEW_TYPE_ITEM = 1
+
         private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<ItemAllGeotaging>() {
             override fun areItemsTheSame(
                 oldItem: ItemAllGeotaging,
                 newItem: ItemAllGeotaging
             ): Boolean {
-                // Assuming `id` uniquely identifies each item
                 return oldItem.id == newItem.id
             }
 
@@ -37,23 +43,43 @@ class DatabaseListAdapterItem(
                 oldItem: ItemAllGeotaging,
                 newItem: ItemAllGeotaging
             ): Boolean {
-                // Check if the content of items is the same
                 return oldItem == newItem
             }
         }
     }
 
-    override fun onBindViewHolder(holder: LinearViewHolder, position: Int) {
-        val item = getItem(position)
-        item?.let { holder.bindLinear(it) }
+    override fun getItemViewType(position: Int): Int {
+        return if (showHeader && position == 0) VIEW_TYPE_HEADER else VIEW_TYPE_ITEM
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LinearViewHolder {
-        val binding = ItemHistoryDataBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return LinearViewHolder(binding)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return if (viewType == VIEW_TYPE_HEADER) {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_header_rv, parent, false)
+            HeaderViewHolder(view)
+        } else {
+            val binding = ItemHistoryDataBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ItemViewHolder(binding)
+        }
     }
 
-    inner class LinearViewHolder(
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        if (holder is HeaderViewHolder) {
+            holder.headerTextView.text = headerTitle
+        } else if (holder is ItemViewHolder) {
+            val item = getItem(if (showHeader) position - 1 else position)
+            item?.let { holder.bindLinear(it) }
+        }
+    }
+
+    override fun getItemCount(): Int {
+        return if (showHeader) super.getItemCount() + 1 else super.getItemCount()
+    }
+
+    inner class HeaderViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val headerTextView: TextView = view.findViewById(R.id.headerTextView)
+    }
+
+    inner class ItemViewHolder(
         private val binding: ItemHistoryDataBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -87,3 +113,4 @@ class DatabaseListAdapterItem(
         }
     }
 }
+

@@ -48,7 +48,7 @@ class DatabaseListFragment :
     override val viewModel: VmApplication by viewModel()
 
     private val adapterPagingGeotagging: DatabaseListAdapterItem by lazy {
-        DatabaseListAdapterItem {
+        DatabaseListAdapterItem ({
             val (formattedDate, formattedTime) = formatDateTime(it.createdAt)
             showDialogDetail(
                 layoutInflater = layoutInflater,
@@ -60,7 +60,10 @@ class DatabaseListFragment :
                 tvDateTime = formattedDate,
                 tvTimeItem = formattedTime
             )
-        }
+        },
+            headerTitle = "",
+            showHeader = true
+        )
     }
     private var activeDialog: AlertDialog? = null
 

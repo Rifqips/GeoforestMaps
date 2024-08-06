@@ -43,35 +43,43 @@ class HistoryFragment :
     override val viewModel: VmApplication by viewModel()
 
     private val adapterPagingGeotagging: DatabaseListAdapterItem by lazy {
-        DatabaseListAdapterItem {
-            val (formattedDate, formattedTime) = formatDateTime(it.createdAt)
-            showDialogDetail(
-                layoutInflater = layoutInflater,
-                context = requireContext(),
-                gallery = it.photo,
-                itemDescription = it.block,
-                itemTitle = it.plant,
-                createdBy = "Dibuat oleh : ${it.user}",
-                tvDateTime = formattedDate,
-                tvTimeItem = formattedTime
-            )
-        }
+        DatabaseListAdapterItem (
+            onClickListener = {
+                val (formattedDate, formattedTime) = formatDateTime(it.createdAt)
+                showDialogDetail(
+                    layoutInflater = layoutInflater,
+                    context = requireContext(),
+                    gallery = it.photo,
+                    itemDescription = it.block,
+                    itemTitle = it.plant,
+                    createdBy = "Dibuat oleh : ${it.user}",
+                    tvDateTime = formattedDate,
+                    tvTimeItem = formattedTime
+                )
+            },
+            headerTitle = "Sudah Terkirim",
+            showHeader = true
+        )
+
     }
 
     private val adapterGeotaggingOffline: AdapterGeotagingOffline by lazy {
-        AdapterGeotagingOffline {
-            val (formattedDate, formattedTime) = formatDateTime(it.createdAt.toString())
-            showDialogDetail(
-                layoutInflater = layoutInflater,
-                context = requireContext(),
-                gallery = resources.getString(R.drawable.ic_img_loading),
-                itemDescription = it.block,
-                itemTitle = it.plant,
-                createdBy = "Dibuat oleh : ${it.user}",
-                tvDateTime = formattedDate,
-                tvTimeItem = formattedTime
-            )
-        }
+        AdapterGeotagingOffline(
+            {
+                val (formattedDate, formattedTime) = formatDateTime(it.createdAt.toString())
+                showDialogDetail(
+                    layoutInflater = layoutInflater,
+                    context = requireContext(),
+                    gallery = resources.getString(R.drawable.ic_img_loading),
+                    itemDescription = it.block,
+                    itemTitle = it.plant,
+                    createdBy = "Dibuat oleh : ${it.user}",
+                    tvDateTime = formattedDate,
+                    tvTimeItem = formattedTime
+                )
+            },
+            headerTitle = "Belum Terkirim"
+        )
     }
 
     override fun initView() {
@@ -134,7 +142,6 @@ class HistoryFragment :
                     doOnSuccess = {
                         binding.rvHistoryData.visibility = View.VISIBLE
                         binding.tvTotalSentOffline.visibility = View.VISIBLE
-                        binding.tvAlreadySent.visibility = View.VISIBLE
                         binding.cvDataSynchronization.visibility = View.VISIBLE
                         binding.rvHistoryData.apply {
                             layoutManager = LinearLayoutManager(requireContext()).apply {
@@ -153,7 +160,6 @@ class HistoryFragment :
                         binding.rvHistoryData.visibility = View.GONE
                         binding.cvDataSynchronization.visibility = View.GONE
                         binding.tvTotalSentOffline.visibility = View.GONE
-                        binding.tvAlreadySent.visibility = View.GONE
                     }
                 )
             }
