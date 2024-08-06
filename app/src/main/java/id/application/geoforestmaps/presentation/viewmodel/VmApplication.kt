@@ -181,6 +181,35 @@ class VmApplication(
         }
     }
 
+
+    fun loadPagingGeotaggingUser(
+        adapter: DatabaseListAdapterItem,
+        block: String? = null,
+        limitItem: Int? = null,
+        pageItem: Int? = null
+    ) {
+        _loadingPagingResults.postValue(true)
+        viewModelScope.launch(Dispatchers.IO) {
+            val response = repo.getAllGeotagingUser(
+                block = block,
+                limitItem = limitItem,
+                pageItem = pageItem
+            )
+            if (response.code == 200) {
+                val postsResponse = response.data
+                postsResponse.let {
+                    val store = it.items
+                    adapter.submitData(PagingData.from(store))
+                }
+                _loadingPagingResults.postValue(false)
+            }
+        }
+    }
+
+    val geotaggingList = Pager(PagingConfig(pageSize = 1)) {
+        GeotagingPagingSource(repo)
+    }.liveData.cachedIn(viewModelScope)
+
     fun loadPagingGeotaggingGallery(
         adapter: DatabaseGalleryAdapterItem,
         block: String? = null,
@@ -206,10 +235,6 @@ class VmApplication(
             }
         }
     }
-
-    val geotaggingList = Pager(PagingConfig(pageSize = 4)) {
-        GeotagingPagingSource(repo)
-    }.liveData.cachedIn(viewModelScope)
 
 
     val geotaggingListAll = Pager(PagingConfig(pageSize = 4)) {

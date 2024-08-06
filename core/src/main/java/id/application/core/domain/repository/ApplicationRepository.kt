@@ -6,6 +6,7 @@ import id.application.core.data.datasource.AppPreferenceDataSource
 import id.application.core.data.datasource.ApplicationDataSource
 import id.application.core.data.local.database.geotags.GeotagsOfflineDao
 import id.application.core.data.local.database.plants.PlantsDao
+import id.application.core.data.network.model.geotags.ResponseAllGeotagingItem
 import id.application.core.data.network.model.login.RequestLoginItem
 import id.application.core.data.network.model.profile.toProfileResponse
 import id.application.core.domain.model.blocks.ItemAllBlocks
@@ -57,7 +58,16 @@ interface  ApplicationRepository{
 
     suspend fun getAllGeotaging(
         block:String? = null,
-        createdBy:String? = null,
+        createdBy:String? = "user",
+        limitItem:Int? = null,
+        pageItem:Int? = null,
+    ): ItemAllGeotagingResponse
+
+
+
+    suspend fun getAllGeotagingUser(
+        block:String? = null,
+        createdBy:String? = "user",
         limitItem:Int? = null,
         pageItem:Int? = null,
     ): ItemAllGeotagingResponse
@@ -148,6 +158,15 @@ class ApplicationRepositoryImpl(
         pageItem: Int?
     ): ItemAllGeotagingResponse {
         return appDataSource.getAllGeotaging(block, createdBy,limitItem, pageItem).toAllGeotagingResponse()
+    }
+
+    override suspend fun getAllGeotagingUser(
+        block: String?,
+        createdBy: String?,
+        limitItem: Int?,
+        pageItem: Int?
+    ): ItemAllGeotagingResponse {
+        return appDataSource.getAllGeotagingUser(block, "user",limitItem, pageItem).toAllGeotagingResponse()
     }
 
 

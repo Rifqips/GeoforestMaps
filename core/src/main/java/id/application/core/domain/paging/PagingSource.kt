@@ -14,22 +14,14 @@ import id.application.core.domain.model.geotags.ItemAllGeotaging
 import id.application.core.domain.repository.ApplicationRepository
 import kotlinx.coroutines.flow.Flow
 
-
 class GeotagingPagingSource(
-    private val repository : ApplicationRepository
-) :PagingSource<Int, ItemAllGeotaging>(){
-
-    override fun getRefreshKey(state: PagingState<Int, ItemAllGeotaging>): Int? {
-        return state.anchorPosition?.let { anchorPosition ->
-            state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
-                ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
-        }
-    }
+    private val repository: ApplicationRepository
+) : PagingSource<Int, ItemAllGeotaging>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ItemAllGeotaging> {
-        try {
-            val currentPage = params.key ?: 1
-            val response = repository.getAllGeotaging(
+        val currentPage = params.key ?: 1
+        return try {
+            val response = repository.getAllGeotagingUser(
                 block = null,
                 createdBy = "user",
                 limitItem = params.loadSize,
@@ -37,17 +29,27 @@ class GeotagingPagingSource(
             )
             if (response.code == 200) {
                 val storeResponse = response.data
-                storeResponse.let {
-                    val store = it.items
-                    val prevKey = if (currentPage == 1) null else currentPage - 1
-                    val nextKey = if (currentPage == it.totalPages) null else currentPage + 1
-                    return LoadResult.Page(store, prevKey, nextKey)
-                }
+                val items = storeResponse.items
+                val prevKey = if (currentPage == 1) null else currentPage - 1
+                val nextKey = if (currentPage >= storeResponse.totalPages) null else currentPage + 1
+                LoadResult.Page(
+                    data = items,
+                    prevKey = prevKey,
+                    nextKey = nextKey
+                )
+            } else {
+                LoadResult.Error(Exception("Error code: ${response.code}"))
             }
-        } catch (e : Exception){
-            return LoadResult.Error(e)
+        } catch (e: Exception) {
+            LoadResult.Error(e)
         }
-        return LoadResult.Error(Exception("Unknown error"))
+    }
+
+    override fun getRefreshKey(state: PagingState<Int, ItemAllGeotaging>): Int? {
+        return state.anchorPosition?.let { anchorPosition ->
+            state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
+                ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
+        }
     }
 }
 

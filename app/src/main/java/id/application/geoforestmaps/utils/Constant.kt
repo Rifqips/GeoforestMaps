@@ -1,14 +1,26 @@
 package id.application.geoforestmaps.utils
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Build
 import android.util.Base64
+import android.util.Log
+import android.view.LayoutInflater
+import androidx.annotation.RequiresApi
+import coil.ImageLoader
+import coil.load
 import id.application.geoforestmaps.R
+import id.application.geoforestmaps.databinding.DialogConfirmCustomBinding
+import id.application.geoforestmaps.databinding.DialogListDetailBinding
+import okhttp3.OkHttpClient
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -18,6 +30,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
+import java.util.zip.Inflater
 
 object Constant {
     val IMAGE_FORMAT = "image/*"
@@ -150,4 +163,50 @@ object Constant {
         return decimalFormat.format(altitude)
     }
 
+
+    @SuppressLint("ClickableViewAccessibility")
+    fun showDialogDetail(
+        layoutInflater: LayoutInflater,
+        context: Context,
+        gallery: String,
+        createdBy: String,
+        tvDateTime: String,
+        tvTimeItem: String
+    ) {
+        val binding: DialogListDetailBinding = DialogListDetailBinding.inflate(layoutInflater)
+        val dialog = AlertDialog.Builder(context, 0).create()
+
+        dialog.apply {
+            setView(binding.root)
+            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        }.show()
+
+        with(binding) {
+            val client = OkHttpClient.Builder()
+                .addInterceptor { chain ->
+                    val request = chain.request()
+                    val response = chain.proceed(request)
+                    response
+                }
+                .build()
+            val imageLoader = ImageLoader.Builder(context)
+                .okHttpClient(client)
+                .build()
+            ivGallery.load(gallery, imageLoader) {
+                placeholder(R.drawable.ic_img_loading) // Gambar sementara saat loading
+                error(R.drawable.ic_img_failed) // Gambar saat gagal memuat
+                crossfade(true)
+            }
+            // Set text fields
+            tvCreatedBy.text = createdBy
+            tvDateItemHistory.text = tvDateTime
+            tvTimeItemHistory.text = tvTimeItem
+        }
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun formatDateTime(dateString: String): Pair<String, String> {
+        val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+        val dateTime = ZonedDateTime.parse(dateString, formatter)
+        return Pair(dateTime.formatDate(), dateTime.formatTime())
+    }
 }

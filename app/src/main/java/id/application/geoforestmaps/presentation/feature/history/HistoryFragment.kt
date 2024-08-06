@@ -1,8 +1,11 @@
 package id.application.geoforestmaps.presentation.feature.history
 
 import android.annotation.SuppressLint
+import android.os.Build
+import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.view.isGone
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
@@ -15,15 +18,24 @@ import id.application.geoforestmaps.databinding.FragmentHistoryBinding
 import id.application.geoforestmaps.presentation.adapter.databaselist.DatabaseListAdapterItem
 import id.application.geoforestmaps.presentation.adapter.history.AdapterGeotagingOffline
 import id.application.geoforestmaps.presentation.viewmodel.VmApplication
+import id.application.geoforestmaps.utils.Constant.formatDate
+import id.application.geoforestmaps.utils.Constant.formatDateTime
+import id.application.geoforestmaps.utils.Constant.formatTime
 import id.application.geoforestmaps.utils.Constant.isNetworkAvailable
+import id.application.geoforestmaps.utils.Constant.showDialogDetail
 import id.application.geoforestmaps.utils.NetworkCallback
 import io.github.muddz.styleabletoast.StyleableToast
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
+@SuppressLint("ResourceType")
+@RequiresApi(Build.VERSION_CODES.O)
 class HistoryFragment :
     BaseFragment<FragmentHistoryBinding, VmApplication>(FragmentHistoryBinding::inflate),
     NetworkCallback {
@@ -31,19 +43,38 @@ class HistoryFragment :
     override val viewModel: VmApplication by viewModel()
 
     private val adapterPagingGeotagging: DatabaseListAdapterItem by lazy {
-        DatabaseListAdapterItem{}
+        DatabaseListAdapterItem {
+            val (formattedDate, formattedTime) = formatDateTime(it.createdAt)
+            showDialogDetail(
+                layoutInflater = layoutInflater,
+                context = requireContext(),
+                gallery = it.photo,
+                createdBy = "Dibuat oleh : ${it.user}",
+                tvDateTime = formattedDate,
+                tvTimeItem = formattedTime
+            )
+        }
     }
 
     private val adapterGeotaggingOffline: AdapterGeotagingOffline by lazy {
-        AdapterGeotagingOffline {}
+        AdapterGeotagingOffline {
+            val (formattedDate, formattedTime) = formatDateTime(it.createdAt.toString())
+            showDialogDetail(
+                layoutInflater = layoutInflater,
+                context = requireContext(),
+                gallery = resources.getString(R.drawable.ic_img_loading),
+                createdBy = "Dibuat oleh : ${it.user}",
+                tvDateTime = formattedDate,
+                tvTimeItem = formattedTime
+            )
+        }
     }
 
     override fun initView() {
         rvOffline()
         if (isNetworkAvailable(requireContext())) {
-            loadPagingGeotaging(adapter = adapterPagingGeotagging)
-            setUpPaging()
             binding.layoutNoSignal.root.isGone = true
+            setup()
         } else {
             binding.layoutNoSignal.root.isGone = false
             binding.pbLoading.isGone = true
@@ -57,53 +88,34 @@ class HistoryFragment :
 
     override fun initListener() {}
 
-    private fun loadPagingGeotaging(
-        adapter: DatabaseListAdapterItem,
-    ) {
-        viewModel.loadPagingGeotagging(
-            adapter,
-        )
+    private fun setup() {
+        setUpPaging()
+        loadPagingGeotaging(adapterPagingGeotagging)
     }
 
-    private fun setUpPaging(){
-        if (view != null){
-            parentFragment?.viewLifecycleOwner?.let {
-                viewModel.geotaggingList.observe(it) { pagingData ->
-                    adapterPagingGeotagging.submitData(lifecycle, pagingData)
-                }
-            }
+    private fun loadPagingGeotaging(adapter: DatabaseListAdapterItem) {
+        viewModel.loadPagingGeotaggingUser(adapter)
+    }
+    private fun setUpPaging() {
+        viewModel.geotaggingList.observe(viewLifecycleOwner) { pagingData ->
+            adapterPagingGeotagging.submitData(lifecycle, pagingData)
         }
         binding.rvHistoryAlreadySentData.apply {
             adapter = adapterPagingGeotagging
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         }
         adapterPagingGeotagging.addLoadStateListener { loadState ->
-            with(binding){
-
-                when (loadState.refresh) {
-                    is LoadState.Loading -> {
-                        pbLoading.visibility = View.VISIBLE
-                    }
-                    is LoadState.NotLoading -> {
-                        pbLoading.visibility = View.GONE
-                        if (view != null){
-                            rvHistoryAlreadySentData.apply {
-                                layoutManager = LinearLayoutManager(context).apply {
-                                    isSmoothScrollbarEnabled = true
-                                }
-                                adapter = adapterPagingGeotagging
-                            }
-                        }
-                    }
-
-                    is LoadState.Error -> {
-                        pbLoading.visibility = View.GONE
-                    }
+            with(binding) {
+                pbLoading.visibility = when (loadState.refresh) {
+                    is LoadState.Loading -> View.VISIBLE
+                    else -> View.GONE
+                }
+                if (loadState.refresh is LoadState.Error) {
+                    // Tangani error jika perlu
                 }
             }
         }
     }
-
 
     @SuppressLint("SetTextI18n")
     private fun rvOffline() {

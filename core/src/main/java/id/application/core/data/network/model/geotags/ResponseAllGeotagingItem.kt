@@ -41,6 +41,6 @@ data class AllGeotaging(
     val plant: String,
     @SerializedName("updated_at")
     val updatedAt: String,
-    @SerializedName("user_id")
-    val userId: Int
+    @SerializedName("user")
+    val user: String
 )

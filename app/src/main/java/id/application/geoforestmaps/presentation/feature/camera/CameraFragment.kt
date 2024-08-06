@@ -723,6 +723,7 @@ class CameraFragment :
                         val itemOffline = ItemAllGeotagingOffline(
                             plant = selectedPlantType,
                             plantId = idPlant,
+                            user = userName,
                             block = blokName,
                             blockId = idBlock,
                             latitude = latitude.toString(),
