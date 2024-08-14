@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter
 class DatabaseListAdapterItem(
     private val onClickListener: (ItemAllGeotaging) -> Unit,
     private val headerTitle: String,
-    private val showHeader: Boolean // Tambahkan parameter untuk kontrol header
+    private val showHeader: Boolean
 ) : PagingDataAdapter<ItemAllGeotaging, RecyclerView.ViewHolder>(DIFF_CALLBACK) {
 
     companion object {

@@ -197,8 +197,9 @@ class VmApplication(
         pageItem: Int? = null
     ) {
         _loadingPagingResults.postValue(true)
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val response = repo.getAllGeotaging(
+                sort = "created_at:desc",
                 block = block,
                 createdBy = createdBy,
                 limitItem = limitItem,
@@ -209,6 +210,8 @@ class VmApplication(
                 postsResponse.let {
                     val store = it.items
                     adapter.submitData(PagingData.from(store))
+                    _geotagingListResult.postValue(it.items)
+
                 }
                 _loadingPagingResults.postValue(false)
             }

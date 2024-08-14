@@ -236,7 +236,6 @@ class DatabaseGalleryFragment :
         view?.let { _ ->
             parentFragment?.viewLifecycleOwner?.let { lifecycleOwner ->
                 viewModel.geotaggingList.observe(lifecycleOwner) { pagingData ->
-                    // Submit data to adapter
                     adapterPagingGeotagging.submitData(lifecycle, pagingData)
                 }
             }

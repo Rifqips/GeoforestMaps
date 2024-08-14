@@ -659,7 +659,7 @@ class CameraFragment :
         }
 
         resolver.openOutputStream(imageUri)?.let { outputStream ->
-            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 10, outputStream)
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
             outputStream.close()
         }
         // pindah ke sini layoutCheckDataItem nya
