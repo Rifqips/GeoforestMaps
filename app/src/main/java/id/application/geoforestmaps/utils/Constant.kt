@@ -26,6 +26,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Date
@@ -240,4 +241,11 @@ object Constant {
         val dateTime = ZonedDateTime.parse(dateString, formatter)
         return Pair(dateTime.formatDate(), dateTime.formatTime())
     }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun String.toLocalDateTime(): LocalDateTime {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", Locale.getDefault())
+        return LocalDateTime.parse(this, formatter)
+    }
+
 }

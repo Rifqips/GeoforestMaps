@@ -446,7 +446,7 @@ class CameraFragment :
         FileOutputStream(tempFile).use { outStream ->
             scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outStream)
         }
-        val base64Image = resizeAndCompressImage(tempFile, 100)
+        val base64Image = resizeAndCompressImage(tempFile, 300)
         val compressedByteArray = Base64.decode(base64Image, Base64.DEFAULT)
         val compressedBitmap = BitmapFactory.decodeByteArray(compressedByteArray, 0, compressedByteArray.size)
 
